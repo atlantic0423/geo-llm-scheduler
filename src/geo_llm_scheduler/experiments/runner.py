@@ -4,6 +4,7 @@ import csv
 import hashlib
 import json
 import platform
+import subprocess
 from dataclasses import asdict, replace
 from pathlib import Path
 
@@ -55,25 +56,66 @@ def source_digest() -> str:
     )
 
 
+def git_metadata(root: Path | None = None) -> dict[str, str | bool | None]:
+    """Return explicit repository provenance, or null fields outside a Git checkout."""
+    repository = root or Path(__file__).resolve().parents[3]
+
+    def git(*args: str) -> str | None:
+        try:
+            completed = subprocess.run(
+                ["git", "-C", str(repository), *args],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (FileNotFoundError, subprocess.SubprocessError):
+            return None
+        return completed.stdout.strip()
+
+    commit = git("rev-parse", "HEAD")
+    if commit is None:
+        return {"git_commit": None, "git_branch": None, "git_dirty": None}
+    branch = git("branch", "--show-current")
+    status = git("status", "--porcelain", "--untracked-files=normal")
+    return {
+        "git_commit": commit,
+        "git_branch": branch or None,
+        "git_dirty": None if status is None else bool(status),
+    }
+
+
 def save_result(result: RunResult, config: Config, instance_hash: str, output: Path) -> dict:
     """Write reproducible machine-readable artifacts and detailed accounting."""
     output.mkdir(parents=True, exist_ok=True)
     config_data = asdict(config)
-    summary = {
+    provenance = git_metadata()
+    final_by_origin: dict[str, int] = {}
+    for candidate in result.archive.members:
+        final_by_origin[candidate.origin] = final_by_origin.get(candidate.origin, 0) + 1
+    summary: dict[str, object] = {
         "seed": config.seed,
         "instance_hash": instance_hash,
         "config_hash": digest(config_data),
         "source_hash": source_digest(),
+        **provenance,
         "python": platform.python_version(),
         "method": config.method,
         "controller": config.controller,
         "budget_policy": config.budget_policy,
         "elapsed": result.elapsed,
+        "termination_reason": result.termination_reason,
+        "time_budget_seconds": config.seconds,
+        "time_overshoot_seconds": (
+            None if config.seconds is None else max(0.0, result.elapsed - config.seconds)
+        ),
         "counts": dict(result.gateway.counts),
         "timings": dict(result.gateway.seconds),
         "archive_size": len(result.archive.members),
+        "archive_peak_size": result.archive.peak_size,
         "archive_attempts": result.archive.attempts,
-        "archive_contributions": result.archive.contributions,
+        "archive_insertions": result.archive.insertions,
+        "archive_final_by_origin": final_by_origin,
         "trace_hash": digest(deterministic_trace(result.trace)),
         "hv": None,
         "igd_plus": None,
@@ -87,12 +129,23 @@ def save_result(result: RunResult, config: Config, instance_hash: str, output: P
         for step in row["steps"]:
             key = f"A{step['action']}"
             stat = operators.setdefault(
-                key, {"calls": 0, "attempts": 0, "exact": 0, "accepted": 0, "seconds": 0.0}
+                key,
+                {
+                    "calls": 0,
+                    "attempts": 0,
+                    "exact": 0,
+                    "accepted": 0,
+                    "archive_insertions": 0,
+                    "archive_net_retained": 0,
+                    "seconds": 0.0,
+                },
             )
             stat["calls"] += 1
             stat["attempts"] += step["attempts"]
             stat["exact"] += step["effective"]
             stat["accepted"] += int(step["accepted"])
+            stat["archive_insertions"] += step["archive_insertions"]
+            stat["archive_net_retained"] += step["archive_net_retained"]
             stat["seconds"] += step["seconds"]
     summary["operators"] = operators
     artifacts = {

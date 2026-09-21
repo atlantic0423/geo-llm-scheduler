@@ -6,7 +6,7 @@ import pytest
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
-from geo_llm_scheduler.domain.models import Genotype, Schedule
+from geo_llm_scheduler.domain.models import Candidate, EvaluationResult, Genotype, Schedule
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.io.validation import validate_genotype
 from geo_llm_scheduler.macrosearch.search import execute
@@ -82,3 +82,45 @@ def test_timing_frozen_and_no_ssgs(problem):
             gateway,
             "timing",
         )
+
+
+def test_result_keeps_explicit_feasible_score_pairs(problem):
+    class MixedEvaluator:
+        ideal = (0.0, 0.0)
+
+        def evaluate(self, genotype, schedule=None, origin="structural"):
+            feasible = genotype.ms[0] == 0
+            return Candidate(
+                genotype,
+                schedule or Schedule((0, 100, 200, 300)),
+                EvaluationResult(feasible, 10, 5, (), ()),
+                origin,
+            )
+
+    incumbent = Candidate(
+        Genotype((0, 0, 0, 0), (0, 1, 0, 1)),
+        Schedule((0, 100, 200, 300)),
+        EvaluationResult(True, 20, 10, (), ()),
+    )
+    proposals = ProposalBatch(
+        [
+            Proposal(Genotype((0, 0, 0, 0), incumbent.genotype.os)),
+            Proposal(Genotype((1, 1, 1, 1), incumbent.genotype.os)),
+        ],
+        2,
+    )
+    result = execute(
+        proposals,
+        incumbent,
+        2,
+        (0.5, 0.5),
+        NormalizationContext((0, 0), (100, 100)),
+        MixedEvaluator(),
+        "mixed",
+    )
+    assert len(result.evaluated) == 2
+    assert len(result.feasible_scored) == result.feasible_count == 1
+    assert result.feasible_scored[0].candidate.evaluation.feasible
+    assert result.feasible_scored[0].score == result.context.scalar(
+        result.feasible_scored[0].candidate, (0.5, 0.5)
+    )

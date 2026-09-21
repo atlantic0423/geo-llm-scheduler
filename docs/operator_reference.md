@@ -13,7 +13,7 @@ A1–A6 structural，A7/A8 timing-only。接口 operators/base.py；执行 macro
 | A7 Active-Pack | 单 operation start | 正 active-union gain，合法有限关键时刻 |
 | A8 Peak-Coalition | 一个 Region 的少量 starts | 原并列峰 singleton-first 与支撑组 coalition |
 
-A1–A5 从按规则生成的2B pool无放回抽取B；A6直接生成不同候选并限制尝试数。结构候选均 rebuild。
+A1–A5 从按规则生成的2B pool无放回抽取B；A6直接生成不同候选并限制尝试数。A4/A5 使用 lazy bounded round-robin，达到2B不同候选后立即停止；A5 从合法位置对空间做有界无放回采样，不物化完整二次位置对集合。日志分别记录 raw moves considered、2B qualifying pool 和最终 proposals。结构候选均 rebuild。
 
 ## A7
 

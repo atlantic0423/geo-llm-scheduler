@@ -34,6 +34,7 @@ class RunResult:
     trace: list[dict]
     elapsed: float
     controller: Controller
+    termination_reason: str
 
 
 def run(problem: ProblemInstance, config: Config) -> RunResult:
@@ -57,7 +58,13 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
         for i in order:
             if config.seconds is not None and perf_counter() - begin >= config.seconds:
                 return RunResult(
-                    population, gateway.archive, gateway, trace, perf_counter() - begin, controller
+                    population,
+                    gateway.archive,
+                    gateway,
+                    trace,
+                    perf_counter() - begin,
+                    controller,
+                    "time_budget",
                 )
             rng = streams.stream("variation")
             pool = (
@@ -102,7 +109,7 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
                     if less(
                         final_context.scalar(child, lambdas[i]),
                         final_context.scalar(before_search, lambdas[i]),
-                        TOL.cost,
+                        TOL.scalar,
                     ):
                         gateway.counts["trigger_successes"] += 1
             context = NormalizationContext(gateway.ideal, maximum(population))
@@ -112,7 +119,7 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
             improved = less(
                 context.scalar(population[i], lambdas[i]),
                 context.scalar(previous, lambdas[i]),
-                TOL.cost,
+                TOL.scalar,
             )
             stagnation[i] = 0 if improved else stagnation[i] + 1
             trace.append(
@@ -130,5 +137,11 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
                 }
             )
     return RunResult(
-        population, gateway.archive, gateway, trace, perf_counter() - begin, controller
+        population,
+        gateway.archive,
+        gateway,
+        trace,
+        perf_counter() - begin,
+        controller,
+        "generation_limit",
     )
