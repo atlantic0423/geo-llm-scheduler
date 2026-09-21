@@ -257,10 +257,11 @@ def aggregate_diagnostics(
     *,
     phases: tuple[str, ...] | None = None,
     manifest: str | Path | None = None,
+    aggregate_subdir: str = "aggregate",
 ) -> dict[str, int]:
     """Aggregate raw diagnostic artifacts into direct heatmap and profiling tables."""
     root = Path(output_root)
-    aggregate = root / "aggregate"
+    aggregate = root / aggregate_subdir
     run_rows: list[dict[str, object]] = []
     all_steps: list[dict[str, object]] = []
     summaries: list[tuple[dict, dict]] = []
@@ -542,11 +543,17 @@ def aggregate_diagnostics(
         if item["scenario"] == "D0_balanced"
     }
     for item in incidence_rows:
-        condition = TARGET_CONDITION[str(item["scenario"])]
-        proportion = _as_float(item[f"condition_{condition}"])
+        target_condition = TARGET_CONDITION.get(str(item["scenario"]))
+        if target_condition is None:
+            item["target_condition"] = ""
+            item["target_condition_proportion"] = None
+            item["target_vs_d0_delta"] = None
+            item["target_vs_d0_ratio"] = None
+            continue
+        proportion = _as_float(item[f"condition_{target_condition}"])
         base_row = baseline.get((str(item["phase"]), "D0_balanced"))
-        base = _as_float(base_row[f"condition_{condition}"]) if base_row else 0.0
-        item["target_condition"] = condition
+        base = _as_float(base_row[f"condition_{target_condition}"]) if base_row else 0.0
+        item["target_condition"] = target_condition
         item["target_condition_proportion"] = proportion
         item["target_vs_d0_delta"] = proportion - base
         item["target_vs_d0_ratio"] = proportion / base if base > 0 else None

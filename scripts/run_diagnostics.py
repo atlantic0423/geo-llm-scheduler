@@ -80,7 +80,14 @@ def main() -> None:
     manifest_path = instance_root / "manifest.csv"
     output_root = Path(args.output)
     if args.stage == "aggregate":
-        print(aggregate_diagnostics(output_root, manifest=manifest_path))
+        print(
+            aggregate_diagnostics(
+                output_root,
+                phases=("main",),
+                manifest=manifest_path,
+                aggregate_subdir="aggregate/d01",
+            )
+        )
         return
 
     config = load_config(args.config)
@@ -146,7 +153,14 @@ def main() -> None:
                 "archive_size": summary["archive_size"],
             }
         )
-    print(aggregate_diagnostics(output_root, manifest=manifest_path))
+    print(
+        aggregate_diagnostics(
+            output_root,
+            phases=(phase,),
+            manifest=manifest_path,
+            aggregate_subdir=f"aggregate/{'d01' if phase == 'main' else phase}",
+        )
+    )
 
 
 if __name__ == "__main__":
