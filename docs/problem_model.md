@@ -37,6 +37,6 @@ $$
 
 完整例子见 [smoke.json](../examples/smoke.json)。顶层 schema_version=1、units、jobs、regions、instances。Job 包含 name/release/prefill/decode/kv_delay；profile 包含 duration/compute/vram；Region 包含 name/tariffs/demand_rate；tariff 包含 start/end/price；实例包含 name/region/vram/idle_kw/active_kw/phases。
 
-loader 支持 s/ms/h、kW/W；尽管字段名为 idle_kw/active_kw，原始值仍按 units.power 转换。费用率始终 USD/kWh、USD/kW。其他货币、当地时区需在外部按明确汇率/时区预处理。save_instance 输出 s/kW/GB/USD。
+loader 支持 s/ms/h、kW/W；尽管字段名为 idle_kw/active_kw，原始值仍按 units.power 转换。货币统一使用人民币，JSON 中以 ISO 4217 代码 `CNY` 表示；费用率始终为 CNY/kWh、CNY/kW。其他货币、当地时区需在外部按明确汇率/时区预处理。`save_instance` 输出 s/kW/GB/CNY。
 
 数值需有限，容量为正，需求/价格/费率非负；tariff 从零连续覆盖。若实际 batch 超出 tariff，exact 报错，不隐含延长价格或加调度 horizon。用户需提供足够长的价格时间轴。

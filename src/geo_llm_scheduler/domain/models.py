@@ -1,7 +1,7 @@
 """Immutable problem data and value objects; MS alone owns assignment.
 
 Operation indices are 2*job for Prefill and 2*job+1 for Decode.
-All times are seconds and all costs are USD.
+All times are seconds and all costs are CNY.
 """
 
 from dataclasses import dataclass
@@ -29,7 +29,7 @@ class Job:
 
 @dataclass(frozen=True)
 class Tariff:
-    """Half-open global-time tariff segment, in USD/kWh."""
+    """Half-open global-time tariff segment, in CNY/kWh."""
 
     start: float
     end: float
@@ -38,7 +38,7 @@ class Tariff:
 
 @dataclass(frozen=True)
 class Region:
-    """Region tariff and fixed-window demand rate, in USD/kW."""
+    """Region tariff and fixed-window demand rate, in CNY/kW."""
 
     name: str
     tariffs: tuple[Tariff, ...]

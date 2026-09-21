@@ -115,7 +115,7 @@ def save_result(result: RunResult, config: Config, instance_hash: str, output: P
     )
     with (output / "objectives.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["flow_seconds", "bill_usd", "tou_usd", "demand_usd"])
+        writer.writerow(["flow_seconds", "bill_cny", "tou_cny", "demand_cny"])
         writer.writerows(
             (c.evaluation.flow, c.evaluation.bill, c.evaluation.tou, sum(c.evaluation.demand))
             for c in result.archive.members
