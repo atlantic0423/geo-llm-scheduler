@@ -69,7 +69,7 @@ def replace_neighbors(
         if less(
             context.scalar(candidate, lambdas[j]),
             context.scalar(population[j], lambdas[j]),
-            TOL.cost,
+            TOL.scalar,
         ):
             population[j] = candidate
             changed += 1

@@ -39,9 +39,7 @@ class EvaluationGateway:
             self.counts["feasible:" + origin] += 1
             self.ideal = (min(self.ideal[0], result.flow), min(self.ideal[1], result.bill))
             self.counts["archive_attempts:" + origin] += 1
-            contributions = self.archive.contributions
+            insertions = self.archive.insertions
             self.archive.consider(candidate)
-            self.counts["archive_contributions:" + origin] += (
-                self.archive.contributions - contributions
-            )
+            self.counts["archive_insertions:" + origin] += self.archive.insertions - insertions
         return candidate

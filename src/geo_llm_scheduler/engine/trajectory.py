@@ -18,7 +18,7 @@ from geo_llm_scheduler.operators.structural import StructuralOperator
 from geo_llm_scheduler.rl.controller import Controller, reward
 from geo_llm_scheduler.rl.state import extract
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
-from geo_llm_scheduler.utils.numeric import TOL, less
+from geo_llm_scheduler.utils.numeric import TOL, identity, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 
@@ -65,12 +65,14 @@ def improve(
         gateway.seconds[f"construction:A{action}"] += construction_seconds
         gateway.counts[f"construction_attempts:A{action}"] += batch.attempts
         gateway.counts[f"proposals:A{action}"] += len(batch.proposals)
-        contributions = gateway.archive.contributions
+        insertions = gateway.archive.insertions
+        archive_before = {identity(candidate) for candidate in gateway.archive.members}
         result = execute(batch, current, budget, weights[index], context, gateway, f"A{action}")
+        archive_after = {identity(candidate) for candidate in gateway.archive.members}
         before = result.context.scalar(current, weights[index])
         prior = current
         if result.best is not None and less(
-            result.context.scalar(result.best, weights[index]), before, TOL.cost
+            result.context.scalar(result.best, weights[index]), before, TOL.scalar
         ):
             current = result.best
             if action in (7, 8):
@@ -97,7 +99,8 @@ def improve(
                 "effective": result.effective,
                 "attempts": result.construction_attempts,
                 "feasible": result.feasible_count,
-                "archive_contributions": gateway.archive.contributions - contributions,
+                "archive_insertions": gateway.archive.insertions - insertions,
+                "archive_net_retained": len(archive_after - archive_before),
                 "scalar_before": before,
                 "scalar_after": after,
                 "accepted": current is not prior,

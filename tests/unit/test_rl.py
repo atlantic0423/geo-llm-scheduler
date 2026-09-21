@@ -6,6 +6,9 @@ from dataclasses import replace
 import pytest
 
 from geo_llm_scheduler.config import Config
+from geo_llm_scheduler.domain.models import Candidate, EvaluationResult, Genotype, Schedule
+from geo_llm_scheduler.macrosearch.budget import choose_budget, objective_coverage
+from geo_llm_scheduler.moead.core import NormalizationContext, weights
 from geo_llm_scheduler.rl.controller import Controller, reward
 from geo_llm_scheduler.rl.state import encode, extract, preference
 
@@ -57,3 +60,30 @@ def test_terminal_target_ignores_future_value_without_resetting_shared_q():
     assert controller.updates[0][0] == 1
     controller.update(0, 1, 5.0, 1, terminal=False)
     assert controller.q[0][0] == pytest.approx(2.9 + 0.3 * (5 + 0.7 * 1000 - 2.9))
+
+
+def test_coverage_budget_deduplicates_equal_objectives():
+    archive = [
+        Candidate(
+            Genotype((0, 0), (0, 0)),
+            Schedule((float(i), float(i + 1))),
+            EvaluationResult(True, 10, 5, (), ()),
+        )
+        for i in range(4)
+    ]
+    config = replace(Config(), population=4, neighborhood=2, budget_policy="coverage")
+    assert len(objective_coverage(archive)) == 1
+    assert (
+        choose_budget(
+            1,
+            (0,) * 6,
+            0,
+            0,
+            archive,
+            weights(4),
+            NormalizationContext((0, 0), (20, 20)),
+            config,
+            random.Random(1),
+        )
+        == config.budgets[1]
+    )

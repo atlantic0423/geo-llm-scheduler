@@ -22,7 +22,7 @@ py -3.13 -m venv .venv
 
 Linux/macOS 用 python3 创建环境，把 .venv/Scripts/python 替换为 .venv/bin/python。requirements-lock.txt 记录本次 Python 3.13 环境；跨版本优先按 pyproject.toml 解析依赖。
 
-结果默认写入 outputs：config、summary、population、Archive、Q-table、逐步 trace 和 objectives.csv。重复输出路径会覆盖同次运行；正式实验用 --output 指定独立目录。HV/IGD+ 需提供统一参考点/前沿，默认留空。
+结果默认写入 outputs：config、summary、population、Archive、Q-table、逐步 trace 和 objectives.csv。summary 同时记录 Git commit/branch/dirty、内容hash、soft-stop overshoot、Archive insertions/peak/final来源；重复输出路径会覆盖同次运行，正式实验用 --output 指定独立目录。HV/IGD+ 需提供统一参考点/前沿，默认留空。
 
 ## 研究文档
 

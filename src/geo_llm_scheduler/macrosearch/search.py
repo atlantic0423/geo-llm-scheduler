@@ -22,6 +22,14 @@ class Evaluator(Protocol):
 
 
 @dataclass(frozen=True)
+class ScoredCandidate:
+    """A feasible evaluated candidate paired with its shared-context scalar."""
+
+    candidate: Candidate
+    score: float
+
+
+@dataclass(frozen=True)
 class MacroSearchResult:
     """Exact accounting plus the frozen shared comparison context."""
 
@@ -30,8 +38,8 @@ class MacroSearchResult:
     exact_evaluations: int
     feasible_count: int
     best: Candidate | None
-    candidates: tuple[Candidate, ...]
-    scores: tuple[float, ...]
+    evaluated: tuple[Candidate, ...]
+    feasible_scored: tuple[ScoredCandidate, ...]
     context: NormalizationContext
 
     @property
@@ -80,16 +88,20 @@ def execute(
         (min(context.ideal[0], evaluator.ideal[0]), min(context.ideal[1], evaluator.ideal[1])),
         context.maximum,
     )
-    feasible = [c for c in candidates if c.evaluation.feasible]
-    ordered = sorted(feasible, key=lambda c: (shared.scalar(c, weight), identity(c)))
-    best = ordered[0] if ordered else None
+    feasible_scored = tuple(
+        ScoredCandidate(candidate, shared.scalar(candidate, weight))
+        for candidate in candidates
+        if candidate.evaluation.feasible
+    )
+    ordered = sorted(feasible_scored, key=lambda item: (item.score, identity(item.candidate)))
+    best = ordered[0].candidate if ordered else None
     return MacroSearchResult(
         budget,
         batch.attempts,
         len(candidates),
-        len(feasible),
+        len(feasible_scored),
         best,
         tuple(candidates),
-        tuple(shared.scalar(c, weight) for c in feasible),
+        feasible_scored,
         shared,
     )

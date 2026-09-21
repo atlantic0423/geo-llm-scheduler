@@ -2,6 +2,7 @@
 
 import math
 import random
+from collections.abc import Iterator
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.diagnostics.workload import imbalance, machine_loads, region_loads
@@ -27,16 +28,40 @@ def with_order(genotype: Genotype, order: list[int]) -> Genotype:
     return Genotype(genotype.ms, tuple(o // 2 for o in order))
 
 
-def round_robin(groups: list[list[Genotype]], cap: int) -> list[Genotype]:
-    """Interleave targets so a single operation cannot monopolize the pool."""
-    result = []
-    for k in range(max(map(len, groups), default=0)):
-        for group in groups:
-            if k < len(group) and group[k] not in result:
-                result.append(group[k])
+def bounded_round_robin(
+    groups: list[Iterator[Genotype]], cap: int, incumbent: Genotype
+) -> tuple[list[Genotype], int]:
+    """Lazily interleave targets and stop as soon as the distinct pool reaches its cap."""
+    result: list[Genotype] = []
+    seen = {incumbent}
+    active = groups
+    attempts = 0
+    while active and len(result) < cap:
+        remaining = []
+        for group in active:
+            try:
+                candidate = next(group)
+            except StopIteration:
+                continue
+            attempts += 1
+            remaining.append(group)
+            if candidate not in seen:
+                seen.add(candidate)
+                result.append(candidate)
                 if len(result) == cap:
-                    return result
-    return result
+                    break
+        active = remaining
+    return result, attempts
+
+
+def paired_position(rank: int, old_prefill: int, old_decode: int) -> tuple[int, int]:
+    """Map a rank into the legal A5 triangular position space without materializing it."""
+    for prefill in range(old_prefill):
+        width = old_decode - prefill - 1
+        if rank < width:
+            return prefill, prefill + rank + 1
+        rank -= width
+    raise IndexError("A5 pair rank outside legal position space")
 
 
 class StructuralOperator:
@@ -60,16 +85,25 @@ class StructuralOperator:
             return ProposalBatch()
         if self.action == 6:
             return self._lns(problem, incumbent, budget, config, rng)
-        candidates = (
+        candidates, attempts, diagnostics = (
             self._assignments(problem, incumbent, config)
             if self.action <= 3
             else self._insertions(problem, incumbent, budget, rng)
         )
         unique = list(dict.fromkeys(g for g in candidates if g != incumbent.genotype))[: 2 * budget]
         selected = rng.sample(unique, min(budget, len(unique)))
-        return ProposalBatch([Proposal(g) for g in selected], len(candidates))
+        diagnostics.update(
+            {
+                "raw_moves_considered": attempts,
+                "qualifying_pool": len(unique),
+                "selected_proposals": len(selected),
+            }
+        )
+        return ProposalBatch([Proposal(g) for g in selected], attempts, diagnostics)
 
-    def _assignments(self, p: ProblemInstance, x: Candidate, config: Config) -> list[Genotype]:
+    def _assignments(
+        self, p: ProblemInstance, x: Candidate, config: Config
+    ) -> tuple[list[Genotype], int, dict]:
         g = x.genotype
         wait = x.schedule.resource_wait
         loads = machine_loads(p, g)
@@ -84,6 +118,7 @@ class StructuralOperator:
         prefer_resource = (
             resource / config.severity_thresholds[0] >= kv / config.severity_thresholds[1]
         )
+        attempts = 0
         for i, job in enumerate(p.jobs):
             region = p.instances[g.ms[2 * i]].region
             if self.action == 1:
@@ -91,6 +126,7 @@ class StructuralOperator:
                     for m in p.eligible(o, region):
                         if m == g.ms[o]:
                             continue
+                        attempts += 1
                         ms = list(g.ms)
                         ms[o] = m
                         ranked.append(((-wait[o], loads[m], o, m), Genotype(tuple(ms), g.os)))
@@ -98,6 +134,7 @@ class StructuralOperator:
             for a, b in paths(p, i):
                 if (a, b) == g.ms[2 * i : 2 * i + 2]:
                     continue
+                attempts += 1
                 same = p.instances[a].region == region
                 if same != (self.action == 2):
                     continue
@@ -124,17 +161,18 @@ class StructuralOperator:
                     key = (imbalance(region_loads(p, new)), pathload, newkv, i, a, b)
                 ranked.append((key, new))
         ranked.sort(key=lambda item: item[0])
-        return [g for _, g in ranked]
+        return [g for _, g in ranked], attempts, {"move_space": attempts}
 
     def _insertions(
         self, p: ProblemInstance, x: Candidate, budget: int, rng: random.Random
-    ) -> list[Genotype]:
+    ) -> tuple[list[Genotype], int, dict]:
         g = x.genotype
         order = operation_order(g)
         waits = [
             x.schedule.starts[o] - est_for(p, g, x.schedule, o) for o in range(p.operation_count)
         ]
-        groups = []
+        groups: list[Iterator[Genotype]] = []
+        position_space = 0
         if self.action == 4:
             targets = sorted(range(p.operation_count), key=lambda o: (-waits[o], o))
             for o in targets:
@@ -142,13 +180,18 @@ class StructuralOperator:
                 lower = order.index(o - 1) + 1 if o % 2 else 0
                 if waits[o] <= 0 or lower >= old:
                     continue
-                group = []
-                for pos in range(lower, old):
-                    new = order.copy()
-                    new.pop(old)
-                    new.insert(pos, o)
-                    group.append(with_order(g, new))
-                groups.append(group)
+                position_space += old - lower
+
+                def a4_moves(
+                    operation: int = o, start: int = lower, stop: int = old
+                ) -> Iterator[Genotype]:
+                    for position in range(start, stop):
+                        new = order.copy()
+                        new.pop(stop)
+                        new.insert(position, operation)
+                        yield with_order(g, new)
+
+                groups.append(a4_moves())
                 if len(groups) == budget:
                     break
         else:
@@ -158,19 +201,30 @@ class StructuralOperator:
                 if min(waits[2 * i : 2 * i + 2]) <= 0:
                     continue
                 base = [o for o in order if o // 2 != i]
-                group = []
-                for a in range(oldp):
-                    for b in range(a + 1, oldd):
-                        new = base.copy()
-                        new.insert(a, 2 * i)
-                        new.insert(b, 2 * i + 1)
-                        group.append(with_order(g, new))
-                if group:
-                    rng.shuffle(group)
-                    groups.append(group)
+                pair_count = sum(oldd - a - 1 for a in range(oldp))
+                if pair_count:
+                    position_space += pair_count
+                    ranks = rng.sample(range(pair_count), min(2 * budget, pair_count))
+
+                    def a5_moves(
+                        sampled: tuple[int, ...] = tuple(ranks),
+                        prefill_stop: int = oldp,
+                        decode_stop: int = oldd,
+                        stripped: tuple[int, ...] = tuple(base),
+                        job: int = i,
+                    ) -> Iterator[Genotype]:
+                        for rank in sampled:
+                            a, b = paired_position(rank, prefill_stop, decode_stop)
+                            new = list(stripped)
+                            new.insert(a, 2 * job)
+                            new.insert(b, 2 * job + 1)
+                            yield with_order(g, new)
+
+                    groups.append(a5_moves())
                 if len(groups) == budget:
                     break
-        return round_robin(groups, 2 * budget)
+        pool, attempts = bounded_round_robin(groups, 2 * budget, g)
+        return pool, attempts, {"position_space": position_space}
 
     def _lns(
         self, p: ProblemInstance, x: Candidate, budget: int, config: Config, rng: random.Random

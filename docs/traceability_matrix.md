@@ -12,17 +12,23 @@
 | 初始化十类与variation | initialization/generators.py, moead/variation.py | integration/test_baseline.py |
 | dynamic ideal/population maximum/lambda_j | moead/core.py | golden/test_moead.py |
 | Archive phenotype-aware/独立分发 I1 | archive/pareto.py, engine/evaluation.py | golden/test_moead.py, integration/test_baseline.py |
+| Archive insertion/批次净保留/最终来源口径 | archive/pareto.py, engine/trajectory.py, experiments/runner.py | golden/test_moead.py, integration/test_experiments.py |
 | A1–A6结构边界/重建 I3 | operators/structural.py | integration/test_macrosearch.py, golden/test_insertions.py |
+| A4/A5 lazy 2B 构造与原始尝试计数 | operators/structural.py | golden/test_insertions.py |
 | MacroSearch同源/预算/顺序 I2 | macrosearch/search.py | integration/test_macrosearch.py |
+| MacroSearch 可行候选与标量分数对齐 | macrosearch/search.py | integration/test_macrosearch.py |
 | A7有限关键点/正压缩/无A8horizon | scheduling/timing.py, operators/active_pack.py | golden/test_ssgs.py, test_timing_operators.py |
 | A8并列峰/支撑组/中点/rollback/gate | operators/peak_coalition.py | golden/test_a8_adversarial.py, test_timing_operators.py |
 | Polish冻结D/严格降费/独立Archive | operators/right_shift.py | golden/test_timing_operators.py |
 | accepted timing全量刷新 I3 | scheduling/ssgs.py, engine/trajectory.py | integration/test_accepted_timing.py |
 | 六severity唯一公式 | diagnostics/severity.py, workload.py | golden/test_severity.py |
 | Trigger方向/quality | engine/trigger.py, rl/state.py | golden/test_trigger.py |
+| Coverage-aware objective-space 去重 | macrosearch/budget.py | unit/test_rl.py |
 | 42×8共享Q/reward/Bandit | rl/controller.py, engine/trajectory.py | unit/test_rl.py, integration/test_full_engine.py |
 | 五预算/短轨迹/回放 | macrosearch/budget.py, engine/run.py | integration/test_full_engine.py |
 | 版本化artifact/HV/IGD+ | experiments/runner.py, metrics.py | integration/test_experiments.py |
+| Git provenance/软时限超调/Archive 峰值 | experiments/runner.py, engine/run.py, archive/pareto.py | integration/test_experiments.py |
+| 独立 scalar 容差 | utils/numeric.py, moead/core.py, engine/trajectory.py | golden/test_moead.py |
 | 配置非法边界 | config.py | unit/test_config.py |
 | Markdown/安装/依赖 | pyproject.toml, docs, scripts | unit/test_scaffold.py |
 

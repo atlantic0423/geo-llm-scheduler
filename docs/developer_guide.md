@@ -2,7 +2,7 @@
 
 先读domain/models.py，再读scheduling/resources.py和evaluation/exact.py，沿engine/run.py→trajectory.py→macrosearch/search.py理解完整调用。候选经EvaluationGateway统一精确评价与Archive分发；算子不直接修改population或Q-table。
 
-新增structural算子实现Operator.propose，返回只有genotype的Proposal；timing算子返回原genotype、新schedule、selected。ProposalBatch分开记录attempts和实际proposals，失败不冒充exact。一次invocation不链式构造。
+新增structural算子实现Operator.propose，返回只有genotype的Proposal；timing算子返回原genotype、新schedule、selected。ProposalBatch.attempts 统一表示实际检查的 raw construction moves，proposals 表示送往 MacroSearch 的完整候选；diagnostics 记录候选空间、qualifying pool 和选择数。失败不冒充exact，一次invocation不链式构造。大位置空间必须 lazy/bounded，禁止先完整物化再截断。
 
 模型变化先写specifications和Notion框架/决策，再独立手算golden与反例。优化保留reference对照。随机函数接收RNG，Markdown公式使用美元分隔符。
 

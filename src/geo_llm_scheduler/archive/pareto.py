@@ -19,7 +19,8 @@ class Archive:
     def __init__(self) -> None:
         self.members: list[Candidate] = []
         self.attempts = 0
-        self.contributions = 0
+        self.insertions = 0
+        self.peak_size = 0
 
     def consider(self, candidate: Candidate) -> bool:
         """Attempt insertion for every complete feasible exact candidate."""
@@ -32,5 +33,6 @@ class Archive:
         self.members = [c for c in self.members if not dominates(candidate, c)]
         self.members.append(candidate)
         self.members.sort(key=identity)
-        self.contributions += 1
+        self.insertions += 1
+        self.peak_size = max(self.peak_size, len(self.members))
         return True

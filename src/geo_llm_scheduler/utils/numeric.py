@@ -16,6 +16,7 @@ class Tolerances:
     vram: float = 1e-9
     power: float = 1e-9
     cost: float = 1e-9
+    scalar: float = 1e-9
 
 
 TOL = Tolerances()
