@@ -1,5 +1,7 @@
 """Research artifact IO and analytical metric checks."""
 
+import csv
+
 import pytest
 
 from geo_llm_scheduler.config import Config
@@ -25,6 +27,13 @@ def test_artifacts(problem, tmp_path):
     assert summary["archive_attempts"] == summary["counts"]["feasible"]
     assert (tmp_path / "trace.jsonl").exists()
     assert (tmp_path / "qtable.json").exists()
+    with (tmp_path / "objectives.csv").open(encoding="utf-8", newline="") as f:
+        assert next(csv.reader(f)) == [
+            "flow_seconds",
+            "bill_cny",
+            "tou_cny",
+            "demand_cny",
+        ]
 
 
 def test_synthetic_seed():

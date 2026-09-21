@@ -1,5 +1,6 @@
 """Contract tests including invalid input and reproducible IO."""
 
+import json
 from dataclasses import FrozenInstanceError, replace
 
 import pytest
@@ -24,7 +25,18 @@ def test_immutable_and_assignment(problem):
 def test_roundtrip(problem, tmp_path):
     path = tmp_path / "instance.json"
     save_instance(problem, path)
+    assert json.loads(path.read_text(encoding="utf-8"))["units"]["currency"] == "CNY"
     assert load_instance(path) == problem
+
+
+def test_currency_is_cny(problem, tmp_path):
+    path = tmp_path / "instance.json"
+    save_instance(problem, path)
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["units"]["currency"] = "USD"
+    path.write_text(json.dumps(data), encoding="utf-8")
+    with pytest.raises(ValueError, match="GB/CNY"):
+        load_instance(path)
 
 
 def test_bad_profiles(problem):

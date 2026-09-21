@@ -16,13 +16,13 @@ from geo_llm_scheduler.io.validation import validate_problem
 
 
 def load_instance(path: str | Path) -> ProblemInstance:
-    """Load schema v1; time s/ms/h, power kW/W, memory GB, currency USD."""
+    """Load schema v1; time s/ms/h, power kW/W, memory GB, currency CNY."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
     if data.get("schema_version") != 1:
         raise ValueError("Unsupported schema version")
     units = data.get("units", {})
-    if units.get("memory", "GB") != "GB" or units.get("currency", "USD") != "USD":
-        raise ValueError("Preconvert memory/currency explicitly to GB/USD")
+    if units.get("memory", "GB") != "GB" or units.get("currency", "CNY") != "CNY":
+        raise ValueError("Preconvert memory/currency explicitly to GB/CNY")
     try:
         time = {"s": 1.0, "ms": 0.001, "h": 3600.0}[units.get("time", "s")]
         power = {"kW": 1.0, "W": 0.001}[units.get("power", "kW")]
@@ -71,7 +71,7 @@ def save_instance(problem: ProblemInstance, path: str | Path) -> None:
     """Serialize canonical units without introducing mutable domain state."""
     data = {
         "schema_version": 1,
-        "units": {"time": "s", "power": "kW", "memory": "GB", "currency": "USD"},
+        "units": {"time": "s", "power": "kW", "memory": "GB", "currency": "CNY"},
         **asdict(problem),
     }
     Path(path).write_text(json.dumps(data, indent=2), encoding="utf-8")
