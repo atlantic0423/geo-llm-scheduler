@@ -1,0 +1,957 @@
+{
+  "schema_version": 1,
+  "units": {
+    "time": "s",
+    "power": "kW",
+    "memory": "GB",
+    "currency": "CNY"
+  },
+  "jobs": [
+    {
+      "name": "D02_mixed_j0",
+      "release": 4260.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j1",
+      "release": 1380.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 6
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j2",
+      "release": 3000.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j3",
+      "release": 1800.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j4",
+      "release": 3780.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j5",
+      "release": 2400.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j6",
+      "release": 2580.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j7",
+      "release": 2760.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j8",
+      "release": 3120.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j9",
+      "release": 1320.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j10",
+      "release": 3180.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j11",
+      "release": 4620.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j12",
+      "release": 2520.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j13",
+      "release": 2820.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j14",
+      "release": 2340.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j15",
+      "release": 2940.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j16",
+      "release": 1920.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j17",
+      "release": 840.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j18",
+      "release": 480.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j19",
+      "release": 4020.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j20",
+      "release": 120.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j21",
+      "release": 2340.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j22",
+      "release": 5400.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j23",
+      "release": 960.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j24",
+      "release": 1920.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j25",
+      "release": 3900.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j26",
+      "release": 960.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j27",
+      "release": 2580.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j28",
+      "release": 3300.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j29",
+      "release": 2640.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j30",
+      "release": 1620.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j31",
+      "release": 240.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.15,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j32",
+      "release": 3060.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j33",
+      "release": 960.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.45,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j34",
+      "release": 60.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j35",
+      "release": 5340.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j36",
+      "release": 0.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j37",
+      "release": 2940.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j38",
+      "release": 600.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.6,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.45,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D02_mixed_j39",
+      "release": 480.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j40",
+      "release": 4620.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.6,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j41",
+      "release": 4440.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.45,
+        "vram": 6
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j42",
+      "release": 4500.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.15,
+        "vram": 6
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j43",
+      "release": 300.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 180,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j44",
+      "release": 3060.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 120
+    },
+    {
+      "name": "D02_mixed_j45",
+      "release": 2820.0,
+      "prefill": {
+        "duration": 240,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j46",
+      "release": 120.0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 6
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j47",
+      "release": 2700.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.6,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 6
+      },
+      "kv_delay": 60
+    },
+    {
+      "name": "D02_mixed_j48",
+      "release": 5340.0,
+      "prefill": {
+        "duration": 360,
+        "compute": 0.15,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.3,
+        "vram": 6
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D02_mixed_j49",
+      "release": 4440.0,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.3,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.3,
+        "vram": 4
+      },
+      "kv_delay": 60
+    }
+  ],
+  "regions": [
+    {
+      "name": "r0",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 900,
+          "price": 0.42
+        },
+        {
+          "start": 900,
+          "end": 1800,
+          "price": 0.72
+        },
+        {
+          "start": 1800,
+          "end": 2700,
+          "price": 0.35
+        },
+        {
+          "start": 2700,
+          "end": 3600,
+          "price": 0.62
+        },
+        {
+          "start": 3600,
+          "end": 128310.0,
+          "price": 0.48
+        }
+      ],
+      "demand_rate": 5.0
+    },
+    {
+      "name": "r1",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 900,
+          "price": 0.42
+        },
+        {
+          "start": 900,
+          "end": 1800,
+          "price": 0.72
+        },
+        {
+          "start": 1800,
+          "end": 2700,
+          "price": 0.35
+        },
+        {
+          "start": 2700,
+          "end": 3600,
+          "price": 0.62
+        },
+        {
+          "start": 3600,
+          "end": 128310.0,
+          "price": 0.48
+        }
+      ],
+      "demand_rate": 5.0
+    },
+    {
+      "name": "r2",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 900,
+          "price": 0.42
+        },
+        {
+          "start": 900,
+          "end": 1800,
+          "price": 0.72
+        },
+        {
+          "start": 1800,
+          "end": 2700,
+          "price": 0.35
+        },
+        {
+          "start": 2700,
+          "end": 3600,
+          "price": 0.62
+        },
+        {
+          "start": 3600,
+          "end": 128310.0,
+          "price": 0.48
+        }
+      ],
+      "demand_rate": 5.0
+    }
+  ],
+  "instances": [
+    {
+      "name": "r0m0",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r0m1",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r0m2",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m0",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m1",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m2",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m0",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m1",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m2",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    }
+  ]
+}

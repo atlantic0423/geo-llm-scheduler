@@ -32,6 +32,7 @@ Linux/macOS 用 python3 创建环境，把 .venv/Scripts/python 替换为 .venv/
 - [规格映射](docs/traceability_matrix.md)、[开发指南](docs/developer_guide.md)
 - [规格理解报告](docs/specifications/understanding.md)、[severity 公式](docs/specifications/state_severity.md)
 - [D01 规模校准](docs/reports/diagnostic_scale_calibration.md)、[D01 行为诊断](docs/reports/diagnostic_round1.md)
+- [D02 Mixed-instance protocol](docs/reports/d02_mixed_validation_protocol.md)
 
 ## D01 行为诊断
 
@@ -45,7 +46,19 @@ Linux/macOS 用 python3 创建环境，把 .venv/Scripts/python 替换为 .venv/
 
 每条 run 使用独立目录，已有完整 `summary.json` 时 `--resume` 会跳过该 run，非空的不完整目录会明确报错。Raw outputs 位于 gitignored 的 `outputs/diagnostics/`；聚合 CSV 可直接用于 state-action heatmap 和 profiling。
 
-权威源为 Notion 当前数学模型、算法框架、Coding Contract 与用户确认的补充。按 [AGENTS.md](AGENTS.md) 同步 [Notion 09](https://app.notion.com/p/3e28878b80198186a626f3cf77b4a8dd)。A8 为有界启发式，未找到改善不等于证明不存在。第一版采用全量精确计算，未实现增量 evaluator 或断点续跑。
+## D01 → D02 夜间流水线
+
+D02 是独立 mixed random validation set，不是 D01 的第八个场景。它使用 50 Jobs、5 个 instance seeds 与 3 个 algorithm seeds，共 15 条 30 代 run。生成器在观察 DominantCondition 前冻结，运行后不得按状态分布反复校准。参数范围和解释边界见 [D02 协议](docs/reports/d02_mixed_validation_protocol.md)。
+
+完整流水线会先验证并续跑 D01 63 条，再独立运行 D02 15 条，分别聚合和制图，最后生成并列对比；两套 count 从不合并：
+
+```powershell
+.venv/Scripts/python -u scripts/run_diagnostic_night_pipeline.py
+```
+
+状态与断点分别写入 `outputs/diagnostics/pipeline/night_pipeline_state.json` 和 `night_resume_checkpoint.json`。完整 run 保持原目录不变；不完整或失败目录先移入 `outputs/diagnostic_incomplete_archive/` 留存，然后只重跑对应 identity。最终报告为 `docs/reports/qlearning_diagnostic_heatmaps.md` 与 `docs/reports/qlearning_mixed_validation.md`，每组图同时输出 300 dpi PNG 和 PDF。
+
+权威源为 Notion 当前数学模型、算法框架、Coding Contract 与用户确认的补充。按 [AGENTS.md](AGENTS.md) 同步 [Notion 09](https://app.notion.com/p/3e28878b80198186a626f3cf77b4a8dd)。A8 为有界启发式，未找到改善不等于证明不存在。第一版采用全量精确计算；诊断矩阵提供 run 粒度断点续跑，不提供单条 run 内部 checkpoint。
 
 权威链接：[当前算法](https://app.notion.com/p/3e08878b80198191b9e8cb69c1b4ea91)、[数学模型 v8](https://app.notion.com/p/3e08878b801981dea577c81a3ef73eb0)、[Coding Contract](https://app.notion.com/p/3e28878b801981dd804ec9517608986d)。参数状态见配置文档；working / experimental 尚未做研究有效性验证。
 
