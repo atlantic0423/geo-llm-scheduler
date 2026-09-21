@@ -1,0 +1,897 @@
+{
+  "schema_version": 1,
+  "units": {
+    "time": "s",
+    "power": "kW",
+    "memory": "GB",
+    "currency": "CNY"
+  },
+  "jobs": [
+    {
+      "name": "D5_demand_j0",
+      "release": 0.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j1",
+      "release": 960.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j2",
+      "release": 90.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j3",
+      "release": 960.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j4",
+      "release": 30.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j5",
+      "release": 960.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j6",
+      "release": 90.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j7",
+      "release": 990.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j8",
+      "release": 120.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j9",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j10",
+      "release": 30.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j11",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j12",
+      "release": 60.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j13",
+      "release": 900.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j14",
+      "release": 0.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j15",
+      "release": 990.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j16",
+      "release": 30.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j17",
+      "release": 900.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j18",
+      "release": 30.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j19",
+      "release": 900.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j20",
+      "release": 90.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j21",
+      "release": 990.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j22",
+      "release": 60.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j23",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j24",
+      "release": 60.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j25",
+      "release": 900.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j26",
+      "release": 0.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j27",
+      "release": 990.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j28",
+      "release": 120.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j29",
+      "release": 900.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j30",
+      "release": 0.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j31",
+      "release": 930.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j32",
+      "release": 90.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j33",
+      "release": 930.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j34",
+      "release": 120.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j35",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j36",
+      "release": 0.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j37",
+      "release": 900.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j38",
+      "release": 30.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j39",
+      "release": 960.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j40",
+      "release": 120.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j41",
+      "release": 990.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j42",
+      "release": 120.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j43",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 15
+    },
+    {
+      "name": "D5_demand_j44",
+      "release": 90.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j45",
+      "release": 990.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j46",
+      "release": 30.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j47",
+      "release": 1020.0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "D5_demand_j48",
+      "release": 30.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "D5_demand_j49",
+      "release": 960.0,
+      "prefill": {
+        "duration": 600,
+        "compute": 0.15,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 900,
+        "compute": 0.2,
+        "vram": 2
+      },
+      "kv_delay": 0
+    }
+  ],
+  "regions": [
+    {
+      "name": "r0",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 149340.0,
+          "price": 0.45
+        }
+      ],
+      "demand_rate": 20.0
+    },
+    {
+      "name": "r1",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 149340.0,
+          "price": 0.45
+        }
+      ],
+      "demand_rate": 20.0
+    },
+    {
+      "name": "r2",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 149340.0,
+          "price": 0.45
+        }
+      ],
+      "demand_rate": 20.0
+    }
+  ],
+  "instances": [
+    {
+      "name": "r0m0",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r0m1",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r0m2",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m0",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m1",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m2",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m0",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m1",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r2m2",
+      "region": 2,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    }
+  ]
+}

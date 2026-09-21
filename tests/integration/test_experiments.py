@@ -61,7 +61,7 @@ def test_git_metadata_is_explicit_outside_repository(tmp_path):
 
 def test_soft_time_limit_reports_overshoot(problem, monkeypatch, tmp_path):
     run_module = importlib.import_module("geo_llm_scheduler.engine.run")
-    ticks = iter((0.0, 2.0, 2.5))
+    ticks = iter((0.0, 0.1, 0.5, 2.0, 2.5))
     monkeypatch.setattr(run_module, "perf_counter", lambda: next(ticks))
     config = Config(population=4, neighborhood=2, generations=2, seconds=1.0)
     result = run_module.run(problem, config)

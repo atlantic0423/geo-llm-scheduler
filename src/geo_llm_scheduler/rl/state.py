@@ -5,6 +5,10 @@ import math
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.utils.numeric import EPS_DIRECTION
 
+PREFERENCE_LABELS = ("Flow", "Balanced", "Electricity")
+CONDITION_LABELS = ("Normal", "Resource", "KV", "Region", "TOU", "Demand", "Compressible")
+PROGRESS_LABELS = ("Improving", "Stagnating")
+
 
 def preference(index: int, count: int) -> int:
     """Low/middle/high Flow-weight thirds map to Electricity/Balanced/Flow."""
@@ -16,6 +20,19 @@ def encode(preference_id: int, dominant: int, stagnant: bool) -> int:
     if preference_id not in range(3) or dominant not in range(7):
         raise ValueError("Invalid state component")
     return (preference_id * 7 + dominant) * 2 + int(stagnant)
+
+
+def decode(state: int) -> tuple[str, str, str]:
+    """Return the three stable labels represented by a 42-state identifier."""
+    if state not in range(42):
+        raise ValueError("State identifier outside the 42-state space")
+    preference_id, remainder = divmod(state, 14)
+    dominant, stagnant = divmod(remainder, 2)
+    return (
+        PREFERENCE_LABELS[preference_id],
+        CONDITION_LABELS[dominant],
+        PROGRESS_LABELS[stagnant],
+    )
 
 
 def extract(index: int, values: tuple[float, ...], stagnant_count: int, config: Config) -> int:

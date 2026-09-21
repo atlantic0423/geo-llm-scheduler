@@ -1,0 +1,20 @@
+# D01 Stage S: algorithm settings are fixed; only instance size changes.
+population: 100
+neighborhood: 20
+neighbor_probability: 0.90
+replacement_cap: 2
+generations: 3
+method: full
+controller: qlearning
+budget_policy: fixed
+fixed_budget: 6
+trigger_mode: preference
+rl_steps: 5
+alpha: 0.30
+gamma: 0.70
+epsilon_start: 0.30
+epsilon_end: 0.05
+stagnation_threshold: 5
+polish: true
+instance: instances/diagnostic/D0_balanced/jobs50_seed1.json
+output: outputs/diagnostics/scale

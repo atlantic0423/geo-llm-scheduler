@@ -13,7 +13,7 @@ def deterministic(trace):
         {
             **{k: v for k, v in row.items() if k != "elapsed"},
             "steps": [
-                {k: v for k, v in step.items() if k not in ("seconds", "construction_seconds")}
+                {k: v for k, v in step.items() if not k.endswith("seconds")}
                 for step in row["steps"]
             ],
         }

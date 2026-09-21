@@ -21,3 +21,9 @@ Thumbs.db
 
 # Local audit export of raw Notion responses; derived public docs remain tracked.
 docs/specifications/sources.json
+
+# Local D01 calibration snapshots; final 3-seed instances remain tracked.
+instances/diagnostic/calibration1/
+instances/diagnostic/calibration2/
+instances/diagnostic/D0_balanced/jobs100_seed1.json
+instances/diagnostic/D0_balanced/jobs200_seed1.json

@@ -16,7 +16,7 @@ from geo_llm_scheduler.operators.peak_coalition import PeakCoalition
 from geo_llm_scheduler.operators.right_shift import PolishStats, polish
 from geo_llm_scheduler.operators.structural import StructuralOperator
 from geo_llm_scheduler.rl.controller import Controller, reward
-from geo_llm_scheduler.rl.state import extract
+from geo_llm_scheduler.rl.state import decode, extract
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
 from geo_llm_scheduler.utils.numeric import TOL, identity, less
 from geo_llm_scheduler.utils.rng import RNGManager
@@ -43,12 +43,14 @@ def improve(
     values = severities(problem, current)
     for step in range(config.rl_steps):
         start = perf_counter()
-        state = extract(index, values, stagnant_count, config)
+        state_values = values
+        state = extract(index, state_values, stagnant_count, config)
         action, explore = controller.select(state, progress, streams.stream("qlearning"))
         context = NormalizationContext(gateway.ideal, maximum)
+        budget_start = perf_counter()
         budget = choose_budget(
             action,
-            values,
+            state_values,
             stagnant_count,
             index,
             gateway.archive.members,
@@ -57,6 +59,8 @@ def improve(
             config,
             streams.stream("budget"),
         )
+        budget_seconds = perf_counter() - budget_start
+        gateway.seconds["budget"] += budget_seconds
         construction_start = perf_counter()
         batch = operators[action].propose(
             problem, current, budget, config, streams.stream(f"A{action}")
@@ -87,16 +91,24 @@ def improve(
         # Each short trajectory ends an episode; keep the run-level Q table.
         # Polish is outside the episode and never contributes bootstrap/reward.
         controller.update(state, action, signal, next_state, terminal=step == config.rl_steps - 1)
+        preference_label, condition_label, progress_label = decode(state)
         records.append(
             {
                 "step": step,
                 "state": state,
+                "preference": preference_label,
+                "dominant_condition": condition_label,
+                "search_progress": progress_label,
+                "progress": progress,
+                "severities": state_values,
                 "next_state": next_state,
                 "action": action,
                 "explore": explore,
                 "reward": signal,
                 "budget": budget,
                 "effective": result.effective,
+                "proposals": len(batch.proposals),
+                "exact_evaluations": result.exact_evaluations,
                 "attempts": result.construction_attempts,
                 "feasible": result.feasible_count,
                 "archive_insertions": gateway.archive.insertions - insertions,
@@ -108,7 +120,9 @@ def improve(
                 "delta_bill": current.evaluation.bill - prior.evaluation.bill,
                 "seconds": perf_counter() - start,
                 "construction_seconds": construction_seconds,
+                "budget_seconds": budget_seconds,
                 "construction": batch.diagnostics,
+                "operator_instrumentation": batch.instrumentation,
             }
         )
     if config.polish:
