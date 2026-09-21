@@ -10,7 +10,7 @@ from geo_llm_scheduler.domain.models import Candidate, EvaluationResult, Genotyp
 from geo_llm_scheduler.macrosearch.budget import choose_budget, objective_coverage
 from geo_llm_scheduler.moead.core import NormalizationContext, weights
 from geo_llm_scheduler.rl.controller import Controller, reward
-from geo_llm_scheduler.rl.state import encode, extract, preference
+from geo_llm_scheduler.rl.state import decode, encode, extract, preference
 
 
 def test_42_states():
@@ -19,6 +19,19 @@ def test_42_states():
     )
     assert preference(0, 100) == 2 and preference(99, 100) == 0
     assert extract(0, (0,) * 6, 0, Config()) == 28
+    for state in range(42):
+        preference_label, condition_label, progress_label = decode(state)
+        assert preference_label in ("Flow", "Balanced", "Electricity")
+        assert condition_label in (
+            "Normal",
+            "Resource",
+            "KV",
+            "Region",
+            "TOU",
+            "Demand",
+            "Compressible",
+        )
+        assert progress_label in ("Improving", "Stagnating")
     with pytest.raises(ValueError):
         encode(3, 0, False)
 

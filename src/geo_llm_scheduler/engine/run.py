@@ -43,10 +43,12 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
     begin = perf_counter()
     streams = RNGManager(config.seed)
     gateway = EvaluationGateway(problem, Archive())
+    initialization_start = perf_counter()
     population = [
         gateway.evaluate(g, origin="initialization")
         for g in initial_genotypes(problem, config, streams.stream("initialization"))
     ]
+    gateway.seconds["initialization"] += perf_counter() - initialization_start
     lambdas = weights(config.population)
     neighbors = neighborhoods(lambdas, config.neighborhood)
     trace: list[dict] = []

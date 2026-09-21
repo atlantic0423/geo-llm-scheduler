@@ -33,11 +33,25 @@ def solution(candidate: Candidate) -> dict:
 
 def deterministic_trace(trace: list[dict]) -> list[dict]:
     """Exclude runtime measurements while retaining the full search decisions."""
+    instrumentation = {
+        "preference",
+        "dominant_condition",
+        "search_progress",
+        "progress",
+        "severities",
+        "proposals",
+        "exact_evaluations",
+        "operator_instrumentation",
+    }
     return [
         {
             **{k: v for k, v in row.items() if k != "elapsed"},
             "steps": [
-                {k: v for k, v in step.items() if not k.endswith("seconds")}
+                {
+                    k: v
+                    for k, v in step.items()
+                    if not k.endswith("seconds") and k not in instrumentation
+                }
                 for step in row["steps"]
             ],
         }
@@ -133,20 +147,36 @@ def save_result(result: RunResult, config: Config, instance_hash: str, output: P
                 {
                     "calls": 0,
                     "attempts": 0,
+                    "proposals": 0,
                     "exact": 0,
+                    "feasible": 0,
                     "accepted": 0,
+                    "positive_reward": 0,
+                    "reward_sum": 0.0,
+                    "scalar_improvement": 0.0,
+                    "delta_flow": 0.0,
+                    "delta_bill": 0.0,
                     "archive_insertions": 0,
                     "archive_net_retained": 0,
                     "seconds": 0.0,
+                    "construction_seconds": 0.0,
                 },
             )
             stat["calls"] += 1
             stat["attempts"] += step["attempts"]
+            stat["proposals"] += step.get("proposals", step["effective"])
             stat["exact"] += step["effective"]
+            stat["feasible"] += step["feasible"]
             stat["accepted"] += int(step["accepted"])
+            stat["positive_reward"] += int(step["reward"] > 0)
+            stat["reward_sum"] += step["reward"]
+            stat["scalar_improvement"] += step["scalar_before"] - step["scalar_after"]
+            stat["delta_flow"] += step["delta_flow"]
+            stat["delta_bill"] += step["delta_bill"]
             stat["archive_insertions"] += step["archive_insertions"]
             stat["archive_net_retained"] += step["archive_net_retained"]
             stat["seconds"] += step["seconds"]
+            stat["construction_seconds"] += step["construction_seconds"]
     summary["operators"] = operators
     artifacts = {
         "summary.json": summary,

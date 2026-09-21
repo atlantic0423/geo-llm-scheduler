@@ -24,6 +24,7 @@ class ProposalBatch:
     proposals: list[Proposal] = field(default_factory=list)
     attempts: int = 0
     diagnostics: dict = field(default_factory=dict)
+    instrumentation: dict = field(default_factory=dict)
 
 
 class Operator(Protocol):

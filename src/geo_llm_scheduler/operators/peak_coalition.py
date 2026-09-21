@@ -241,26 +241,42 @@ class PeakCoalition:
         seen = {tuple(round(t / TOL.time) for t in incumbent.schedule.starts)}
         singleton_success = False
         result.diagnostics = {"region": region, "peaks": peaks, "recipes": []}
+        result.instrumentation = {
+            "target_region": region,
+            "original_peak": peak,
+            "tied_peak_count": len(peaks),
+            "singleton_attempts": 0,
+            "coalition_attempts": 0,
+            "repair_successes": 0,
+            "strict_peak_reductions": 0,
+        }
         for attempt in range(config.a8_attempt_multiplier * budget):
             if len(result.proposals) >= budget:
                 break
-            if singletons and (attempt < config.a8_singleton_attempts or singleton_success):
+            use_singleton = bool(
+                singletons and (attempt < config.a8_singleton_attempts or singleton_success)
+            )
+            if use_singleton:
                 members = frozenset({singletons[attempt % len(singletons)]})
             else:
                 members = coalition(segments, peaks, config.a8_member_cap, rng)
             result.attempts += 1
+            attempt_kind = "singleton_attempts" if use_singleton else "coalition_attempts"
+            result.instrumentation[attempt_kind] += 1
             result.diagnostics["recipes"].append(tuple(sorted(members)))
             if not members:
                 continue
             schedule = repair(problem, incumbent, members, region, config.a8_position_limit, rng)
             if schedule is None:
                 continue
+            result.instrumentation["repair_successes"] += 1
             if not peak_reduced(problem, g, schedule, region, peak):
                 continue
-            key = tuple(round(t / TOL.time) for t in schedule.starts)
-            if key in seen:
+            result.instrumentation["strict_peak_reductions"] += 1
+            schedule_key = tuple(round(t / TOL.time) for t in schedule.starts)
+            if schedule_key in seen:
                 continue
-            seen.add(key)
+            seen.add(schedule_key)
             singleton_success |= len(members) == 1
             result.proposals.append(Proposal(g, schedule, tuple(sorted(members))))
         return result

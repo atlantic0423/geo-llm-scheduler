@@ -31,6 +31,19 @@ Linux/macOS 用 python3 创建环境，把 .venv/Scripts/python 替换为 .venv/
 - [配置](docs/configuration.md)、[实验协议](docs/experiment_protocol.md)、[复现](docs/reproducibility.md)
 - [规格映射](docs/traceability_matrix.md)、[开发指南](docs/developer_guide.md)
 - [规格理解报告](docs/specifications/understanding.md)、[severity 公式](docs/specifications/state_severity.md)
+- [D01 规模校准](docs/reports/diagnostic_scale_calibration.md)、[D01 行为诊断](docs/reports/diagnostic_round1.md)
+
+## D01 行为诊断
+
+诊断实例由独立 instance seed 生成，算法随机流使用独立 algorithm seed。正式矩阵采用 50 Jobs、7 个场景、3 个实例 seed、3 个算法 seed和每条 30 代：
+
+```powershell
+.venv/Scripts/python scripts/run_diagnostics.py --stage generate --jobs 50 --instance-seeds 1 2 3 --generations 30
+.venv/Scripts/python scripts/run_diagnostics.py --stage main --config configs/diagnostics/main/base.yaml --jobs 50 --instance-seeds 1 2 3 --algorithm-seeds 101 202 303 --generations 30 --resume
+.venv/Scripts/python scripts/run_diagnostics.py --stage aggregate --instances instances/diagnostic --output outputs/diagnostics
+```
+
+每条 run 使用独立目录，已有完整 `summary.json` 时 `--resume` 会跳过该 run，非空的不完整目录会明确报错。Raw outputs 位于 gitignored 的 `outputs/diagnostics/`；聚合 CSV 可直接用于 state-action heatmap 和 profiling。
 
 权威源为 Notion 当前数学模型、算法框架、Coding Contract 与用户确认的补充。按 [AGENTS.md](AGENTS.md) 同步 [Notion 09](https://app.notion.com/p/3e28878b80198186a626f3cf77b4a8dd)。A8 为有界启发式，未找到改善不等于证明不存在。第一版采用全量精确计算，未实现增量 evaluator 或断点续跑。
 

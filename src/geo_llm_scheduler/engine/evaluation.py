@@ -26,11 +26,15 @@ class EvaluationGateway:
         if schedule is None:
             start = time.perf_counter()
             schedule = decode(self.problem, genotype)
-            self.seconds["ssgs"] += time.perf_counter() - start
+            duration = time.perf_counter() - start
+            self.seconds["ssgs"] += duration
+            self.seconds["ssgs:" + origin] += duration
             self.counts["ssgs"] += 1
         start = time.perf_counter()
         result = evaluate(self.problem, genotype, schedule)
-        self.seconds["exact"] += time.perf_counter() - start
+        duration = time.perf_counter() - start
+        self.seconds["exact"] += duration
+        self.seconds["exact:" + origin] += duration
         self.counts["exact"] += 1
         self.counts["exact:" + origin] += 1
         candidate = Candidate(genotype, schedule, result, origin)
@@ -40,6 +44,10 @@ class EvaluationGateway:
             self.ideal = (min(self.ideal[0], result.flow), min(self.ideal[1], result.bill))
             self.counts["archive_attempts:" + origin] += 1
             insertions = self.archive.insertions
+            start = time.perf_counter()
             self.archive.consider(candidate)
+            duration = time.perf_counter() - start
+            self.seconds["archive"] += duration
+            self.seconds["archive:" + origin] += duration
             self.counts["archive_insertions:" + origin] += self.archive.insertions - insertions
         return candidate

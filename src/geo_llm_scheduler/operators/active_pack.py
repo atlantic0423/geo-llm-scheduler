@@ -92,11 +92,19 @@ class ActivePack:
         secondary = sorted(set(range(len(representatives))) - set(primary), key=key)
         pool += secondary[: max(0, 2 * budget - len(pool))]
         proposals = []
-        for i in rng.sample(pool, min(budget, len(pool))):
+        selected_moves = rng.sample(pool, min(budget, len(pool)))
+        for i in selected_moves:
             o, t, _, _ = representatives[i]
             schedule = move(problem, incumbent.genotype, incumbent.schedule, o, t)
             assert schedule is not None
             proposals.append(Proposal(incumbent.genotype, schedule, (o,)))
         return ProposalBatch(
-            proposals, len(all_moves), {"representatives": len(representatives), "pool": len(pool)}
+            proposals,
+            len(all_moves),
+            {"representatives": len(representatives), "pool": len(pool)},
+            {
+                "positive_compression_moves": len(all_moves),
+                "positive_compression_operations": len({move[0] for move in all_moves}),
+                "g_pack_values": [representatives[i][2] for i in selected_moves],
+            },
         )
