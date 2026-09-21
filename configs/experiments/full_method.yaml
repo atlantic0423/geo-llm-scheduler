@@ -1,0 +1,8 @@
+# experimental reproducible example; wall-clock protocol set explicitly for formal runs
+instance: examples/smoke.json
+population: 20
+neighborhood: 5
+generations: 5
+method: full
+controller: qlearning
+

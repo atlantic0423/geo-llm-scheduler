@@ -1,0 +1,6 @@
+method: full
+population: 20
+neighborhood: 5
+generations: 5
+polish: false
+

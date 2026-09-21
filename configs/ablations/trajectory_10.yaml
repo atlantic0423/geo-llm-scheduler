@@ -1,0 +1,8 @@
+# Experimental ablation; paired seeds and budgets required
+instance: examples/smoke.json
+population: 20
+neighborhood: 5
+generations: 5
+method: full
+controller: qlearning
+rl_steps: 10

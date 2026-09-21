@@ -1,0 +1,9 @@
+# Experimental ablation; paired seeds and budgets required
+instance: examples/smoke.json
+population: 20
+neighborhood: 5
+generations: 5
+method: full
+controller: qlearning
+trigger_mode: fixed
+fixed_ls_probability: 0.5

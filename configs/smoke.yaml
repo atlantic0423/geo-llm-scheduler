@@ -1,0 +1,7 @@
+# test-only execution settings, not final research parameters
+population: 10
+neighborhood: 3
+generations: 2
+seed: 1
+trigger_delta: 0.10
+

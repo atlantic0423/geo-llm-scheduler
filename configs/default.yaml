@@ -1,0 +1,67 @@
+# Working and experimental defaults; see docs/configuration.md
+population: 100
+neighborhood: 20
+neighbor_probability: 0.9
+replacement_cap: 2
+crossover_probability: 0.9
+mutation_probability: 0.2
+mutation_weights:
+- 0.4
+- 0.4
+- 0.2
+rl_steps: 5
+alpha: 0.3
+gamma: 0.7
+epsilon_start: 0.3
+epsilon_end: 0.05
+stagnation_threshold: 5
+severity_thresholds:
+- 0.2
+- 0.2
+- 0.2
+- 0.2
+- 0.2
+- 0.2
+budgets:
+- 3
+- 6
+- 10
+a8_singleton_attempts: 2
+a8_member_cap: 8
+a8_position_limit: 6
+a8_attempt_multiplier: 2
+generations: 2
+seconds: null
+seed: 1
+method: plain
+controller: qlearning
+budget_policy: fixed
+trigger_delta: 0.1
+trigger_mode: preference
+fixed_ls_probability: 0.5
+fixed_budget: 6
+static_budgets:
+- 3
+- 6
+- 6
+- 3
+- 3
+- 10
+- 6
+- 10
+enabled_operators:
+- 1
+- 2
+- 3
+- 4
+- 5
+- 6
+- 7
+- 8
+polish: true
+initialization_attempts: 10000
+initialization_perturbation: 0.1
+random_attempt_multiplier: 20
+a6_destroy_ratio: 0.1
+instance: examples/smoke.json
+output: outputs

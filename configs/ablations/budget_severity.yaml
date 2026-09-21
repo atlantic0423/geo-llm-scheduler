@@ -1,0 +1,8 @@
+# experimental budget policy, independently evaluated
+instance: examples/smoke.json
+population: 20
+neighborhood: 5
+generations: 5
+method: full
+budget_policy: severity
+

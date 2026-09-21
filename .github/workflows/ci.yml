@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install project and development dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Lint, format, type-check, test, and enforce coverage
+        run: python scripts/validate_all.py
+      - name: Verify deterministic replay
+        run: python scripts/reproduce.py
+      - name: Build wheel smoke
+        run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Run minimal CLI smoke
+        run: python -m geo_llm_scheduler.cli.run --config configs/smoke.yaml --seed 1 --output outputs/ci-smoke

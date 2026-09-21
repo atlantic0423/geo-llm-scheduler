@@ -1,0 +1,8 @@
+# leave-one-operator-out ablation
+instance: examples/smoke.json
+population: 20
+neighborhood: 5
+generations: 5
+method: full
+enabled_operators: [1, 2, 3, 4, 5, 6, 8]
+

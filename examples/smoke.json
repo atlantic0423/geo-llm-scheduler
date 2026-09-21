@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "units": {
+    "time": "s",
+    "power": "kW",
+    "memory": "GB",
+    "currency": "USD"
+  },
+  "jobs": [
+    {
+      "name": "j0",
+      "release": 60,
+      "prefill": {
+        "duration": 120,
+        "compute": 0.5,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.25,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "j1",
+      "release": 0,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.5,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.5,
+        "vram": 4
+      },
+      "kv_delay": 0
+    },
+    {
+      "name": "j2",
+      "release": 60,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.25,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 120,
+        "compute": 0.25,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "j3",
+      "release": 0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.25,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.25,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "j4",
+      "release": 60,
+      "prefill": {
+        "duration": 60,
+        "compute": 0.5,
+        "vram": 4
+      },
+      "decode": {
+        "duration": 120,
+        "compute": 0.5,
+        "vram": 4
+      },
+      "kv_delay": 30
+    },
+    {
+      "name": "j5",
+      "release": 0,
+      "prefill": {
+        "duration": 300,
+        "compute": 0.5,
+        "vram": 2
+      },
+      "decode": {
+        "duration": 300,
+        "compute": 0.5,
+        "vram": 2
+      },
+      "kv_delay": 15
+    }
+  ],
+  "regions": [
+    {
+      "name": "r0",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 900,
+          "price": 0.1
+        },
+        {
+          "start": 900,
+          "end": 1800,
+          "price": 0.3
+        },
+        {
+          "start": 1800,
+          "end": 88905,
+          "price": 0.1
+        }
+      ],
+      "demand_rate": 2
+    },
+    {
+      "name": "r1",
+      "tariffs": [
+        {
+          "start": 0,
+          "end": 900,
+          "price": 0.15000000000000002
+        },
+        {
+          "start": 900,
+          "end": 1800,
+          "price": 0.27
+        },
+        {
+          "start": 1800,
+          "end": 88905,
+          "price": 0.12000000000000001
+        }
+      ],
+      "demand_rate": 3
+    }
+  ],
+  "instances": [
+    {
+      "name": "r0m0",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r0m1",
+      "region": 0,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m0",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    },
+    {
+      "name": "r1m1",
+      "region": 1,
+      "vram": 16,
+      "idle_kw": 10,
+      "active_kw": 100,
+      "phases": [
+        0,
+        1
+      ]
+    }
+  ]
+}
