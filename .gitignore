@@ -27,3 +27,6 @@ instances/diagnostic/calibration1/
 instances/diagnostic/calibration2/
 instances/diagnostic/D0_balanced/jobs100_seed1.json
 instances/diagnostic/D0_balanced/jobs200_seed1.json
+
+# D03 calibration/evaluation instances are regenerated from committed manifests and seeds.
+instances/diagnostic_d03/
