@@ -5,6 +5,7 @@ from time import perf_counter
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
+from geo_llm_scheduler.diagnostics.severity import severities
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.engine.trajectory import improve
@@ -20,6 +21,7 @@ from geo_llm_scheduler.moead.core import (
 )
 from geo_llm_scheduler.moead.variation import reproduce
 from geo_llm_scheduler.rl.controller import Controller
+from geo_llm_scheduler.rl.state import decode, extract
 from geo_llm_scheduler.utils.numeric import TOL, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
@@ -35,6 +37,7 @@ class RunResult:
     elapsed: float
     controller: Controller
     termination_reason: str
+    initial_severity_snapshot: list[dict]
 
 
 def run(problem: ProblemInstance, config: Config) -> RunResult:
@@ -54,6 +57,26 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
     trace: list[dict] = []
     controller = Controller(config)
     stagnation = [0] * config.population
+    initial_severity_snapshot = []
+    for index, candidate in enumerate(population):
+        values = severities(problem, candidate)
+        state = extract(index, values, 0, config)
+        preference_label, condition_label, progress_label = decode(state)
+        initial_severity_snapshot.append(
+            {
+                "subproblem": index,
+                "state": state,
+                "preference": preference_label,
+                "dominant_condition": condition_label,
+                "search_progress": progress_label,
+                "severities": values,
+                "severity_thresholds": config.severity_thresholds,
+                "severity_ratios": tuple(
+                    value / threshold
+                    for value, threshold in zip(values, config.severity_thresholds)
+                ),
+            }
+        )
     for generation in range(config.generations):
         order = list(range(config.population))
         streams.stream("traversal").shuffle(order)
@@ -67,6 +90,7 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
                     perf_counter() - begin,
                     controller,
                     "time_budget",
+                    initial_severity_snapshot,
                 )
             rng = streams.stream("variation")
             pool = (
@@ -146,4 +170,5 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
         perf_counter() - begin,
         controller,
         "generation_limit",
+        initial_severity_snapshot,
     )
