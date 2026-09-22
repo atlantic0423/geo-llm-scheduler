@@ -1,0 +1,314 @@
+{
+  "frozen_at": "2026-09-22T10:48:06.839019+08:00",
+  "selection_rule": {
+    "type_i": "maximum target-condition share; predefined profile order breaks ties",
+    "type_ii": "effective distinct >=10, distinct, transitions; predefined order breaks ties"
+  },
+  "calibration_seeds": {
+    "type_i": [
+      1701,
+      1702
+    ],
+    "type_ii": [
+      1801,
+      1802,
+      1803
+    ]
+  },
+  "evaluation_seeds": {
+    "type_i": [
+      7101,
+      7102
+    ],
+    "type_ii": [
+      8101,
+      8102,
+      8103,
+      8104,
+      8105
+    ]
+  },
+  "type_i_profiles": {
+    "Normal": "soft",
+    "Resource": "moderate",
+    "KV": "moderate",
+    "Region": "soft",
+    "TOU": "soft",
+    "Demand": "strong",
+    "Compressible": "soft"
+  },
+  "type_ii_profile": "long",
+  "algorithm_seeds": [
+    101,
+    202,
+    303
+  ],
+  "jobs": 50,
+  "generations": 50,
+  "calibration_records": [
+    {
+      "suite_type": "type_i",
+      "family": "Normal",
+      "profile": "soft",
+      "steps": 2915,
+      "target_share": 0.0,
+      "distinct_mean": 2.5,
+      "effective_distinct_mean": 2.5,
+      "transition_count": 154,
+      "counts_json": "{\"Compressible\": 2155, \"Demand\": 64, \"Region\": 696}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Normal",
+      "profile": "moderate",
+      "steps": 2915,
+      "target_share": 0.0,
+      "distinct_mean": 2.5,
+      "effective_distinct_mean": 2.5,
+      "transition_count": 154,
+      "counts_json": "{\"Compressible\": 2155, \"Demand\": 64, \"Region\": 696}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Normal",
+      "profile": "strong",
+      "steps": 2915,
+      "target_share": 0.0,
+      "distinct_mean": 2.5,
+      "effective_distinct_mean": 2.5,
+      "transition_count": 154,
+      "counts_json": "{\"Compressible\": 2155, \"Demand\": 64, \"Region\": 696}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Resource",
+      "profile": "soft",
+      "steps": 2870,
+      "target_share": 0.6439024390243903,
+      "distinct_mean": 3.5,
+      "effective_distinct_mean": 3.0,
+      "transition_count": 192,
+      "counts_json": "{\"Demand\": 476, \"Normal\": 8, \"Region\": 538, \"Resource\": 1848}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Resource",
+      "profile": "moderate",
+      "steps": 2775,
+      "target_share": 1.0,
+      "distinct_mean": 1.0,
+      "effective_distinct_mean": 1.0,
+      "transition_count": 0,
+      "counts_json": "{\"Resource\": 2775}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Resource",
+      "profile": "strong",
+      "steps": 2595,
+      "target_share": 1.0,
+      "distinct_mean": 1.0,
+      "effective_distinct_mean": 1.0,
+      "transition_count": 0,
+      "counts_json": "{\"Resource\": 2595}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "KV",
+      "profile": "soft",
+      "steps": 3580,
+      "target_share": 0.2047486033519553,
+      "distinct_mean": 4.0,
+      "effective_distinct_mean": 4.0,
+      "transition_count": 299,
+      "counts_json": "{\"Compressible\": 495, \"Demand\": 1031, \"KV\": 733, \"Region\": 1321}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "KV",
+      "profile": "moderate",
+      "steps": 3540,
+      "target_share": 0.53954802259887,
+      "distinct_mean": 4.0,
+      "effective_distinct_mean": 4.0,
+      "transition_count": 291,
+      "counts_json": "{\"Compressible\": 486, \"Demand\": 667, \"KV\": 1910, \"Region\": 477}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "KV",
+      "profile": "strong",
+      "steps": 2670,
+      "target_share": 0.4355805243445693,
+      "distinct_mean": 4.0,
+      "effective_distinct_mean": 4.0,
+      "transition_count": 175,
+      "counts_json": "{\"Compressible\": 142, \"Demand\": 180, \"KV\": 1163, \"Region\": 1185}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Region",
+      "profile": "soft",
+      "steps": 3910,
+      "target_share": 0.8930946291560102,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 119,
+      "counts_json": "{\"Demand\": 418, \"Region\": 3492}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Region",
+      "profile": "moderate",
+      "steps": 3910,
+      "target_share": 0.8930946291560102,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 119,
+      "counts_json": "{\"Demand\": 418, \"Region\": 3492}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Region",
+      "profile": "strong",
+      "steps": 3910,
+      "target_share": 0.8930946291560102,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 119,
+      "counts_json": "{\"Demand\": 418, \"Region\": 3492}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "TOU",
+      "profile": "soft",
+      "steps": 3150,
+      "target_share": 0.7161904761904762,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 112,
+      "counts_json": "{\"Region\": 894, \"TOU\": 2256}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "TOU",
+      "profile": "moderate",
+      "steps": 3150,
+      "target_share": 0.7161904761904762,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 112,
+      "counts_json": "{\"Region\": 894, \"TOU\": 2256}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "TOU",
+      "profile": "strong",
+      "steps": 3150,
+      "target_share": 0.7161904761904762,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 112,
+      "counts_json": "{\"Region\": 894, \"TOU\": 2256}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Demand",
+      "profile": "soft",
+      "steps": 3230,
+      "target_share": 0.42724458204334365,
+      "distinct_mean": 3.5,
+      "effective_distinct_mean": 3.0,
+      "transition_count": 266,
+      "counts_json": "{\"Demand\": 1380, \"Normal\": 3, \"Region\": 1736, \"Resource\": 111}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Demand",
+      "profile": "moderate",
+      "steps": 3225,
+      "target_share": 0.5795348837209302,
+      "distinct_mean": 3.5,
+      "effective_distinct_mean": 3.0,
+      "transition_count": 290,
+      "counts_json": "{\"Demand\": 1869, \"Normal\": 7, \"Region\": 749, \"Resource\": 600}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Demand",
+      "profile": "strong",
+      "steps": 2775,
+      "target_share": 0.6403603603603604,
+      "distinct_mean": 3.5,
+      "effective_distinct_mean": 3.5,
+      "transition_count": 268,
+      "counts_json": "{\"Demand\": 1777, \"Normal\": 69, \"Region\": 525, \"Resource\": 404}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Compressible",
+      "profile": "soft",
+      "steps": 2760,
+      "target_share": 0.007246376811594203,
+      "distinct_mean": 3.0,
+      "effective_distinct_mean": 3.0,
+      "transition_count": 147,
+      "counts_json": "{\"Compressible\": 20, \"Demand\": 1785, \"Region\": 955}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Compressible",
+      "profile": "moderate",
+      "steps": 2565,
+      "target_share": 0.005458089668615985,
+      "distinct_mean": 3.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 109,
+      "counts_json": "{\"Compressible\": 14, \"Demand\": 1636, \"Region\": 915}"
+    },
+    {
+      "suite_type": "type_i",
+      "family": "Compressible",
+      "profile": "strong",
+      "steps": 2990,
+      "target_share": 0.005016722408026756,
+      "distinct_mean": 2.5,
+      "effective_distinct_mean": 2.5,
+      "transition_count": 171,
+      "counts_json": "{\"Compressible\": 15, \"Demand\": 2342, \"Region\": 633}"
+    },
+    {
+      "suite_type": "type_ii",
+      "family": "transition",
+      "profile": "broad",
+      "steps": 5180,
+      "target_share": null,
+      "distinct_mean": 3.0,
+      "effective_distinct_mean": 2.3333333333333335,
+      "transition_count": 158,
+      "counts_json": "{\"Demand\": 7, \"Region\": 545, \"Resource\": 15, \"TOU\": 4613}"
+    },
+    {
+      "suite_type": "type_ii",
+      "family": "transition",
+      "profile": "burst",
+      "steps": 4145,
+      "target_share": null,
+      "distinct_mean": 2.0,
+      "effective_distinct_mean": 2.0,
+      "transition_count": 120,
+      "counts_json": "{\"Region\": 302, \"TOU\": 3843}"
+    },
+    {
+      "suite_type": "type_ii",
+      "family": "transition",
+      "profile": "long",
+      "steps": 5340,
+      "target_share": null,
+      "distinct_mean": 3.0,
+      "effective_distinct_mean": 3.0,
+      "transition_count": 254,
+      "counts_json": "{\"Demand\": 221, \"Region\": 542, \"TOU\": 4577}"
+    }
+  ]
+}
