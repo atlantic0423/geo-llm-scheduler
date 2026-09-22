@@ -1,5 +1,5 @@
 {
-  "frozen_at": "2026-09-22T10:48:06.839019+08:00",
+  "frozen_at": "2026-09-22T23:03:54.630742+08:00",
   "selection_rule": {
     "type_i": "maximum target-condition share; predefined profile order breaks ties",
     "type_ii": "effective distinct >=10, distinct, transitions; predefined order breaks ties"
