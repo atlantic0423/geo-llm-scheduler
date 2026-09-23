@@ -10,7 +10,7 @@ from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.moead.variation import paths
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
 from geo_llm_scheduler.scheduling.resources import est_for
-from geo_llm_scheduler.utils.numeric import EPS_RATIO
+from geo_llm_scheduler.utils.numeric import EPS_RATIO, TOL
 
 
 def operation_order(genotype: Genotype) -> list[int]:
@@ -178,7 +178,7 @@ class StructuralOperator:
             for o in targets:
                 old = order.index(o)
                 lower = order.index(o - 1) + 1 if o % 2 else 0
-                if waits[o] <= 0 or lower >= old:
+                if waits[o] <= TOL.time or lower >= old:
                     continue
                 position_space += old - lower
 
@@ -195,10 +195,14 @@ class StructuralOperator:
                 if len(groups) == budget:
                     break
         else:
-            targets = sorted(range(len(p.jobs)), key=lambda i: (-min(waits[2 * i : 2 * i + 2]), i))
+            # Round-off near zero must not turn a stage into a negative target score.
+            scores = [
+                sum(max(0.0, wait) for wait in waits[2 * i : 2 * i + 2]) for i in range(len(p.jobs))
+            ]
+            targets = sorted(range(len(p.jobs)), key=lambda i: (-scores[i], i))
             for i in targets:
                 oldp, oldd = order.index(2 * i), order.index(2 * i + 1)
-                if min(waits[2 * i : 2 * i + 2]) <= 0:
+                if scores[i] <= TOL.time:
                     continue
                 base = [o for o in order if o // 2 != i]
                 pair_count = sum(oldd - a - 1 for a in range(oldp))
