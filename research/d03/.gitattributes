@@ -1,0 +1,5 @@
+data/** text eol=lf
+checksums.sha256 text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+figures/** binary
