@@ -1,20 +1,20 @@
 [
   {
     "name": "d03_v2_formal_type_i_runs.zip",
-    "files": 523,
-    "bytes": 95323233,
-    "sha256": "5712e10799c038bda90ca49c1eb79cb4b4af97160b08480ca260d769e655d1f3"
+    "files": 518,
+    "bytes": 95315854,
+    "sha256": "2feee7a84a1da95907978e5232f36d63452e3ef0cdc07dde7086f95246066c0c"
   },
   {
     "name": "d03_v2_formal_type_ii_runs.zip",
-    "files": 180,
-    "bytes": 39115338,
-    "sha256": "dd66d3cd65721585c6469f2c6bca91e5decb59efe248ba6b7ca3bf04a4099cc2"
+    "files": 185,
+    "bytes": 39122745,
+    "sha256": "4e2c16e73ab282bb222a19c3fdc190ccf3d2871c22f5c17ca327f1361a8f66d2"
   },
   {
     "name": "d03_v2_calibration_runs.zip",
     "files": 635,
     "bytes": 32868512,
-    "sha256": "af71ecf7f9acd58dbf0b851ef191250df22fdb388ab6735a10f008887434984a"
+    "sha256": "7d181a39612a78046f9b09415b3581fd5c7bd5862d947756e0dead9fdf842e69"
   }
 ]
