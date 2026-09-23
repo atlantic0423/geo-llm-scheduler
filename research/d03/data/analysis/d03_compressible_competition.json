@@ -1,0 +1,85 @@
+{
+  "scope": "D03-I Compressible family, six formal runs, frozen observed schedules",
+  "n": 35465,
+  "thresholds": "all six severities use 0.20",
+  "severity_ratio": {
+    "resource": {
+      "median": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "above_threshold_count": 0,
+      "above_threshold_share": 0.0,
+      "winner_count": 0
+    },
+    "kv": {
+      "median": 0.0,
+      "q1": 0.0,
+      "q3": 0.0026695141484249,
+      "above_threshold_count": 0,
+      "above_threshold_share": 0.0,
+      "winner_count": 0
+    },
+    "region": {
+      "median": 1.4997232982844493,
+      "q1": 1.020958083832335,
+      "q3": 2.42826780021254,
+      "above_threshold_count": 27624,
+      "above_threshold_share": 0.7789087833074863,
+      "winner_count": 13552
+    },
+    "tou": {
+      "median": 0.0,
+      "q1": 0.0,
+      "q3": 0.0,
+      "above_threshold_count": 0,
+      "above_threshold_share": 0.0,
+      "winner_count": 0
+    },
+    "demand": {
+      "median": 1.895055427664123,
+      "q1": 1.6778664239308916,
+      "q3": 2.074780204479453,
+      "above_threshold_count": 35465,
+      "above_threshold_share": 1.0,
+      "winner_count": 21718
+    },
+    "compressible": {
+      "median": 0.5885650224215137,
+      "q1": 0.4764573991031301,
+      "q3": 0.7451923076922945,
+      "above_threshold_count": 5342,
+      "above_threshold_share": 0.150627379106161,
+      "winner_count": 195
+    }
+  },
+  "actual_winners": {
+    "Demand": 21718,
+    "Region": 13552,
+    "Compressible": 195
+  },
+  "compressible_above_threshold_n": 5342,
+  "winners_when_compressible_above": {
+    "Demand": 3715,
+    "Region": 1432,
+    "Compressible": 195
+  },
+  "static_relabel_all_thresholds_0_10": {
+    "normal": 0,
+    "resource": 0,
+    "kv": 0,
+    "region": 13552,
+    "tou": 0,
+    "demand": 21718,
+    "compressible": 195
+  },
+  "static_relabel_only_compressible_threshold_0_10": {
+    "normal": 0,
+    "resource": 0,
+    "kv": 0,
+    "region": 12658,
+    "tou": 0,
+    "demand": 17784,
+    "compressible": 5023
+  },
+  "caution": "Static relabeling does not rerun Q-learning or change schedules; it is not a causal experiment."
+}

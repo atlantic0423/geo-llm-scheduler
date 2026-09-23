@@ -1,0 +1,16 @@
+algorithm_seed,counts_json,distinct,effective_1,effective_10,effective_20,effective_5,first_generation_json,instance_seed,longest_dwell,run_id,transitions
+101,"{""Demand"": 23, ""Region"": 271, ""TOU"": 6221}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8101,1309,type_ii_D03II_long_long_j50_i8101_a101_g50,92
+202,"{""Demand"": 10, ""Region"": 5601, ""TOU"": 1389}",3,3,3,2,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8101,1775,type_ii_D03II_long_long_j50_i8101_a202_g50,186
+303,"{""Region"": 956, ""TOU"": 6074}",2,2,2,2,2,"{""Region"": 1, ""TOU"": 1}",8101,1780,type_ii_D03II_long_long_j50_i8101_a303_g50,144
+101,"{""Demand"": 66, ""Region"": 172, ""TOU"": 4877}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8102,2979,type_ii_D03II_long_long_j50_i8102_a101_g50,74
+202,"{""Demand"": 32, ""Region"": 330, ""TOU"": 5963}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8102,5035,type_ii_D03II_long_long_j50_i8102_a202_g50,64
+303,"{""Demand"": 65, ""Region"": 341, ""TOU"": 6084}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8102,4010,type_ii_D03II_long_long_j50_i8102_a303_g50,125
+101,"{""Demand"": 1, ""Region"": 115, ""TOU"": 6369}",3,3,2,2,2,"{""Demand"": 2, ""Region"": 1, ""TOU"": 1}",8103,5320,type_ii_D03II_long_long_j50_i8103_a101_g50,44
+202,"{""Demand"": 1, ""Region"": 108, ""TOU"": 5411}",3,3,2,2,2,"{""Demand"": 2, ""Region"": 1, ""TOU"": 1}",8103,4765,type_ii_D03II_long_long_j50_i8103_a202_g50,41
+303,"{""Compressible"": 5, ""Demand"": 9, ""Region"": 61, ""TOU"": 7945}",4,4,2,2,4,"{""Compressible"": 1, ""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8103,7490,type_ii_D03II_long_long_j50_i8103_a303_g50,31
+101,"{""Demand"": 7, ""Region"": 4830, ""TOU"": 1153}",3,3,2,2,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8104,1170,type_ii_D03II_long_long_j50_i8104_a101_g50,137
+202,"{""Demand"": 5, ""Region"": 1303, ""TOU"": 4857}",3,3,2,2,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8104,2355,type_ii_D03II_long_long_j50_i8104_a202_g50,155
+303,"{""Demand"": 1, ""Region"": 1253, ""TOU"": 5026}",3,3,2,2,2,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8104,295,type_ii_D03II_long_long_j50_i8104_a303_g50,175
+101,"{""Demand"": 107, ""Region"": 600, ""TOU"": 5083}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8105,1710,type_ii_D03II_long_long_j50_i8105_a101_g50,116
+202,"{""Demand"": 46, ""Region"": 131, ""TOU"": 5238}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8105,4790,type_ii_D03II_long_long_j50_i8105_a202_g50,59
+303,"{""Demand"": 159, ""Region"": 226, ""TOU"": 6525}",3,3,3,3,3,"{""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8105,2210,type_ii_D03II_long_long_j50_i8105_a303_g50,128

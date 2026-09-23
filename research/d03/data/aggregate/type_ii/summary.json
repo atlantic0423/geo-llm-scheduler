@@ -1,0 +1,12 @@
+{
+  "suite": "D03 Type-II",
+  "steps": 95050,
+  "state_coverage": 18,
+  "condition_counts": {
+    "TOU": 78215,
+    "Region": 16298,
+    "Demand": 532,
+    "Compressible": 5
+  },
+  "runs": 15
+}
