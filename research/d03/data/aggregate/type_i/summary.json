@@ -1,0 +1,15 @@
+{
+  "suite": "D03 Type-I",
+  "steps": 257010,
+  "state_coverage": 42,
+  "condition_counts": {
+    "Compressible": 13522,
+    "Region": 119862,
+    "Demand": 45364,
+    "Resource": 34474,
+    "KV": 4531,
+    "Normal": 5857,
+    "TOU": 33400
+  },
+  "runs": 42
+}

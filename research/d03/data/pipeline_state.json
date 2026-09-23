@@ -1,0 +1,35 @@
+{
+  "updated_at": "2026-09-23T00:37:39.496125+08:00",
+  "status": "complete",
+  "stage": "complete",
+  "formal_complete": 57,
+  "formal_expected": 57,
+  "type_i": {
+    "suite": "D03 Type-I",
+    "steps": 257010,
+    "state_coverage": 42,
+    "condition_counts": {
+      "Compressible": 13522,
+      "Region": 119862,
+      "Demand": 45364,
+      "Resource": 34474,
+      "KV": 4531,
+      "Normal": 5857,
+      "TOU": 33400
+    },
+    "runs": 42
+  },
+  "type_ii": {
+    "suite": "D03 Type-II",
+    "steps": 95050,
+    "state_coverage": 18,
+    "condition_counts": {
+      "TOU": 78215,
+      "Region": 16298,
+      "Demand": 532,
+      "Compressible": 5
+    },
+    "runs": 15
+  },
+  "freeze_commit": "2526ad1afc425b4d6ff847055eebd4785744acc8"
+}

@@ -1,0 +1,4 @@
+algorithm_seed,counts_json,distinct,effective_1,effective_10,effective_20,effective_5,first_generation_json,instance_seed,longest_dwell,run_id,selection_rule,transitions
+303,"{""Region"": 956, ""TOU"": 6074}",2,2,2,2,2,"{""Region"": 1, ""TOU"": 1}",8101,1780,type_ii_D03II_long_long_j50_i8101_a303_g50,minimum,144
+202,"{""Demand"": 1, ""Region"": 108, ""TOU"": 5411}",3,3,2,2,2,"{""Demand"": 2, ""Region"": 1, ""TOU"": 1}",8103,4765,type_ii_D03II_long_long_j50_i8103_a202_g50,median,41
+303,"{""Compressible"": 5, ""Demand"": 9, ""Region"": 61, ""TOU"": 7945}",4,4,2,2,4,"{""Compressible"": 1, ""Demand"": 1, ""Region"": 1, ""TOU"": 1}",8103,7490,type_ii_D03II_long_long_j50_i8103_a303_g50,maximum,31

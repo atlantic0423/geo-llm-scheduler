@@ -1,0 +1,20 @@
+[
+  {
+    "name": "d03_v2_formal_type_i_runs.zip",
+    "files": 518,
+    "bytes": 95315854,
+    "sha256": "2feee7a84a1da95907978e5232f36d63452e3ef0cdc07dde7086f95246066c0c"
+  },
+  {
+    "name": "d03_v2_formal_type_ii_runs.zip",
+    "files": 185,
+    "bytes": 39122745,
+    "sha256": "4e2c16e73ab282bb222a19c3fdc190ccf3d2871c22f5c17ca327f1361a8f66d2"
+  },
+  {
+    "name": "d03_v2_calibration_runs.zip",
+    "files": 635,
+    "bytes": 32868512,
+    "sha256": "7d181a39612a78046f9b09415b3581fd5c7bd5862d947756e0dead9fdf842e69"
+  }
+]

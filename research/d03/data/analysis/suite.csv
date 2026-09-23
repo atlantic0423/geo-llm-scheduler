@@ -1,0 +1,3 @@
+suite,runs,generations,steps,coverage,cells,cells_n30
+D03-I,42,50,257010,42,314,270
+D03-II,15,50,95050,18,130,102
