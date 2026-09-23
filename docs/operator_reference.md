@@ -8,12 +8,14 @@ A1–A6 structural，A7/A8 timing-only。接口 operators/base.py；执行 macro
 | A2 PD-Path-Reassign | 一个 Job 同 Region P/D 路径 | Resource/KV 条件，搬移后负载/KV |
 | A3 Job-Region-Relocate | 一个 Job 整体 Region/path | 假设搬移后 Region imbalance、路径负载、KV |
 | A4 Flow-Congestion-Insert | 单 operation OS 前插 | 正 Flow-wait，保持 P-before-D，round-robin |
-| A5 PD-Coupled-Insert | 同 Job 两次 occurrence 前插 | 两侧等待较小值，合法 paired insertion |
+| A5 PD-Coupled-Insert | 同 Job 两次 occurrence 前插 | P+D Flow-wait 总和为正，合法 paired insertion |
 | A6 Random-Job-LNS | 部分 Job MS/OS | 比例默认 .1，至少2且不超过N，随机合法重插 |
 | A7 Active-Pack | 单 operation start | 正 active-union gain，合法有限关键时刻 |
 | A8 Peak-Coalition | 一个 Region 的少量 starts | 原并列峰 singleton-first 与支撑组 coalition |
 
 A1–A5 从按规则生成的2B pool无放回抽取B；A6直接生成不同候选并限制尝试数。A4/A5 使用 lazy bounded round-robin，达到2B不同候选后立即停止；A5 从合法位置对空间做有界无放回采样，不物化完整二次位置对集合。日志分别记录 raw moves considered、2B qualifying pool 和最终 proposals。结构候选均 rebuild。
+
+A4 仅选择正 Flow-wait 且有合法前插位置的工序，按等待量降序。A5 按同一 Job 的 P/D Flow-wait 总和降序，只要总和为正且有合法联合前插位置即可；单阶段零等待不排除该 Job。两者没有合格 target 时直接返回空，允许有效评价预算为零；不使用零等待随机 target 补足。
 
 ## A7
 
