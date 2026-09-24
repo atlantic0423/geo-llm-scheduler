@@ -13,7 +13,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.engine.run import run
 from geo_llm_scheduler.experiments.runner import save_result
 from geo_llm_scheduler.io.loaders import load_instance
-from geo_llm_scheduler.rl.state import decode
+from geo_llm_scheduler.rl.state import PREFERENCE_LABELS, decode, preference
 
 SEVERITY_NAMES = ("resource", "kv", "region", "tou", "demand", "compressible")
 TARGET_CONDITION = {
@@ -60,20 +60,28 @@ STEP_FIELDS = (
     "algorithm_seed",
     "generation",
     "subproblem",
+    "trajectory_step",
     "normalized_progress",
     "state_id",
     "preference",
     "dominant_condition",
     "search_progress",
     *tuple(f"severity_{name}" for name in SEVERITY_NAMES),
+    *tuple(f"threshold_{name}" for name in SEVERITY_NAMES),
+    *tuple(f"ratio_{name}" for name in SEVERITY_NAMES),
     "selected_action",
     "explore_or_greedy",
+    "q_selected_before",
+    "q_selected_after",
+    "argmax_q_action",
     "B_act",
+    "B_eff",
     "raw_construction_attempts",
     "proposals",
     "exact_evaluations",
     "feasible_count",
     "accepted",
+    "positive_improvement",
     "reward",
     "scalar_before",
     "scalar_after",
@@ -87,6 +95,31 @@ STEP_FIELDS = (
     "operator_instrumentation",
 )
 
+FUNNEL_FIELDS = (
+    "run_id",
+    "generation",
+    "preference",
+    "processed_subproblems",
+    "trigger_passes",
+    "rl_steps",
+)
+
+INITIAL_SEVERITY_FIELDS = (
+    "run_id",
+    "phase",
+    "scenario",
+    "instance_seed",
+    "algorithm_seed",
+    "generation",
+    "subproblem",
+    "state_id",
+    "preference",
+    "dominant_condition",
+    *tuple(f"severity_{name}" for name in SEVERITY_NAMES),
+    *tuple(f"threshold_{name}" for name in SEVERITY_NAMES),
+    *tuple(f"ratio_{name}" for name in SEVERITY_NAMES),
+)
+
 
 def flatten_steps(trace: list[dict], spec: DiagnosticRunSpec) -> list[dict[str, object]]:
     """Flatten nested engine trace rows without duplicating state extraction logic."""
@@ -94,8 +127,17 @@ def flatten_steps(trace: list[dict], spec: DiagnosticRunSpec) -> list[dict[str, 
     for event in trace:
         for step in event["steps"]:
             severities = tuple(step["severities"])
+            thresholds = tuple(step.get("severity_thresholds", (0.2,) * len(SEVERITY_NAMES)))
+            ratios = tuple(
+                step.get(
+                    "severity_ratios",
+                    tuple(value / threshold for value, threshold in zip(severities, thresholds)),
+                )
+            )
             if len(severities) != len(SEVERITY_NAMES):
                 raise ValueError("Diagnostic trace requires all six severity values")
+            if len(thresholds) != 6 or len(ratios) != 6:
+                raise ValueError("Diagnostic trace requires six thresholds and ratios")
             row: dict[str, object] = {
                 "run_id": spec.run_id,
                 "phase": spec.phase,
@@ -106,6 +148,7 @@ def flatten_steps(trace: list[dict], spec: DiagnosticRunSpec) -> list[dict[str, 
                 "algorithm_seed": spec.algorithm_seed,
                 "generation": event["generation"],
                 "subproblem": event["subproblem"],
+                "trajectory_step": step.get("step", 0),
                 "normalized_progress": step["progress"],
                 "state_id": step["state"],
                 "preference": step["preference"],
@@ -113,12 +156,17 @@ def flatten_steps(trace: list[dict], spec: DiagnosticRunSpec) -> list[dict[str, 
                 "search_progress": step["search_progress"],
                 "selected_action": f"A{step['action']}",
                 "explore_or_greedy": "explore" if step["explore"] else "greedy",
+                "q_selected_before": step.get("q_selected_before", 0.0),
+                "q_selected_after": step.get("q_selected_after", 0.0),
+                "argmax_q_action": f"A{step.get('argmax_q_action', step['action'])}",
                 "B_act": step["budget"],
+                "B_eff": step.get("effective_budget", step["exact_evaluations"]),
                 "raw_construction_attempts": step["attempts"],
                 "proposals": step["proposals"],
                 "exact_evaluations": step["exact_evaluations"],
                 "feasible_count": step["feasible"],
                 "accepted": int(step["accepted"]),
+                "positive_improvement": int(step.get("positive_improvement", step["reward"] > 0)),
                 "reward": step["reward"],
                 "scalar_before": step["scalar_before"],
                 "scalar_after": step["scalar_after"],
@@ -136,6 +184,10 @@ def flatten_steps(trace: list[dict], spec: DiagnosticRunSpec) -> list[dict[str, 
             row.update(
                 {f"severity_{name}": value for name, value in zip(SEVERITY_NAMES, severities)}
             )
+            row.update(
+                {f"threshold_{name}": value for name, value in zip(SEVERITY_NAMES, thresholds)}
+            )
+            row.update({f"ratio_{name}": value for name, value in zip(SEVERITY_NAMES, ratios)})
             rows.append(row)
     return rows
 
@@ -149,6 +201,58 @@ def _write_csv(
         writer = csv.DictWriter(handle, fieldnames=fieldnames, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
+
+
+def flatten_trigger_funnel(
+    trace: list[dict], spec: DiagnosticRunSpec, population: int
+) -> list[dict[str, object]]:
+    """Count processed, triggered, and RL-step events by generation and preference."""
+    counts: dict[tuple[int, str], list[int]] = defaultdict(lambda: [0, 0, 0])
+    for event in trace:
+        label = PREFERENCE_LABELS[preference(event["subproblem"], population)]
+        key = (int(event["generation"]), label)
+        counts[key][0] += 1
+        counts[key][1] += int(bool(event["trigger"]))
+        counts[key][2] += len(event["steps"])
+    return [
+        {
+            "run_id": spec.run_id,
+            "generation": generation,
+            "preference": label,
+            "processed_subproblems": values[0],
+            "trigger_passes": values[1],
+            "rl_steps": values[2],
+        }
+        for (generation, label), values in sorted(counts.items())
+    ]
+
+
+def flatten_initial_severities(
+    snapshot: list[dict], spec: DiagnosticRunSpec
+) -> list[dict[str, object]]:
+    """Flatten generation-zero severity observations without creating RL visits."""
+    rows = []
+    for item in snapshot:
+        values = tuple(item["severities"])
+        thresholds = tuple(item["severity_thresholds"])
+        ratios = tuple(item["severity_ratios"])
+        row: dict[str, object] = {
+            "run_id": spec.run_id,
+            "phase": spec.phase,
+            "scenario": spec.scenario,
+            "instance_seed": spec.instance_seed,
+            "algorithm_seed": spec.algorithm_seed,
+            "generation": 0,
+            "subproblem": item["subproblem"],
+            "state_id": item["state"],
+            "preference": item["preference"],
+            "dominant_condition": item["dominant_condition"],
+        }
+        row.update({f"severity_{name}": value for name, value in zip(SEVERITY_NAMES, values)})
+        row.update({f"threshold_{name}": value for name, value in zip(SEVERITY_NAMES, thresholds)})
+        row.update({f"ratio_{name}": value for name, value in zip(SEVERITY_NAMES, ratios)})
+        rows.append(row)
+    return rows
 
 
 def run_diagnostic(
@@ -192,6 +296,16 @@ def run_diagnostic(
     (destination / "rl_steps.jsonl").write_text(
         "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows), encoding="utf-8"
     )
+    _write_csv(
+        destination / "trigger_funnel.csv",
+        flatten_trigger_funnel(result.trace, spec, config.population),
+        FUNNEL_FIELDS,
+    )
+    _write_csv(
+        destination / "initial_severity.csv",
+        flatten_initial_severities(result.initial_severity_snapshot, spec),
+        INITIAL_SEVERITY_FIELDS,
+    )
     return summary
 
 
@@ -211,6 +325,9 @@ def _read_steps(path: Path) -> list[dict[str, object]]:
         "accepted",
         "archive_insertions",
         "archive_net_retained",
+        "trajectory_step",
+        "B_eff",
+        "positive_improvement",
     }
     numeric_float = {
         "normalized_progress",
@@ -222,7 +339,11 @@ def _read_steps(path: Path) -> list[dict[str, object]]:
         "step_seconds",
         "construction_seconds",
         "budget_seconds",
+        "q_selected_before",
+        "q_selected_after",
         *{f"severity_{name}" for name in SEVERITY_NAMES},
+        *{f"threshold_{name}" for name in SEVERITY_NAMES},
+        *{f"ratio_{name}" for name in SEVERITY_NAMES},
     }
     rows: list[dict[str, object]] = []
     with path.open(newline="", encoding="utf-8") as handle:

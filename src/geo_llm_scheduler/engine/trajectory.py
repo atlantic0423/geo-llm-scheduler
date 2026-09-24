@@ -45,7 +45,13 @@ def improve(
         start = perf_counter()
         state_values = values
         state = extract(index, state_values, stagnant_count, config)
+        enabled = tuple(action - 1 for action in config.enabled_operators)
+        q_row_before = tuple(controller.q[state])
+        q_best = max(q_row_before[action] for action in enabled)
+        # Stable observational argmax; Controller.select keeps its existing tie-break.
+        argmax_q_action = min(action for action in enabled if q_row_before[action] == q_best) + 1
         action, explore = controller.select(state, progress, streams.stream("qlearning"))
+        q_selected_before = q_row_before[action - 1]
         context = NormalizationContext(gateway.ideal, maximum)
         budget_start = perf_counter()
         budget = choose_budget(
@@ -91,6 +97,7 @@ def improve(
         # Each short trajectory ends an episode; keep the run-level Q table.
         # Polish is outside the episode and never contributes bootstrap/reward.
         controller.update(state, action, signal, next_state, terminal=step == config.rl_steps - 1)
+        q_selected_after = controller.q[state][action - 1]
         preference_label, condition_label, progress_label = decode(state)
         records.append(
             {
@@ -101,14 +108,23 @@ def improve(
                 "search_progress": progress_label,
                 "progress": progress,
                 "severities": state_values,
+                "severity_thresholds": config.severity_thresholds,
+                "severity_ratios": tuple(
+                    value / threshold
+                    for value, threshold in zip(state_values, config.severity_thresholds)
+                ),
                 "next_state": next_state,
                 "action": action,
                 "explore": explore,
+                "q_selected_before": q_selected_before,
+                "q_selected_after": q_selected_after,
+                "argmax_q_action": argmax_q_action,
                 "reward": signal,
                 "budget": budget,
                 "effective": result.effective,
                 "proposals": len(batch.proposals),
                 "exact_evaluations": result.exact_evaluations,
+                "effective_budget": result.effective,
                 "attempts": result.construction_attempts,
                 "feasible": result.feasible_count,
                 "archive_insertions": gateway.archive.insertions - insertions,
@@ -116,6 +132,7 @@ def improve(
                 "scalar_before": before,
                 "scalar_after": after,
                 "accepted": current is not prior,
+                "positive_improvement": signal > 0,
                 "delta_flow": current.evaluation.flow - prior.evaluation.flow,
                 "delta_bill": current.evaluation.bill - prior.evaluation.bill,
                 "seconds": perf_counter() - start,
