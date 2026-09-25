@@ -1,0 +1,22 @@
+# Provisional research campaign. Selectors write a separate downstream lock.
+duration_hours: 60
+grace_minutes: 25
+dependency_poll_seconds: 180
+heartbeat_seconds: 30
+screening_seconds: 180
+final_seconds: 300
+jobs_per_instance: 50
+population: 100
+screening_instance_seeds: [71, 72, 73]
+final_instance_seeds: [71, 72, 73, 74, 75]
+algorithm_seeds: [101, 202, 303]
+max_workers: 2
+memory_reserve_gb: 1.5
+memory_per_worker_gb: 2.3
+min_free_disk_gb: 20
+max_job_retries: 2
+include_optional_macro_arms: false
+e13_extra_seed_start: 404
+e13_extra_seed_stop: 9999
+base_config: configs/default.yaml
+d03_raw_root: outputs/diagnostics/d03_v2/runs

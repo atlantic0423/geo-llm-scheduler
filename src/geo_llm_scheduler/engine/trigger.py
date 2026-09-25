@@ -33,6 +33,8 @@ def triggered(
         elif preference(nearest, len(weights)) != preference(index, len(weights)):
             return False
     before = context.scalar(incumbent, weights[index])
+    if not config.trigger_quality_gate:
+        return True
     return (context.scalar(child, weights[index]) - before) / (
         before + EPS_RATIO
     ) <= config.trigger_delta
