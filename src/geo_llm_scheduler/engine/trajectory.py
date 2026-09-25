@@ -86,6 +86,15 @@ def improve(
                 )
         after = result.context.scalar(current, weights[index])
         signal = reward(before, after, result.feasible_count)
+        if config.polish and config.polish_mode == "step":
+            polish_start = perf_counter()
+            gateway.counts["polish_calls"] += 1
+            stats = PolishStats()
+            current = polish(problem, current, gateway, stats)
+            gateway.counts["polish_candidates"] += stats.candidates
+            gateway.counts["polish_exact"] += stats.exact
+            gateway.counts["polish_accepted"] += stats.accepted
+            gateway.seconds["polish"] += perf_counter() - polish_start
         values = severities(problem, current)
         next_state = extract(index, values, stagnant_count, config)
         # Each short trajectory ends an episode; keep the run-level Q table.
@@ -125,7 +134,7 @@ def improve(
                 "operator_instrumentation": batch.instrumentation,
             }
         )
-    if config.polish:
+    if config.polish and config.polish_mode == "trajectory":
         start = perf_counter()
         gateway.counts["polish_calls"] += 1
         stats = PolishStats()

@@ -5,7 +5,7 @@ from time import perf_counter
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
-from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
+from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.engine.trajectory import improve
 from geo_llm_scheduler.engine.trigger import triggered
@@ -37,7 +37,9 @@ class RunResult:
     termination_reason: str
 
 
-def run(problem: ProblemInstance, config: Config) -> RunResult:
+def run(
+    problem: ProblemInstance, config: Config, initial: list[Genotype] | None = None
+) -> RunResult:
     """Execute baseline generations, preserving every complete evaluated candidate."""
     validate_problem(problem)
     begin = perf_counter()
@@ -46,8 +48,14 @@ def run(problem: ProblemInstance, config: Config) -> RunResult:
     initialization_start = perf_counter()
     population = [
         gateway.evaluate(g, origin="initialization")
-        for g in initial_genotypes(problem, config, streams.stream("initialization"))
+        for g in (
+            initial
+            if initial is not None
+            else initial_genotypes(problem, config, streams.stream("initialization"))
+        )
     ]
+    if len(population) != config.population:
+        raise ValueError("Frozen initialization size does not match population")
     gateway.seconds["initialization"] += perf_counter() - initialization_start
     lambdas = weights(config.population)
     neighbors = neighborhoods(lambdas, config.neighborhood)

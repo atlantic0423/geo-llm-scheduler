@@ -37,12 +37,14 @@ class Config:
     controller: str = "qlearning"
     budget_policy: str = "fixed"
     trigger_delta: float = 0.10  # experimental, not a frozen research parameter
+    trigger_quality_gate: bool = True  # E12 ablation only
     trigger_mode: str = "preference"
     fixed_ls_probability: float = 0.5  # test/experimental ablation
     fixed_budget: int = 6
     static_budgets: tuple[int, ...] = (3, 6, 6, 3, 3, 10, 6, 10)
     enabled_operators: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8)
     polish: bool = True
+    polish_mode: str = "trajectory"  # E04: none, step, or current trajectory placement
     initialization_attempts: int = 10000
     initialization_perturbation: float = 0.10  # experimental
     random_attempt_multiplier: int = 20  # bounded duplicate generation
@@ -74,7 +76,7 @@ class Config:
             raise ValueError("Wall-clock budget must be finite and positive")
         if len(self.budgets) != 3 or tuple(sorted(self.budgets)) != self.budgets:
             raise ValueError("Three ordered budget levels required")
-        if self.method not in ("plain", "full") or self.controller not in (
+        if self.method not in ("plain", "full", "nsga2") or self.controller not in (
             "qlearning",
             "bandit",
             "random",
@@ -84,8 +86,12 @@ class Config:
             raise ValueError("Unknown budget policy")
         if self.trigger_mode not in ("preference", "strict", "always", "fixed"):
             raise ValueError("Unknown trigger mode")
+        if self.polish_mode not in ("none", "step", "trajectory"):
+            raise ValueError("Unknown Polish placement")
         if not isfinite(self.trigger_delta) or self.trigger_delta < 0:
             raise ValueError("Trigger tolerance must be finite and nonnegative")
+        if type(self.trigger_quality_gate) is not bool:
+            raise ValueError("Trigger quality gate flag must be bool")
         if (
             len(self.mutation_weights) != 3
             or any(not isfinite(v) or v < 0 for v in self.mutation_weights)

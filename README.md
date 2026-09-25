@@ -4,6 +4,8 @@
 
 已提供 exact evaluator、事件驱动 SSGS、十类初始化、plain MOEA/D、A1–A8、RightShiftPolish、共享 42×8 Q-table、五种预算策略及实验入口。示例配置只验证运行，不能用 smoke 结果推断研究有效性。当前验收状态见 [验收矩阵](docs/acceptance_matrix.md)。
 
+60 小时冻结批次的设计、运行边界和结果读取见 [无人值守实验手册](docs/experiments/60h_freeze_campaign.md)。在代码合并到干净的 `main` 并通过门禁后，正式启动只需 `python scripts/run_60h_campaign.py start --detach`；`status`、`resume --detach` 和 `stop` 提供只读状态、断点恢复和安全停止。
+
 ## 安装与运行
 
 Python ≥3.11，在仓库根目录执行：

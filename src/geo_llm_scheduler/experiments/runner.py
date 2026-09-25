@@ -11,6 +11,7 @@ from pathlib import Path
 from geo_llm_scheduler.config import Config, load_config
 from geo_llm_scheduler.domain.models import Candidate
 from geo_llm_scheduler.engine.run import RunResult, run
+from geo_llm_scheduler.experiments.nsga2 import run_nsga2
 from geo_llm_scheduler.io.loaders import load_instance
 
 
@@ -212,7 +213,7 @@ def run_config(path: str | Path, seed: int | None = None, output: str | None = N
     if seed is not None:
         config = replace(config, seed=seed)
     problem = load_instance(config.instance)
-    result = run(problem, config)
+    result = run_nsga2(problem, config) if config.method == "nsga2" else run(problem, config)
     destination = (
         Path(output)
         if output
