@@ -210,7 +210,15 @@ def _memory_ok() -> bool:
     if not limit_path.exists() or not used_path.exists():
         return True
     limit = limit_path.read_text().strip()
-    return limit == "max" or int(used_path.read_text()) < int(limit) * 0.78
+    if limit == "max":
+        return True
+    # Large trace writes remain in reclaimable page cache. Use the cgroup's
+    # non-reclaimable footprint for dispatch rather than stalling on cached files.
+    stat_path = Path("/sys/fs/cgroup/memory.stat")
+    stat = dict(line.split() for line in stat_path.read_text().splitlines())
+    inactive_file = int(stat.get("inactive_file", "0"))
+    working_set = max(0, int(used_path.read_text()) - inactive_file)
+    return working_set < int(limit) * 0.78
 
 
 def _status(

@@ -68,3 +68,16 @@ def test_generation_only_batch_resumes_without_repeating_result(tmp_path):
     summary = json.loads((result / "summary.json").read_text(encoding="utf-8"))
     assert summary["termination_reason"] == "generation_limit"
     assert summary["time_budget_seconds"] is None
+
+
+def test_dispatch_memory_guard_ignores_reclaimable_file_cache(tmp_path, monkeypatch):
+    module = _campaign_module()
+    group = tmp_path / "sys" / "fs" / "cgroup"
+    group.mkdir(parents=True)
+    (group / "memory.max").write_text("1000")
+    (group / "memory.current").write_text("900")
+    (group / "memory.stat").write_text("inactive_file 800\n")
+    monkeypatch.setattr(module, "Path", lambda text: tmp_path / text.lstrip("/"))
+    assert module._memory_ok()
+    (group / "memory.stat").write_text("inactive_file 10\n")
+    assert not module._memory_ok()
