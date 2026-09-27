@@ -59,4 +59,6 @@ V1–V3不依赖开发集选型，可与第一阶段并行启动；V4–V6在选
 
 启动前按服务器32 GiB容器内存限额预跑200代Full并记录峰值，再确定进程并发。运行中内存使用达到限额78%时暂停派发新进程。20小时截止后不再启动新任务，已运行的任务完成后落盘；若剩余未完成，应明确报告并可在用户要求下续跑，不得把不完整条目记为200代成功。
 
+本次正式执行按用户最新要求以 **363条全部完成** 为优先级：使用 `scripts/launch_20h_unattended.sh` 作为单实例持久监督器，传入长于预计用时的运行截止时间。若子流水线因单条失败或会话断开退出，监督器会用相同目录重启；完整校验通过的结果自动跳过，失败或不完整结果隔离后补跑。`supervisor.lock` 防止双重启动，`supervisor.pid`、`pipeline.pid`、`pipeline.log`、`status.json` 和 `finished.json` 可供事后核验。20小时是实验规划目标，不作为截断全部矩阵的硬限制；最终必须核对开发63条、验证300条。
+
 报告产物依赖 `analysis/development_metrics.csv`、`selected.json`、`analysis/validation_metrics.csv`、逐条summary/trace/objectives和结果包manifest。服务器结果必须回收至本地并校验，再按临时服务器三端同步规则发布GitHub结果资产和Notion记录。
