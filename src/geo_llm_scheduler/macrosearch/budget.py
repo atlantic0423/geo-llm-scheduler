@@ -49,12 +49,13 @@ def choose_budget(
         return rng.choice(config.budgets)
     if policy == "severity":
         ratios = [v / t for v, t in zip(values, config.severity_thresholds)]
+        low_cutoff, high_cutoff = config.severity_budget_cutoffs
         if action in (4, 5):
             return (high, medium, low)[preference(index, config.population)]
         if action == 6:
             return high if stagnant_count >= config.stagnation_threshold else low
         value = {1: ratios[0], 2: max(ratios[:2]), 3: ratios[2], 7: ratios[5], 8: ratios[4]}[action]
-        return low if value <= 1 else medium if value <= 2 else high
+        return low if value <= low_cutoff else medium if value <= high_cutoff else high
     if policy == "coverage":
         coverage = objective_coverage(archive)
         if len(coverage) < config.population:

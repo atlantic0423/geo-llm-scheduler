@@ -22,6 +22,7 @@ from geo_llm_scheduler.io.loaders import load_instance
 TUPLE_FIELDS = (
     "mutation_weights",
     "severity_thresholds",
+    "severity_budget_cutoffs",
     "budgets",
     "static_budgets",
     "enabled_operators",

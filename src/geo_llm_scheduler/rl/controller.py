@@ -16,6 +16,21 @@ class Controller:
         self.updates = [[0] * 8 for _ in range(42)]
         self.selections = [[0] * 8 for _ in range(42)]
 
+    def available_actions(self, state: int) -> tuple[int, ...]:
+        """Return enabled actions after the optional, state-specific campaign mask."""
+        if state not in range(42):
+            raise ValueError("State outside the 42-state space")
+        removed = {
+            "none": (),
+            "no_a6": (6,),
+            "no_a4a5": (4, 5),
+            "no_a4a5a6": (4, 5, 6),
+        }[self.config.action_mask_policy]
+        allowed = tuple(a for a in self.config.enabled_operators if state != 9 or a not in removed)
+        if not allowed:
+            raise ValueError("Action mask leaves no available action")
+        return allowed
+
     def select(self, state: int, progress: float, rng: random.Random) -> tuple[int, bool]:
         """Epsilon is exploration probability, linearly decayed over run progress."""
         self.visits[state] += 1
@@ -23,7 +38,7 @@ class Controller:
             self.config.epsilon_end - self.config.epsilon_start
         ) * min(1, max(0, progress))
         explore = self.config.controller == "random" or rng.random() < epsilon
-        actions = [a - 1 for a in self.config.enabled_operators]
+        actions = [a - 1 for a in self.available_actions(state)]
         if explore:
             chosen = rng.choice(actions)
         else:
@@ -40,7 +55,9 @@ class Controller:
             return
         gamma = 0 if self.config.controller == "bandit" else self.config.gamma
         future = (
-            0 if terminal else max(self.q[next_state][a - 1] for a in self.config.enabled_operators)
+            0
+            if terminal
+            else max(self.q[next_state][a - 1] for a in self.available_actions(next_state))
         )
         old = self.q[state][action - 1]
         self.q[state][action - 1] = old + self.config.alpha * (reward + gamma * future - old)

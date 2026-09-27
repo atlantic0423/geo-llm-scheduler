@@ -45,6 +45,7 @@ def improve(
         start = perf_counter()
         state_values = values
         state = extract(index, state_values, stagnant_count, config)
+        available_actions = controller.available_actions(state)
         action, explore = controller.select(state, progress, streams.stream("qlearning"))
         context = NormalizationContext(gateway.ideal, maximum)
         budget_start = perf_counter()
@@ -105,6 +106,8 @@ def improve(
             {
                 "step": step,
                 "state": state,
+                "available_actions": available_actions,
+                "mask_policy": config.action_mask_policy,
                 "preference": preference_label,
                 "dominant_condition": condition_label,
                 "search_progress": progress_label,
