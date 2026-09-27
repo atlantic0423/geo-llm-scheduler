@@ -26,6 +26,8 @@ class Config:
     stagnation_threshold: int = 5
     severity_thresholds: tuple[float, ...] = (0.13, 0.05, 0.60, 0.43, 0.33, 0.16)
     budgets: tuple[int, ...] = (3, 6, 10)
+    severity_budget_cutoffs: tuple[float, float] = (1.0, 2.0)
+    action_mask_policy: str = "none"
     a8_singleton_attempts: int = 2
     a8_member_cap: int = 8
     a8_position_limit: int = 6
@@ -76,6 +78,14 @@ class Config:
             raise ValueError("Wall-clock budget must be finite and positive")
         if len(self.budgets) != 3 or tuple(sorted(self.budgets)) != self.budgets:
             raise ValueError("Three ordered budget levels required")
+        if (
+            len(self.severity_budget_cutoffs) != 2
+            or any(not isfinite(v) or v <= 0 for v in self.severity_budget_cutoffs)
+            or self.severity_budget_cutoffs[0] >= self.severity_budget_cutoffs[1]
+        ):
+            raise ValueError("Two finite, positive, increasing severity budget cutoffs required")
+        if self.action_mask_policy not in ("none", "no_a6", "no_a4a5", "no_a4a5a6"):
+            raise ValueError("Unknown experimental action mask policy")
         if self.method not in ("plain", "full", "nsga2") or self.controller not in (
             "qlearning",
             "bandit",
@@ -112,6 +122,14 @@ class Config:
             raise ValueError("Action outside A1-A8")
         if len(set(self.enabled_operators)) != len(self.enabled_operators):
             raise ValueError("Enabled actions must be unique")
+        masked = {
+            "none": (),
+            "no_a6": (6,),
+            "no_a4a5": (4, 5),
+            "no_a4a5a6": (4, 5, 6),
+        }[self.action_mask_policy]
+        if all(a in masked for a in self.enabled_operators):
+            raise ValueError("Action mask leaves no action in its target state")
         for value in (
             self.alpha,
             self.gamma,
@@ -139,6 +157,7 @@ def load_config(path: str | Path) -> Config:
     for key in (
         "mutation_weights",
         "severity_thresholds",
+        "severity_budget_cutoffs",
         "budgets",
         "static_budgets",
         "enabled_operators",

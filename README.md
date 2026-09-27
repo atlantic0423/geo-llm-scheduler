@@ -68,6 +68,8 @@ D02 是独立 mixed random validation set，不是 D01 的第八个场景。它�
 
 ## Development Workflow
 
+200代的三算法对比、状态动作屏蔽及严重度预算实验见[20小时实验协议](docs/experiments/20h_generation_mask_budget.md)。服务器使用 `scripts/run_20h_campaign.py` 将开发集和独立验证集分开，自动冻结共同初始种群、逐条校验并跳过已完成任务。该协议为当前实验配置；核心算法默认行为保持不变。
+
 GitHub [`atlantic0423/geo-llm-scheduler`](https://github.com/atlantic0423/geo-llm-scheduler) 的 `main` 是代码、测试、配置、文档和 CI 的权威版本。首次 baseline 后，常规修改从 `main` 创建 `codex/<topic>` 或 `research/<topic>` 分支，经 Pull Request、CI 和 review 后合并。不要直接在 `main` 上长期开发。
 
 每个重要批次依次完成：读取 Notion 当前规格、修改与测试、commit/push、等待 GitHub Actions 通过、将 commit SHA/PR/CI 与规格映射同步到 Notion 09。详细约束见 [AGENTS.md](AGENTS.md)。

@@ -120,6 +120,7 @@ def _config_from_json(data: dict[str, Any]) -> Config:
     for key in (
         "mutation_weights",
         "severity_thresholds",
+        "severity_budget_cutoffs",
         "budgets",
         "static_budgets",
         "enabled_operators",

@@ -67,18 +67,36 @@ def validate_result(directory: Path, spec: JobSpec) -> tuple[bool, str]:
             return False, "method-mismatch"
         if summary.get("termination_reason") not in ("time_budget", "generation_limit"):
             return False, "invalid-termination"
+        if spec.config["seconds"] is None:
+            if summary["termination_reason"] != "generation_limit":
+                return False, "not-complete-generations"
         if not isinstance(population, list) or len(population) != spec.config["population"]:
             return False, "population-size"
         if not isinstance(archive, list) or not archive or not isinstance(qtable, dict):
             return False, "archive-or-qtable"
-        for key in ("elapsed", "archive_size", "archive_peak_size", "time_overshoot_seconds"):
+        for key in ("elapsed", "archive_size", "archive_peak_size"):
             value = summary.get(key)
             if not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
                 return False, f"nonfinite:{key}"
         if summary["archive_size"] != len(archive):
             return False, "archive-size"
-        if not math.isclose(summary["time_budget_seconds"], spec.config["seconds"]):
+        if spec.config["seconds"] is None:
+            if (
+                summary["time_budget_seconds"] is not None
+                or summary["time_overshoot_seconds"] is not None
+            ):
+                return False, "generation-budget"
+        elif (
+            not math.isclose(summary["time_budget_seconds"], spec.config["seconds"])
+            or not isinstance(summary["time_overshoot_seconds"], (int, float))
+            or not math.isfinite(summary["time_overshoot_seconds"])
+            or summary["time_overshoot_seconds"] < 0
+        ):
             return False, "time-budget"
+        expected_rows = spec.config["generations"] * spec.config["population"]
+        if spec.config["seconds"] is None:
+            if sum(1 for _ in (directory / "trace.jsonl").open(encoding="utf-8")) != expected_rows:
+                return False, "generation-count"
         with (directory / "objectives.csv").open(newline="", encoding="utf-8") as handle:
             rows = list(csv.DictReader(handle))
         if len(rows) != len(archive):
