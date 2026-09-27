@@ -9,7 +9,7 @@ YAML 覆盖 Config，未知字段报错。全部字段/default见 src/geo_llm_sc
 | mutation_weights | .4/.4/.2 | working |
 | alpha/gamma/epsilon_start/epsilon_end | .30/.70/.30/.05 | working |
 | rl_steps/stagnation_threshold | 5/5 | working |
-| severity_thresholds | 六个.20 | working |
+| severity_thresholds | 资源 .13、KV .05、区域 .60、分时电价 .43、需量 .33、可压缩 .16 | v2 working；[选择依据](reports/severity_thresholds_v2.md) |
 | budgets/fixed_budget | 3,6,10/6 | working |
 | A8 singleton/member/position/attempt-multiplier | 2/8/6/2 | working |
 | a6_destroy_ratio | .10，至少2且不超过job数 | working |

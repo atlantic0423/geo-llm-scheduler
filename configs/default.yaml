@@ -16,12 +16,12 @@ epsilon_start: 0.3
 epsilon_end: 0.05
 stagnation_threshold: 5
 severity_thresholds:
-- 0.2
-- 0.2
-- 0.2
-- 0.2
-- 0.2
-- 0.2
+- 0.13
+- 0.05
+- 0.60
+- 0.43
+- 0.33
+- 0.16
 budgets:
 - 3
 - 6
