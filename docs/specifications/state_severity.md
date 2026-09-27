@@ -75,5 +75,5 @@ $$
 
 空候选集的最大值取零。Region/TOU/Demand/Compressible 范围为 $[0,1]$。空 batch 的所有 severity 均为零。正容量、非负费率、有限参数与 tariff 覆盖由输入验证。
 
-六个独立阈值工作值为 0.20，全部不超过阈值时为 Normal，否则选最大 severity/threshold，等值按 Resource、KV、Region、TOU、Demand、Compressible 顺序确定。
+第二版六个独立阈值工作值依 Resource、KV、Region、TOU、Demand、Compressible 顺序为 $(0.13, 0.05, 0.60, 0.43, 0.33, 0.16)$。全部不超过各自阈值时为 Normal，否则选最大 severity/threshold，等值按上述顺序确定。历史第一版统一工作值 0.20 的实验记录保留原配置；第二版选择依据与验证边界见[阈值第二版工作配置](../reports/severity_thresholds_v2.md)。
 

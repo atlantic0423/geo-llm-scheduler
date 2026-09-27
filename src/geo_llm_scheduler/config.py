@@ -24,7 +24,7 @@ class Config:
     epsilon_start: float = 0.30
     epsilon_end: float = 0.05
     stagnation_threshold: int = 5
-    severity_thresholds: tuple[float, ...] = (0.2,) * 6
+    severity_thresholds: tuple[float, ...] = (0.13, 0.05, 0.60, 0.43, 0.33, 0.16)
     budgets: tuple[int, ...] = (3, 6, 10)
     a8_singleton_attempts: int = 2
     a8_member_cap: int = 8

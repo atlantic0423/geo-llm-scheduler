@@ -3,6 +3,7 @@
 import pytest
 
 from geo_llm_scheduler.config import Config, load_config
+from geo_llm_scheduler.rl.state import decode, extract
 
 
 @pytest.mark.parametrize(
@@ -42,3 +43,14 @@ def test_yaml_unknown_and_roundtrip(tmp_path):
     path.write_text("budgets: [2, 4, 8]\na6_destroy_ratio: 0.2", encoding="utf-8")
     assert load_config(path).budgets == (2, 4, 8)
     assert load_config(path).a6_destroy_ratio == 0.2
+
+
+def test_v2_working_severity_thresholds_match_default_yaml():
+    expected = (0.13, 0.05, 0.60, 0.43, 0.33, 0.16)
+    assert Config().severity_thresholds == expected
+    assert load_config("configs/default.yaml").severity_thresholds == expected
+
+    config = Config()
+    assert decode(extract(0, (0, 0, 0, 0, 0, 0.16), 0, config))[1] == "Normal"
+    assert decode(extract(0, (0, 0, 0, 0, 0, 0.161), 0, config))[1] == "Compressible"
+    assert decode(extract(0, (0.14, 0, 0.70, 0, 0, 0), 0, config))[1] == "Region"
