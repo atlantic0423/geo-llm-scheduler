@@ -34,6 +34,7 @@ class Config:
     a8_attempt_multiplier: int = 2
     generations: int = 2
     seconds: float | None = None
+    exact_evaluation_cap: int | None = None  # E15 equal-exact-evaluation protocol
     seed: int = 1
     method: str = "plain"
     controller: str = "qlearning"
@@ -76,6 +77,11 @@ class Config:
             raise ValueError("Counts must be positive integers")
         if self.seconds is not None and (not isfinite(self.seconds) or self.seconds <= 0):
             raise ValueError("Wall-clock budget must be finite and positive")
+        if self.exact_evaluation_cap is not None and (
+            type(self.exact_evaluation_cap) is not int
+            or self.exact_evaluation_cap < self.population
+        ):
+            raise ValueError("Exact evaluation cap must cover initialization")
         if len(self.budgets) != 3 or tuple(sorted(self.budgets)) != self.budgets:
             raise ValueError("Three ordered budget levels required")
         if (
@@ -86,13 +92,27 @@ class Config:
             raise ValueError("Two finite, positive, increasing severity budget cutoffs required")
         if self.action_mask_policy not in ("none", "no_a6", "no_a4a5", "no_a4a5a6"):
             raise ValueError("Unknown experimental action mask policy")
-        if self.method not in ("plain", "full", "nsga2") or self.controller not in (
+        if self.method not in (
+            "plain",
+            "full",
+            "nsga2",
+            "nsga2_memetic",
+        ) or self.controller not in (
             "qlearning",
             "bandit",
             "random",
         ):
             raise ValueError("Unknown algorithm or controller")
-        if self.budget_policy not in ("fixed", "static", "random", "severity", "coverage"):
+        if self.budget_policy not in (
+            "fixed",
+            "static",
+            "random",
+            "severity",
+            "coverage",
+            "coverage_v2",
+            "severity_v2",
+            "sequential",
+        ):
             raise ValueError("Unknown budget policy")
         if self.trigger_mode not in ("preference", "strict", "always", "fixed"):
             raise ValueError("Unknown trigger mode")

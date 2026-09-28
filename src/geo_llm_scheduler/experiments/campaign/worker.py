@@ -49,7 +49,7 @@ def execute_job(spec_path: Path, output: Path) -> None:
     problem = load_instance(spec.instance_path)
     result = (
         run_nsga2(problem, config, initial)
-        if config.method == "nsga2"
+        if config.method in ("nsga2", "nsga2_memetic")
         else run(problem, config, initial)
     )
     temporary = output.with_name(f".{output.name}.attempt-{os.getpid()}")

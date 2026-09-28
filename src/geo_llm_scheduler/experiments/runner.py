@@ -213,7 +213,11 @@ def run_config(path: str | Path, seed: int | None = None, output: str | None = N
     if seed is not None:
         config = replace(config, seed=seed)
     problem = load_instance(config.instance)
-    result = run_nsga2(problem, config) if config.method == "nsga2" else run(problem, config)
+    result = (
+        run_nsga2(problem, config)
+        if config.method in ("nsga2", "nsga2_memetic")
+        else run(problem, config)
+    )
     destination = (
         Path(output)
         if output

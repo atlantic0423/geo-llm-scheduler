@@ -5,7 +5,7 @@ from typing import Protocol
 
 from geo_llm_scheduler.domain.models import Candidate, Genotype, Schedule
 from geo_llm_scheduler.moead.core import NormalizationContext
-from geo_llm_scheduler.operators.base import ProposalBatch
+from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
 from geo_llm_scheduler.utils.numeric import TOL, identity
 
 
@@ -41,6 +41,7 @@ class MacroSearchResult:
     evaluated: tuple[Candidate, ...]
     feasible_scored: tuple[ScoredCandidate, ...]
     context: NormalizationContext
+    sequential: dict[str, float | int | bool | None] | None = None
 
     @property
     def effective(self) -> int:
@@ -56,12 +57,14 @@ def execute(
     context: NormalizationContext,
     evaluator: Evaluator,
     origin: str,
+    sequential: bool = False,
 ) -> MacroSearchResult:
     """Evaluate unique complete proposals then compare all using a temporary ideal."""
     seen = set()
     candidates: list[Candidate] = []
+    unique: list[Proposal] = []
     for proposal in batch.proposals:
-        if len(candidates) >= budget:
+        if len(unique) >= budget:
             break
         key = (
             proposal.genotype.ms,
@@ -83,7 +86,57 @@ def execute(
                 if o not in selected
             ):
                 raise ValueError("Timing proposal changed frozen operation")
-        candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+        unique.append(proposal)
+    audit: dict[str, float | int | bool | None] | None = None
+    if sequential:
+
+        def score(items: list[Candidate]) -> float:
+            ideal = (
+                min(context.ideal[0], evaluator.ideal[0]),
+                min(context.ideal[1], evaluator.ideal[1]),
+            )
+            shared = NormalizationContext(ideal, context.maximum)
+            return min(
+                (shared.scalar(c, weight) for c in items if c.evaluation.feasible),
+                default=float("inf"),
+            )
+
+        # Frozen unique proposal order ensures Fixed6 uses the same first six moves.
+        for proposal in unique[:3]:
+            candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+        evaluated3 = len(candidates)
+        best3 = score(candidates)
+        current3 = NormalizationContext(
+            (min(context.ideal[0], evaluator.ideal[0]), min(context.ideal[1], evaluator.ideal[1])),
+            context.maximum,
+        ).scalar(incumbent, weight)
+        to6 = best3 < current3 - TOL.scalar and len(unique) > 3
+        if to6:
+            for proposal in unique[3:6]:
+                candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+        evaluated6 = len(candidates)
+        best3_shared = score(candidates[:evaluated3])
+        best6 = score(candidates)
+        to10 = to6 and best6 < best3_shared - TOL.scalar and len(unique) > 6
+        if to10:
+            for proposal in unique[6:10]:
+                candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+        best10 = score(candidates)
+        denom = current3 + 1e-12
+        audit = {
+            "candidate_count_available": len(unique),
+            "eval_1_3": evaluated3,
+            "best3": None if best3 == float("inf") else best3,
+            "continue_to6": to6,
+            "eval_4_6": evaluated6 - evaluated3,
+            "delta_3_6": 0.0 if best3_shared == float("inf") else (best3_shared - best6) / denom,
+            "continue_to10": to10,
+            "eval_7_10": max(len(candidates) - 6, 0),
+            "delta_6_10": 0.0 if best6 == float("inf") else (best6 - best10) / denom,
+            "final_B_eff": len(candidates),
+        }
+    else:
+        candidates = [evaluator.evaluate(p.genotype, p.schedule, origin) for p in unique]
     shared = NormalizationContext(
         (min(context.ideal[0], evaluator.ideal[0]), min(context.ideal[1], evaluator.ideal[1])),
         context.maximum,
@@ -104,4 +157,5 @@ def execute(
         tuple(candidates),
         feasible_scored,
         shared,
+        audit,
     )

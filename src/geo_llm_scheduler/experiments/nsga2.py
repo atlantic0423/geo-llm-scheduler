@@ -8,12 +8,18 @@ from time import perf_counter
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
-from geo_llm_scheduler.engine.evaluation import EvaluationGateway
+from geo_llm_scheduler.engine.evaluation import EvaluationCapReached, EvaluationGateway
 from geo_llm_scheduler.engine.run import RunResult
+from geo_llm_scheduler.engine.trajectory import improve
+from geo_llm_scheduler.engine.trigger import triggered
 from geo_llm_scheduler.initialization.generators import initial_genotypes
 from geo_llm_scheduler.io.validation import validate_problem
+from geo_llm_scheduler.macrosearch.adaptive import AdaptiveBudget
+from geo_llm_scheduler.moead.core import NormalizationContext, maximum, weights
 from geo_llm_scheduler.moead.variation import reproduce
 from geo_llm_scheduler.rl.controller import Controller
+from geo_llm_scheduler.rl.state import associate
+from geo_llm_scheduler.utils.numeric import TOL, identity, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 
@@ -110,7 +116,7 @@ def run_nsga2(
     validate_problem(problem)
     begin = perf_counter()
     streams = RNGManager(config.seed)
-    gateway = EvaluationGateway(problem, Archive())
+    gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
     initialization_start = perf_counter()
     population = [
         gateway.evaluate(g, origin="initialization")
@@ -126,6 +132,14 @@ def run_nsga2(
     trace: list[dict] = []
     reason = "generation_limit"
     rng = streams.stream("variation")
+    controller = Controller(config)
+    adaptive = (
+        AdaptiveBudget()
+        if config.budget_policy in ("coverage_v2", "severity_v2", "sequential")
+        else None
+    )
+    lambdas = weights(config.population)
+    stagnant: dict[tuple, int] = {}
     for generation in range(config.generations):
         rank, crowding = rank_and_crowding(population)
         offspring: list[Candidate] = []
@@ -133,11 +147,86 @@ def run_nsga2(
             if config.seconds is not None and perf_counter() - begin >= config.seconds:
                 reason = "time_budget"
                 break
+            if (
+                config.exact_evaluation_cap is not None
+                and gateway.counts["exact"] >= config.exact_evaluation_cap
+            ):
+                reason = "exact_evaluation_cap"
+                break
             a = tournament(rank, crowding, rng)
             b = tournament(rank, crowding, rng)
+            parent_context = (
+                NormalizationContext(gateway.ideal, maximum(population))
+                if config.method == "nsga2_memetic"
+                else None
+            )
+            frozen_parent_direction = (
+                associate(parent_context.normalize(population[a]), lambdas)
+                if parent_context is not None
+                else None
+            )
             child = gateway.evaluate(
                 reproduce(problem, population[a].genotype, population[b].genotype, config, rng)
             )
+            hit = False
+            steps: list[dict] = []
+            parent_direction: int | None = None
+            child_direction: int | None = None
+            if config.method == "nsga2_memetic" and (
+                config.exact_evaluation_cap is None
+                or gateway.counts["exact"] < config.exact_evaluation_cap
+            ):
+                assert parent_context is not None and frozen_parent_direction is not None
+                context = parent_context
+                parent_direction = frozen_parent_direction
+                child_direction = associate(context.normalize(child), lambdas)
+                gateway.counts["trigger_attempts"] += 1
+                hit = triggered(
+                    child,
+                    population[a],
+                    parent_direction,
+                    lambdas,
+                    context,
+                    config,
+                    streams.stream("trigger"),
+                )
+                if hit:
+                    gateway.counts["trigger_hits"] += 1
+                    before_search = child
+                    progress = (generation * config.population + len(offspring)) / (
+                        config.generations * config.population
+                    )
+                    if config.seconds is not None:
+                        progress = min(1.0, (perf_counter() - begin) / config.seconds)
+                    elif config.exact_evaluation_cap is not None:
+                        progress = min(1.0, gateway.counts["exact"] / config.exact_evaluation_cap)
+                    try:
+                        child, steps = improve(
+                            child,
+                            parent_direction,
+                            stagnant.get(identity(population[a]), 0),
+                            progress,
+                            lambdas,
+                            maximum(population),
+                            gateway,
+                            controller,
+                            config,
+                            streams,
+                            population,
+                            adaptive,
+                        )
+                    except EvaluationCapReached:
+                        reason = "exact_evaluation_cap"
+                    final_context = NormalizationContext(gateway.ideal, maximum(population))
+                    if less(
+                        final_context.scalar(child, lambdas[parent_direction]),
+                        final_context.scalar(before_search, lambdas[parent_direction]),
+                        TOL.scalar,
+                    ):
+                        gateway.counts["trigger_successes"] += 1
+                        stagnant[identity(child)] = 0
+                    else:
+                        stagnant[identity(child)] = stagnant.get(identity(population[a]), 0) + 1
             offspring.append(child)
             trace.append(
                 {
@@ -146,16 +235,21 @@ def run_nsga2(
                     "objectives": child.evaluation.objectives,
                     "replaced": 0,
                     "elapsed": perf_counter() - begin,
+                    "exact_count": gateway.counts["exact"],
                     "archive_objectives": [
                         c.evaluation.objectives for c in gateway.archive.members
                     ],
-                    "trigger": False,
-                    "steps": [],
+                    "trigger": hit,
+                    "steps": steps,
+                    "parent_direction": parent_direction,
+                    "offspring_direction": child_direction,
                 }
             )
         if offspring:
             population = environmental_selection(population + offspring, config.population)
-        if reason == "time_budget":
+            if config.method == "nsga2_memetic":
+                stagnant = {identity(c): stagnant.get(identity(c), 0) for c in population}
+        if reason in ("time_budget", "exact_evaluation_cap"):
             break
     return RunResult(
         population,
@@ -163,6 +257,7 @@ def run_nsga2(
         gateway,
         trace,
         perf_counter() - begin,
-        Controller(config),
+        controller,
         reason,
+        adaptive,
     )
