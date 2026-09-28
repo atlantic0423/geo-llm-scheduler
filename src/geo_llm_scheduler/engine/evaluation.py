@@ -9,20 +9,27 @@ from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.scheduling.ssgs import decode
 
 
+class EvaluationCapReached(RuntimeError):
+    """The run has consumed its frozen exact-evaluation allowance."""
+
+
 class EvaluationGateway:
     """Own run-level exact/rebuild counters, ideal history and archive dispatch."""
 
-    def __init__(self, problem: ProblemInstance, archive: Archive):
+    def __init__(self, problem: ProblemInstance, archive: Archive, exact_cap: int | None = None):
         self.problem = problem
         self.archive = archive
         self.ideal = (float("inf"), float("inf"))
         self.counts: Counter[str] = Counter()
         self.seconds: dict[str, float] = defaultdict(float)
+        self.exact_cap = exact_cap
 
     def evaluate(
         self, genotype: Genotype, schedule: Schedule | None = None, origin: str = "structural"
     ) -> Candidate:
         """Rebuild structural proposals; directly evaluate retained timing proposals."""
+        if self.exact_cap is not None and self.counts["exact"] >= self.exact_cap:
+            raise EvaluationCapReached("Exact evaluation cap reached")
         if schedule is None:
             start = time.perf_counter()
             schedule = decode(self.problem, genotype)

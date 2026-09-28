@@ -6,11 +6,12 @@ from time import perf_counter
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
-from geo_llm_scheduler.engine.evaluation import EvaluationGateway
+from geo_llm_scheduler.engine.evaluation import EvaluationCapReached, EvaluationGateway
 from geo_llm_scheduler.engine.trajectory import improve
 from geo_llm_scheduler.engine.trigger import triggered
 from geo_llm_scheduler.initialization.generators import initial_genotypes
 from geo_llm_scheduler.io.validation import validate_problem
+from geo_llm_scheduler.macrosearch.adaptive import AdaptiveBudget
 from geo_llm_scheduler.moead.core import (
     NormalizationContext,
     maximum,
@@ -35,6 +36,7 @@ class RunResult:
     elapsed: float
     controller: Controller
     termination_reason: str
+    adaptive: AdaptiveBudget | None = None
 
 
 def run(
@@ -44,7 +46,12 @@ def run(
     validate_problem(problem)
     begin = perf_counter()
     streams = RNGManager(config.seed)
-    gateway = EvaluationGateway(problem, Archive())
+    gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    adaptive = (
+        AdaptiveBudget()
+        if config.budget_policy in ("coverage_v2", "severity_v2", "sequential")
+        else None
+    )
     initialization_start = perf_counter()
     population = [
         gateway.evaluate(g, origin="initialization")
@@ -62,20 +69,30 @@ def run(
     trace: list[dict] = []
     controller = Controller(config)
     stagnation = [0] * config.population
+
+    def finish(reason: str) -> RunResult:
+        return RunResult(
+            population,
+            gateway.archive,
+            gateway,
+            trace,
+            perf_counter() - begin,
+            controller,
+            reason,
+            adaptive,
+        )
+
     for generation in range(config.generations):
         order = list(range(config.population))
         streams.stream("traversal").shuffle(order)
         for i in order:
             if config.seconds is not None and perf_counter() - begin >= config.seconds:
-                return RunResult(
-                    population,
-                    gateway.archive,
-                    gateway,
-                    trace,
-                    perf_counter() - begin,
-                    controller,
-                    "time_budget",
-                )
+                return finish("time_budget")
+            if (
+                config.exact_evaluation_cap is not None
+                and gateway.counts["exact"] >= config.exact_evaluation_cap
+            ):
+                return finish("exact_evaluation_cap")
             rng = streams.stream("variation")
             pool = (
                 neighbors[i]
@@ -102,19 +119,26 @@ def run(
                     )
                     if config.seconds is not None:
                         progress = min(1.0, (perf_counter() - begin) / config.seconds)
+                    elif config.exact_evaluation_cap is not None:
+                        progress = min(1.0, gateway.counts["exact"] / config.exact_evaluation_cap)
                     before_search = child
-                    child, steps = improve(
-                        child,
-                        i,
-                        stagnation[i],
-                        progress,
-                        lambdas,
-                        maximum(population),
-                        gateway,
-                        controller,
-                        config,
-                        streams,
-                    )
+                    try:
+                        child, steps = improve(
+                            child,
+                            i,
+                            stagnation[i],
+                            progress,
+                            lambdas,
+                            maximum(population),
+                            gateway,
+                            controller,
+                            config,
+                            streams,
+                            population,
+                            adaptive,
+                        )
+                    except EvaluationCapReached:
+                        return finish("exact_evaluation_cap")
                     final_context = NormalizationContext(gateway.ideal, maximum(population))
                     if less(
                         final_context.scalar(child, lambdas[i]),
@@ -139,6 +163,7 @@ def run(
                     "objectives": child.evaluation.objectives,
                     "replaced": replaced,
                     "elapsed": perf_counter() - begin,
+                    "exact_count": gateway.counts["exact"],
                     "archive_objectives": [
                         c.evaluation.objectives for c in gateway.archive.members
                     ],
@@ -146,12 +171,4 @@ def run(
                     "steps": steps,
                 }
             )
-    return RunResult(
-        population,
-        gateway.archive,
-        gateway,
-        trace,
-        perf_counter() - begin,
-        controller,
-        "generation_limit",
-    )
+    return finish("generation_limit")

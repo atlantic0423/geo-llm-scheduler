@@ -7,6 +7,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.diagnostics.severity import severities
 from geo_llm_scheduler.domain.models import Candidate
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
+from geo_llm_scheduler.macrosearch.adaptive import AdaptiveBudget
 from geo_llm_scheduler.macrosearch.budget import choose_budget
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import NormalizationContext
@@ -33,6 +34,8 @@ def improve(
     controller: Controller,
     config: Config,
     streams: RNGManager,
+    population: list[Candidate] | None = None,
+    adaptive: AdaptiveBudget | None = None,
 ) -> tuple[Candidate, list[dict]]:
     """Run L_RL decisions; each batch restarts from that step's frozen incumbent."""
     problem = gateway.problem
@@ -49,19 +52,37 @@ def improve(
         action, explore = controller.select(state, progress, streams.stream("qlearning"))
         context = NormalizationContext(gateway.ideal, maximum)
         budget_start = perf_counter()
-        budget = choose_budget(
-            action,
-            state_values,
-            stagnant_count,
-            index,
-            gateway.archive.members,
-            weights,
-            context,
-            config,
-            streams.stream("budget"),
-        )
+        budget_details: dict[str, float | int] = {}
+        if config.budget_policy in ("coverage_v2", "severity_v2", "sequential"):
+            if adaptive is None or population is None:
+                raise ValueError("E15 budget policy needs per-run controller and population")
+            budget, budget_details = adaptive.choose(
+                action,
+                state_values,
+                stagnant_count,
+                index,
+                population,
+                gateway.archive.members,
+                weights,
+                context,
+                config,
+            )
+        else:
+            budget = choose_budget(
+                action,
+                state_values,
+                stagnant_count,
+                index,
+                gateway.archive.members,
+                weights,
+                context,
+                config,
+                streams.stream("budget"),
+            )
         budget_seconds = perf_counter() - budget_start
         gateway.seconds["budget"] += budget_seconds
+        if adaptive is not None and config.budget_policy == "coverage_v2":
+            adaptive.cpu_seconds += budget_seconds
         construction_start = perf_counter()
         batch = operators[action].propose(
             problem, current, budget, config, streams.stream(f"A{action}")
@@ -72,7 +93,16 @@ def improve(
         gateway.counts[f"proposals:A{action}"] += len(batch.proposals)
         insertions = gateway.archive.insertions
         archive_before = {identity(candidate) for candidate in gateway.archive.members}
-        result = execute(batch, current, budget, weights[index], context, gateway, f"A{action}")
+        result = execute(
+            batch,
+            current,
+            budget,
+            weights[index],
+            context,
+            gateway,
+            f"A{action}",
+            sequential=config.budget_policy == "sequential",
+        )
         archive_after = {identity(candidate) for candidate in gateway.archive.members}
         before = result.context.scalar(current, weights[index])
         prior = current
@@ -118,6 +148,8 @@ def improve(
                 "explore": explore,
                 "reward": signal,
                 "budget": budget,
+                "budget_details": budget_details,
+                "sequential": result.sequential,
                 "effective": result.effective,
                 "proposals": len(batch.proposals),
                 "exact_evaluations": result.exact_evaluations,

@@ -6,22 +6,26 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate
 from geo_llm_scheduler.moead.core import NormalizationContext
 from geo_llm_scheduler.rl.state import associate, preference
-from geo_llm_scheduler.utils.numeric import TOL, close, identity
+from geo_llm_scheduler.utils.numeric import TOL, close
 
 
 def objective_coverage(archive: list[Candidate]) -> tuple[Candidate, ...]:
     """Return deterministic objective-space representatives without changing Archive semantics."""
     representatives: list[Candidate] = []
-    ordered = sorted(
-        archive, key=lambda candidate: (candidate.evaluation.objectives, identity(candidate))
-    )
+    ordered = sorted(archive, key=lambda candidate: candidate.evaluation.objectives)
     for candidate in ordered:
         objectives = candidate.evaluation.objectives
-        if any(
-            close(objectives[0], existing.evaluation.flow, TOL.time)
-            and close(objectives[1], existing.evaluation.bill, TOL.cost)
-            for existing in representatives
-        ):
+        duplicate = False
+        for existing in reversed(representatives):
+            flow = existing.evaluation.flow
+            if objectives[0] - flow > TOL.time + TOL.relative * max(abs(objectives[0]), abs(flow)):
+                break
+            if close(objectives[0], flow, TOL.time) and close(
+                objectives[1], existing.evaluation.bill, TOL.cost
+            ):
+                duplicate = True
+                break
+        if duplicate:
             continue
         representatives.append(candidate)
     return tuple(representatives)
