@@ -231,7 +231,7 @@ def stage_specs(
 
 
 def _memory_fraction() -> float:
-    """Read non-reclaimable cgroup working-set fraction, or zero off Linux."""
+    """Read non-reclaimable cgroup charge, excluding the entire file cache."""
     limit = Path("/sys/fs/cgroup/memory.max")
     current = Path("/sys/fs/cgroup/memory.current")
     stat = Path("/sys/fs/cgroup/memory.stat")
@@ -241,8 +241,21 @@ def _memory_fraction() -> float:
     if maximum == "max":
         return 0.0
     fields = dict(line.split() for line in stat.read_text().splitlines())
-    working = max(0, int(current.read_text()) - int(fields.get("inactive_file", "0")))
-    return working / int(maximum)
+    return _charged_memory_fraction(int(current.read_text()), int(maximum), fields)
+
+
+def _charged_memory_fraction(current: int, maximum: int, fields: dict[str, str]) -> float:
+    """Count anonymous, kernel and shared memory; file cache is reclaimable.
+
+    Linux may keep recently read data in ``active_file`` for hours. Subtracting
+    only ``inactive_file`` can block all dispatch despite almost no process RAM.
+    ``shmem`` is included in the cgroup ``file`` charge, so add it back.
+    """
+    if maximum <= 0:
+        return 0.0
+    charged = max(0, current - int(fields.get("file", "0")))
+    charged += int(fields.get("shmem", "0"))
+    return charged / maximum
 
 
 def _memory_ok() -> bool:

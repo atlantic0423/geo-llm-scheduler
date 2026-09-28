@@ -6,6 +6,15 @@ from geo_llm_scheduler.experiments.e15_worker import validate_e15_result
 from scripts import run_e15_campaign as campaign
 
 
+def test_cgroup_gate_excludes_active_file_cache_but_counts_shared_memory():
+    maximum = 32 * 1024**3
+    current = 31 * 1024**3
+    fields = {"file": str(29 * 1024**3), "inactive_file": str(4 * 1024**3), "shmem": str(1024**3)}
+    # A cache-heavy host remains dispatchable: 2 GiB non-file + 1 GiB shared.
+    assert campaign._charged_memory_fraction(current, maximum, fields) == 3 / 32
+    assert campaign._charged_memory_fraction(maximum, maximum, {"file": "0"}) == 1
+
+
 def test_e15_shared_initialization_resume_and_quarantine(tmp_path, monkeypatch):
     monkeypatch.setattr(campaign, "MIN_FREE_GB", 0.0)
     root = tmp_path / "e15"
