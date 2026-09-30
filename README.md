@@ -2,6 +2,8 @@
 
 E15 待验证实验的矩阵、预算策略、配对实例和恢复协议见 [E15 实验协议](docs/reports/e15_experimental_protocol.md)。
 
+E16 Jev/System-One 15×100-job×8 arms×20 分钟的设计、已实现 API 基础模块与尚未完成的启动条件见 [E16 工作记录](docs/experiments/e16_jev_systemone_wallclock.md)。正式实验尚未启动。
+
 静态离线、多区域 LLM 两阶段调度研究实现。每个 Job 先 Prefill 后 Decode，同 Region，可跨实例传输 KV；实例允许满足 Compute/VRAM 累计容量的并发。双目标为总 Flow Time 与连续 TOU + 固定 900 秒 Demand 费用。
 
 已提供 exact evaluator、事件驱动 SSGS、十类初始化、plain MOEA/D、A1–A8、RightShiftPolish、共享 42×8 Q-table、五种预算策略及实验入口。示例配置只验证运行，不能用 smoke 结果推断研究有效性。当前验收状态见 [验收矩阵](docs/acceptance_matrix.md)。
