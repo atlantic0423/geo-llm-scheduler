@@ -35,6 +35,13 @@ The sequence is:
    all completed preflight artifacts and packages their evidence plus frozen
    inputs. Copy the archive, manifest and checksums locally, verify every member,
    then use `p1_release.py` to publish and verify the preflight Release.
+7. The one-time local `p1_finish_delivery.py` waits for both formal batches to
+   drain. It invokes `p1_collect_finished.py`, validates planned/completed keys,
+   copies the 500-MiB parts locally, verifies every part and tar member, then
+   publishes and verifies the raw-result Release. It does not retry algorithms
+   or remove server originals. Failure stops delivery and leaves a local state
+   record. An unreachable SSH endpoint is removed from the watcher, not retried.
+   Scientific analysis and the later Notion result synthesis remain pending.
 
 The readable Git copies have formatting/import-order cleanup. The exact deployed
 bytes and their SHA256 values remain in the campaign manifests and preflight
@@ -59,3 +66,10 @@ pending until those runs complete.
 The helpers contain deliberately frozen paths, commits and dates. A future dated
 campaign must review and freeze those constants again; this operational record is
 not an unrestricted generic launcher.
+
+The final-result packer also passed an end-to-end synthetic integrity check:
+497 members and four 1-MiB test parts verified, with two completed runs out of
+480 correctly reported as partial. This checks packaging and failure accounting,
+not algorithm performance. Production uses 500-MiB parts. The initial Windows
+path-separator mismatch found by this check was corrected by recording POSIX tar
+member names.

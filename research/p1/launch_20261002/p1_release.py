@@ -10,6 +10,7 @@ import urllib.request
 from pathlib import Path
 
 folder = Path(sys.argv[1])
+full = len(sys.argv) > 2 and sys.argv[2] == "full"
 c = subprocess.run(
     ["git", "credential", "fill"],
     input="protocol=https\nhost=github.com\n\n",
@@ -24,14 +25,42 @@ headers = {
     "User-Agent": "geo-llm-p1-preflight",
 }
 api = "https://api.github.com/repos/atlantic0423/geo-llm-scheduler"
-tag = "p1-preflight-20261002"
+tag = "p1-results-20261002" if full else "p1-preflight-20261002"
+if full:
+    manifest = json.loads((folder / "p1_results_manifest.json").read_text(encoding="utf-8"))
+    completed = sum(x["completed"] for x in manifest["completion"])
+    label = "complete" if manifest["complete"] else "partial"
+    title = f"MOEA/D P1 raw results: {label}, {completed}/480 (2026-10-02)"
+    body = (
+        f"Raw sampling and H1-H4 diagnostic evidence: {completed}/480 complete markers validated; "
+        f"batch status {label}. Source 3ec2355fbc43993375daab06ec0ea39fb9d86991, PR #19. "
+        "Scientific analysis and research conclusions remain pending. Parts are at most 500 MiB. "
+        "Verify SHA256SUMS, concatenate p1_results_20261002.tar.part* in numeric order, "
+        "verify the archive SHA256 in p1_results_manifest.json, then extract the tar. "
+        "The manifest records every member hash and the planned/completed keys of both nodes. "
+        "Server originals and the verified local copy are preserved. Notion result synthesis is pending."
+    )
+    names = [x["name"] for x in manifest["parts"]] + ["p1_results_manifest.json", "SHA256SUMS"]
+else:
+    title = "MOEA/D P1 preflight and launch evidence (2026-10-02)"
+    body = (
+        "Completed 48 deterministic P0 runs, three legacy 200-generation replays, four 1200-second RSS pilots, "
+        "throughput pilots, frozen inputs and manifest-bound launch gates. Source: "
+        "3ec2355fbc43993375daab06ec0ea39fb9d86991; PR #19; Python 3.11/3.13 CI passed. "
+        "The 480 formal P1 runs are active and are not included in this preflight release. "
+        "Verify the archive with SHA256SUMS and every member with preflight_manifest.json. "
+        "Reproduce using scripts/run_p1_campaign.py and the operational helpers in the archive."
+    )
+    names = ["p1_preflight_20261002.tar.gz", "preflight_manifest.json", "SHA256SUMS"]
 
 
 def call(url, data=None, content_type="application/json"):
     h = dict(headers)
     if data is not None:
         h["Content-Type"] = content_type
-    with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=h), timeout=60) as r:
+    with urllib.request.urlopen(
+        urllib.request.Request(url, data=data, headers=h), timeout=300
+    ) as r:
         return json.load(r)
 
 
@@ -46,15 +75,15 @@ except urllib.error.HTTPError as error:
             {
                 "tag_name": tag,
                 "target_commitish": "3ec2355fbc43993375daab06ec0ea39fb9d86991",
-                "name": "MOEA/D P1 preflight and launch evidence (2026-10-02)",
+                "name": title,
                 "prerelease": True,
-                "body": "Completed 48 deterministic P0 runs, three legacy 200-generation replays, four 1200-second RSS pilots, throughput pilots, frozen inputs and manifest-bound launch gates. Source: 3ec2355fbc43993375daab06ec0ea39fb9d86991; PR #19; Python 3.11/3.13 CI passed. The 480 formal P1 runs are active and are not included in this preflight release. Verify the archive with SHA256SUMS and every member with preflight_manifest.json. Reproduce using scripts/run_p1_campaign.py and the operational helpers in the archive.",
+                "body": body,
             }
         ).encode(),
     )
 assets = {asset["name"]: asset for asset in call(api + f"/releases/{release['id']}/assets")}
 verification = []
-for name in ("p1_preflight_20261002.tar.gz", "preflight_manifest.json", "SHA256SUMS"):
+for name in names:
     data = (folder / name).read_bytes()
     digest = hashlib.sha256(data).hexdigest()
     if name not in assets:
