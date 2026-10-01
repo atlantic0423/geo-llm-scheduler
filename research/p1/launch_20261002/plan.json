@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "plan_id": "moead_diagnostics_20261001",
+  "plan_version": "1.0",
+  "notion_plan_url": "https://app.notion.com/p/3ec8878b801981a18b21d9a1608be691",
+  "status": "planned_not_executable",
+  "experimental_results_available": false,
+  "authorization_scope": "create complete experiment plan; no launch or deployment",
+  "source_commit_to_freeze": null,
+  "historical_reference_commit": "3c59adaf8dbe62f822300929a30d585e476eb10f",
+  "time_and_exact_generation_upper": 1000000,
+  "resources": {
+    "basis": "historical acceptance; not live verified",
+    "nodes": [
+      {
+        "alias": "geo-llm-exp-20260930",
+        "port": 20007,
+        "hostname": "cf68d8087dc3",
+        "memory_limit_gib": 32,
+        "visible_threads": 128
+      },
+      {
+        "alias": "geo-llm-e16-20260930-20002",
+        "port": 20002,
+        "hostname": "ec5bf629068d",
+        "memory_limit_gib": 32,
+        "visible_threads": 128
+      }
+    ],
+    "cpu_only": true,
+    "shared_cpu_possible": true,
+    "current_reachable": false,
+    "workers_to_freeze": null,
+    "pilot_worker_levels": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "steady_memory_fraction": 0.7,
+    "pause_dispatch_fraction": 0.78,
+    "expiry_to_verify": true,
+    "conservative_migration_target": "2026-10-04"
+  },
+  "datasets": {
+    "pilot": {
+      "50": [
+        710001,
+        710002,
+        710003,
+        710004
+      ],
+      "100": [
+        720001,
+        720002,
+        720003,
+        720004
+      ]
+    },
+    "development": {
+      "50": [
+        810001,
+        810002,
+        810003,
+        810004,
+        810005,
+        810006,
+        810007,
+        810008,
+        810009,
+        810010,
+        810011,
+        810012
+      ],
+      "100": [
+        820001,
+        820002,
+        820003,
+        820004,
+        820005,
+        820006,
+        820007,
+        820008,
+        820009,
+        820010,
+        820011,
+        820012
+      ]
+    },
+    "confirmation": {
+      "50": [
+        910001,
+        910002,
+        910003,
+        910004,
+        910005,
+        910006,
+        910007,
+        910008,
+        910009,
+        910010,
+        910011,
+        910012,
+        910013,
+        910014,
+        910015,
+        910016,
+        910017,
+        910018,
+        910019,
+        910020
+      ],
+      "100": [
+        920001,
+        920002,
+        920003,
+        920004,
+        920005,
+        920006,
+        920007,
+        920008,
+        920009,
+        920010,
+        920011,
+        920012,
+        920013,
+        920014,
+        920015,
+        920016,
+        920017,
+        920018,
+        920019,
+        920020
+      ]
+    },
+    "stress": {
+      "50": [
+        1010001,
+        1010002,
+        1010003,
+        1010004,
+        1010005,
+        1010006,
+        1010007,
+        1010008,
+        1010009,
+        1010010
+      ],
+      "100": [
+        1020001,
+        1020002,
+        1020003,
+        1020004,
+        1020005,
+        1020006,
+        1020007,
+        1020008,
+        1020009,
+        1020010
+      ]
+    }
+  },
+  "algorithm_seeds": [
+    1101,
+    2202,
+    3303,
+    4404,
+    5505
+  ],
+  "supplementary_seeds": [
+    1101,
+    2202,
+    3303
+  ],
+  "pilot_algorithm_seeds": [
+    6606,
+    7707
+  ],
+  "tariffs": [
+    "H",
+    "T"
+  ],
+  "initialization": "one immutable genotype pool generated under H per base/algorithm-seed, shared across H/T and arms",
+  "primary_hypotheses": [
+    "H1_timing_retention",
+    "H2_replacement_mismatch",
+    "H3_A7_filter_regret",
+    "H4_budget_delayed_gain"
+  ],
+  "stages": [
+    {
+      "id": "P0",
+      "kind": "correctness_resource_acceptance",
+      "tariffs": ["H"],
+      "deterministic_replay_seed": 6606,
+      "resource_pilot_seed": 7707,
+      "dataset": "pilot",
+      "arms": [
+        "F6",
+        "M0",
+        "N0"
+      ],
+      "fixed_generations": 200,
+      "repetitions_same_seed": 2,
+      "planned_fixed_generation_runs": 48,
+      "resource_runs": "adaptive; counted separately"
+    },
+    {
+      "id": "P1",
+      "kind": "sampling_and_counterfactual_diagnostics",
+      "dataset": "development",
+      "arms": [
+        "F6",
+        "M0"
+      ],
+      "seconds_by_jobs": {
+        "50": 600,
+        "100": 1200
+      },
+      "planned_sampling_runs": 480,
+      "checkpoint_fractions": [
+        0.1,
+        0.5,
+        0.9
+      ],
+      "max_phenotypes_per_checkpoint": 4,
+      "max_phenotypes": 5760,
+      "max_common_candidates_per_action": 10,
+      "actions": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "common_candidate_exact_upper": 460800,
+      "A7_raw_candidates_per_phenotype": 40,
+      "A7_extra_exact_upper": 230400,
+      "redecode_exact_upper": 5760,
+      "timing_continuation_sequence": [
+        7,
+        8,
+        7,
+        8,
+        7
+      ],
+      "timing_continuation_budget": 6,
+      "timing_continuation_exact_upper": 172800,
+      "total_counterfactual_exact_upper": 869760,
+      "polish_and_collection_exact_excluded_from_upper": true,
+      "worker_hours": 120
+    },
+    {
+      "id": "P2",
+      "kind": "single_change_screening",
+      "dataset": "development",
+      "arms": [
+        "F6",
+        "CG",
+        "CT",
+        "RDIR",
+        "RPERM",
+        "A7B",
+        "F3",
+        "F10",
+        "SEQ"
+      ],
+      "requires": "P1 diagnosis; arm definitions implemented and frozen",
+      "seconds_by_jobs": {
+        "50": 600,
+        "100": 1200
+      },
+      "planned_run_upper": 2160,
+      "worker_hours_upper": 540,
+      "clone_probability": 0.2,
+      "A7B_filter_stage_to_select": null,
+      "selection": {
+        "max_components": 2,
+        "min_mean_relative_HV_gain": 0.005,
+        "min_base_win_fraction": 0.6,
+        "max_mean_relative_IGDplus_degradation": 0.02,
+        "interpretation": "engineering screen only; no confirmatory claims"
+      }
+    },
+    {
+      "id": "P3",
+      "kind": "independent_time_confirmation",
+      "dataset": "confirmation",
+      "arms_two_components": [
+        "F6",
+        "A",
+        "B",
+        "AB",
+        "M0",
+        "N0"
+      ],
+      "arms_one_component": [
+        "F6",
+        "A",
+        "M0",
+        "N0"
+      ],
+      "selected_components": null,
+      "seconds_floor_by_jobs": {
+        "50": 2095,
+        "100": 5122
+      },
+      "seconds_final_to_freeze": null,
+      "pilot_rule": "max(E15_floor, ceil(1.1*max_200gen_pilot_seconds))",
+      "planned_run_upper": 2400,
+      "one_component_runs": 1600,
+      "no_component_runs": 0,
+      "worker_hours_at_floor_upper": 2405.6666666666665,
+      "primary_quality_at_configured_time": true,
+      "requires": "selection fixed before confirmation, long-RSS and expiry acceptance",
+      "sample_expansion_max_bases": 80,
+      "expansion_from_development_power_only": true
+    },
+    {
+      "id": "P4_E",
+      "kind": "exact_budget_supplement",
+      "dataset": "first_8_confirmation_bases_per_jobs",
+      "arms": [
+        "F6",
+        "A",
+        "B",
+        "AB",
+        "M0",
+        "N0"
+      ],
+      "exact_cap_by_jobs": {
+        "50": 100100,
+        "100": 200100
+      },
+      "seeds": [
+        1101,
+        2202,
+        3303
+      ],
+      "planned_run_upper": 576,
+      "wall_time_estimate": "to be measured"
+    },
+    {
+      "id": "P4_S",
+      "kind": "stress_robustness",
+      "tariffs": ["T"],
+      "dataset": "stress",
+      "arms": [
+        "F6",
+        "A",
+        "B",
+        "AB"
+      ],
+      "scenarios": [
+        "S0_T_base",
+        "S1_demand_zero",
+        "S2_demand_times_2",
+        "S3_flat_TOU",
+        "S4_resource_demands_times_1.25",
+        "S5_continuous_jitter",
+        "S6_KV_times_2"
+      ],
+      "selected_scenarios_to_freeze": null,
+      "seeds": [
+        1101,
+        2202,
+        3303
+      ],
+      "planned_run_upper": 1680,
+      "seconds_floor_by_jobs": {
+        "50": 2095,
+        "100": 5122
+      },
+      "worker_hours_at_floor_upper": 1683.9666666666667
+    }
+  ],
+  "statistics": {
+    "unit": "base structure",
+    "tariff_and_seed_repeats_not_independent": true,
+    "primary": "HV",
+    "secondary": [
+      "IGD+",
+      "HV_anytime_AUC",
+      "Flow",
+      "Bill",
+      "Runtime",
+      "exact_evaluations"
+    ],
+    "bootstrap_repetitions": 20000,
+    "paired_sign_permutation_repetitions": 200000,
+    "analysis_seed": 20261001,
+    "reference_point": [
+      1.1,
+      1.1
+    ],
+    "reference": "same pooled nondominated approximation per instance/protocol across frozen arms/seeds; offline only",
+    "HV_confirmatory_contrasts": [
+      "A-F6",
+      "B-F6",
+      "AB-F6",
+      "AB-A-B+F6",
+      "AB-M0",
+      "AB-N0"
+    ],
+    "multiple_comparison": "Holm within predeclared family",
+    "target_relative_HV_effect": 0.005,
+    "claimed_power": null,
+    "target_power": 0.8
+  },
+  "execution_prerequisites": [
+    "new diagnostics/arms implemented",
+    "bounded logs exact path equivalence",
+    "quality gates and clean merged source",
+    "long-running worst-arm RSS",
+    "live resource and expiry validation",
+    "same source/config/logging for all comparison arms",
+    "immutable inputs and source hashes",
+    "exact runnable command recorded"
+  ],
+  "delivery": {
+    "server_parent": "/workspace/zhouhanyu",
+    "independent_campaign": true,
+    "keep_E15_stop_request": true,
+    "preserve_E16_worktree": true,
+    "per_stage_manifest_sha256": true,
+    "local_copy_before_cleanup": true,
+    "GitHub_PR_and_release_required_for_actual_results": true,
+    "Notion_09_required": true
+  },
+  "core_time_budget_worker_hours_at_floor": 3065.6666666666665,
+  "ETA_status": "unverified; no current throughput"
+}
