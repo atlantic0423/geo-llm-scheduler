@@ -17,3 +17,7 @@ class RNGManager:
             data = f"{self.seed}:{name}".encode()
             self._streams[name] = random.Random(int.from_bytes(hashlib.sha256(data).digest()))
         return self._streams[name]
+
+    def snapshot(self) -> dict[str, tuple]:
+        """Export existing stream states without advancing or creating a stream."""
+        return {name: rng.getstate() for name, rng in self._streams.items()}

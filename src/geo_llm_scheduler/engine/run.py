@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from time import perf_counter
+from typing import Callable
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
@@ -37,16 +38,31 @@ class RunResult:
     controller: Controller
     termination_reason: str
     adaptive: AdaptiveBudget | None = None
+    offspring_count: int = 0
 
 
 def run(
-    problem: ProblemInstance, config: Config, initial: list[Genotype] | None = None
+    problem: ProblemInstance,
+    config: Config,
+    initial: list[Genotype] | None = None,
+    *,
+    retain_trace: bool = True,
+    observer: Callable[[str, dict], None] | None = None,
 ) -> RunResult:
-    """Execute baseline generations, preserving every complete evaluated candidate."""
+    """Execute generations; optional synchronous observers never own algorithm RNGs.
+
+    ``retain_trace=False`` omits historical snapshots without trimming the archive.
+    Observer work is included in the engine wall-clock budget.
+    """
     validate_problem(problem)
     begin = perf_counter()
     streams = RNGManager(config.seed)
     gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    if observer is not None:
+        gateway.candidate_sink = lambda candidate: observer(
+            "candidate",
+            {"candidate": candidate, "gateway": gateway, "elapsed": perf_counter() - begin},
+        )
     adaptive = (
         AdaptiveBudget()
         if config.budget_policy in ("coverage_v2", "severity_v2", "sequential")
@@ -69,6 +85,24 @@ def run(
     trace: list[dict] = []
     controller = Controller(config)
     stagnation = [0] * config.population
+    processed = 0
+
+    def observe(event: str, extra: dict) -> None:
+        if observer is not None:
+            observer(
+                event,
+                {
+                    "population": population,
+                    "gateway": gateway,
+                    "controller": controller,
+                    "streams": streams,
+                    "stagnation": stagnation,
+                    "elapsed": perf_counter() - begin,
+                    **extra,
+                },
+            )
+
+    observe("initialization", {})
 
     def finish(reason: str) -> RunResult:
         return RunResult(
@@ -80,6 +114,7 @@ def run(
             controller,
             reason,
             adaptive,
+            processed,
         )
 
     for generation in range(config.generations):
@@ -94,6 +129,7 @@ def run(
             ):
                 return finish("exact_evaluation_cap")
             rng = streams.stream("variation")
+            observe("before_offspring", {"generation": generation, "subproblem": i})
             pool = (
                 neighbors[i]
                 if rng.random() < config.neighbor_probability
@@ -114,7 +150,7 @@ def run(
                 )
                 if hit:
                     gateway.counts["trigger_hits"] += 1
-                    progress = (generation * config.population + len(trace) % config.population) / (
+                    progress = (generation * config.population + processed % config.population) / (
                         config.generations * config.population
                     )
                     if config.seconds is not None:
@@ -147,6 +183,16 @@ def run(
                     ):
                         gateway.counts["trigger_successes"] += 1
             context = NormalizationContext(gateway.ideal, maximum(population))
+            observe(
+                "before_replacement",
+                {
+                    "candidate": child,
+                    "context": context,
+                    "neighbors": neighbors[i],
+                    "generation": generation,
+                    "subproblem": i,
+                },
+            )
             replaced = replace_neighbors(
                 population, child, neighbors[i], lambdas, context, config.replacement_cap
             )
@@ -156,19 +202,21 @@ def run(
                 TOL.scalar,
             )
             stagnation[i] = 0 if improved else stagnation[i] + 1
-            trace.append(
-                {
-                    "generation": generation,
-                    "subproblem": i,
-                    "objectives": child.evaluation.objectives,
-                    "replaced": replaced,
-                    "elapsed": perf_counter() - begin,
-                    "exact_count": gateway.counts["exact"],
-                    "archive_objectives": [
-                        c.evaluation.objectives for c in gateway.archive.members
-                    ],
-                    "trigger": hit,
-                    "steps": steps,
-                }
-            )
+            processed += 1
+            row = {
+                "generation": generation,
+                "subproblem": i,
+                "objectives": child.evaluation.objectives,
+                "replaced": replaced,
+                "elapsed": perf_counter() - begin,
+                "exact_count": gateway.counts["exact"],
+                "trigger": hit,
+                "steps": steps,
+            }
+            if retain_trace:
+                row["archive_objectives"] = [
+                    c.evaluation.objectives for c in gateway.archive.members
+                ]
+                trace.append(row)
+            observe("offspring", {"row": row, "processed": processed})
     return finish("generation_limit")

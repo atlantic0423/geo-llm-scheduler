@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import random
 from time import perf_counter
+from typing import Callable
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
@@ -110,13 +111,23 @@ def environmental_selection(population: list[Candidate], size: int) -> list[Cand
 
 
 def run_nsga2(
-    problem: ProblemInstance, config: Config, initial: list[Genotype] | None = None
+    problem: ProblemInstance,
+    config: Config,
+    initial: list[Genotype] | None = None,
+    *,
+    retain_trace: bool = True,
+    observer: Callable[[str, dict], None] | None = None,
 ) -> RunResult:
     """Run a passive-Archive NSGA-II baseline under a soft wall-clock limit."""
     validate_problem(problem)
     begin = perf_counter()
     streams = RNGManager(config.seed)
     gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    if observer is not None:
+        gateway.candidate_sink = lambda candidate: observer(
+            "candidate",
+            {"candidate": candidate, "gateway": gateway, "elapsed": perf_counter() - begin},
+        )
     initialization_start = perf_counter()
     population = [
         gateway.evaluate(g, origin="initialization")
@@ -130,6 +141,7 @@ def run_nsga2(
     if len(population) != config.population:
         raise ValueError("Frozen initialization size does not match population")
     trace: list[dict] = []
+    processed = 0
     reason = "generation_limit"
     rng = streams.stream("variation")
     controller = Controller(config)
@@ -228,23 +240,26 @@ def run_nsga2(
                     else:
                         stagnant[identity(child)] = stagnant.get(identity(population[a]), 0) + 1
             offspring.append(child)
-            trace.append(
-                {
-                    "generation": generation,
-                    "subproblem": len(offspring) - 1,
-                    "objectives": child.evaluation.objectives,
-                    "replaced": 0,
-                    "elapsed": perf_counter() - begin,
-                    "exact_count": gateway.counts["exact"],
-                    "archive_objectives": [
-                        c.evaluation.objectives for c in gateway.archive.members
-                    ],
-                    "trigger": hit,
-                    "steps": steps,
-                    "parent_direction": parent_direction,
-                    "offspring_direction": child_direction,
-                }
-            )
+            processed += 1
+            row = {
+                "generation": generation,
+                "subproblem": len(offspring) - 1,
+                "objectives": child.evaluation.objectives,
+                "replaced": 0,
+                "elapsed": perf_counter() - begin,
+                "exact_count": gateway.counts["exact"],
+                "trigger": hit,
+                "steps": steps,
+                "parent_direction": parent_direction,
+                "offspring_direction": child_direction,
+            }
+            if retain_trace:
+                row["archive_objectives"] = [
+                    c.evaluation.objectives for c in gateway.archive.members
+                ]
+                trace.append(row)
+            if observer is not None:
+                observer("offspring", {"row": row})
         if offspring:
             population = environmental_selection(population + offspring, config.population)
             if config.method == "nsga2_memetic":
@@ -260,4 +275,5 @@ def run_nsga2(
         controller,
         reason,
         adaptive,
+        processed,
     )

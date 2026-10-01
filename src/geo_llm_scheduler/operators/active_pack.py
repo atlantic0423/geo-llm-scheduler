@@ -1,6 +1,7 @@
 """A7 single-operation active-union packing with 2D Pareto/crowding prescreen."""
 
 import random
+from dataclasses import dataclass
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
@@ -49,6 +50,57 @@ def rank_crowding(moves: list[Move]) -> tuple[dict[int, int], dict[int, float]]:
     return ranks, crowd
 
 
+@dataclass(frozen=True)
+class PackingAudit:
+    """The exact raw, representative, pool and selected moves of one A7 call."""
+
+    raw: tuple[Move, ...]
+    representatives: tuple[Move, ...]
+    pool: tuple[Move, ...]
+    selected: tuple[Move, ...]
+
+
+def select_packing_moves(
+    problem: ProblemInstance, incumbent: Candidate, budget: int, rng: random.Random
+) -> PackingAudit:
+    """Expose existing A7 filtering stages without changing draws or move order."""
+    all_moves = packing_moves(problem, incumbent.genotype, incumbent.schedule)
+    representatives = []
+    for o in range(problem.operation_count):
+        available = [m for m in all_moves if m[0] == o]
+        if not available:
+            continue
+        old = incumbent.schedule.starts[o]
+        first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
+        representatives.append(first)
+        available.remove(first)
+        if available:
+            representatives.append(
+                min(available, key=lambda m: (m[3], -m[2], abs(m[1] - old), m[1]))
+            )
+    ranks, crowd = rank_crowding(representatives)
+    tie = {i: rng.random() for i in range(len(representatives))}
+
+    def key(i: int) -> tuple[int, float, float]:
+        return ranks[i], -crowd[i], tie[i]
+
+    primary = []
+    for o in range(problem.operation_count):
+        indices = [i for i, m in enumerate(representatives) if m[0] == o]
+        if indices:
+            primary.append(min(indices, key=key))
+    pool = sorted(primary, key=key)[: 2 * budget]
+    secondary = sorted(set(range(len(representatives))) - set(primary), key=key)
+    pool += secondary[: max(0, 2 * budget - len(pool))]
+    selected = rng.sample(pool, min(budget, len(pool)))
+    return PackingAudit(
+        tuple(all_moves),
+        tuple(representatives),
+        tuple(representatives[i] for i in pool),
+        tuple(representatives[i] for i in selected),
+    )
+
+
 class ActivePack:
     """A7: select per-operation representatives, then seeded best-front diversity."""
 
@@ -63,48 +115,19 @@ class ActivePack:
         rng: random.Random,
     ) -> ProposalBatch:
         """Prescreen at most two moves per operation, then sample from a 2B pool."""
-        all_moves = packing_moves(problem, incumbent.genotype, incumbent.schedule)
-        representatives = []
-        for o in range(problem.operation_count):
-            available = [m for m in all_moves if m[0] == o]
-            if not available:
-                continue
-            old = incumbent.schedule.starts[o]
-            first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
-            representatives.append(first)
-            available.remove(first)
-            if available:
-                representatives.append(
-                    min(available, key=lambda m: (m[3], -m[2], abs(m[1] - old), m[1]))
-                )
-        ranks, crowd = rank_crowding(representatives)
-        tie = {i: rng.random() for i in range(len(representatives))}
-
-        def key(i: int) -> tuple[int, float, float]:
-            return ranks[i], -crowd[i], tie[i]
-
-        primary = []
-        for o in range(problem.operation_count):
-            indices = [i for i, m in enumerate(representatives) if m[0] == o]
-            if indices:
-                primary.append(min(indices, key=key))
-        pool = sorted(primary, key=key)[: 2 * budget]
-        secondary = sorted(set(range(len(representatives))) - set(primary), key=key)
-        pool += secondary[: max(0, 2 * budget - len(pool))]
+        audit = select_packing_moves(problem, incumbent, budget, rng)
         proposals = []
-        selected_moves = rng.sample(pool, min(budget, len(pool)))
-        for i in selected_moves:
-            o, t, _, _ = representatives[i]
+        for o, t, _, _ in audit.selected:
             schedule = move(problem, incumbent.genotype, incumbent.schedule, o, t)
             assert schedule is not None
             proposals.append(Proposal(incumbent.genotype, schedule, (o,)))
         return ProposalBatch(
             proposals,
-            len(all_moves),
-            {"representatives": len(representatives), "pool": len(pool)},
+            len(audit.raw),
+            {"representatives": len(audit.representatives), "pool": len(audit.pool)},
             {
-                "positive_compression_moves": len(all_moves),
-                "positive_compression_operations": len({move[0] for move in all_moves}),
-                "g_pack_values": [representatives[i][2] for i in selected_moves],
+                "positive_compression_moves": len(audit.raw),
+                "positive_compression_operations": len({m[0] for m in audit.raw}),
+                "g_pack_values": [m[2] for m in audit.selected],
             },
         )
