@@ -15,6 +15,10 @@
       "sha256": "98877ed1bc97b9fa2135e9b9e16a7e7d823a544aed3f1270bbdbc4d738610325"
     },
     {
+      "path": "README.md",
+      "sha256": "4fc9a314f6a37e6bc78ea7f3a4ba1cfe4196ba6d1d2e8610fdab85f0ad6c66e0"
+    },
+    {
       "path": "statistics.json",
       "sha256": "dad35b281dea81fff315cdaecfae146b3cfde2507e853f33dfa6c9ef9ba8fc3c"
     },
