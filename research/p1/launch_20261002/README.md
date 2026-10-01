@@ -40,6 +40,8 @@ The readable Git copies have formatting/import-order cleanup. The exact deployed
 bytes and their SHA256 values remain in the campaign manifests and preflight
 archive. `helper_provenance.json` records the original and readable-copy hashes,
 and validates that formatting did not change executable statements or imports.
+The provenance includes normalized LF hashes for Linux/Git verification as well
+as original/local byte hashes, since Windows checkouts may use CRLF.
 Do not replace helpers or alter a manifest while its campaign is active.
 
 The first four RSS pilots all completed with three checkpoints, 12 sampled
