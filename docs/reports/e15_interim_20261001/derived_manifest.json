@@ -1,0 +1,78 @@
+{
+  "data_sha256": "7a98d1e6ff372e3d22770091bbb19b1a4c95cf9bab042854eee537b56c3be748",
+  "algorithm_commit": "3c59adaf8dbe62f822300929a30d585e476eb10f",
+  "files": [
+    {
+      "path": "arm_summary.csv",
+      "sha256": "cfe1b942adea49626c20d2059748ea6a23bc490b84431d8da5986ca29b77e71c"
+    },
+    {
+      "path": "complete_stage_metrics.csv",
+      "sha256": "9322d0784a1d8f8ce645d6f89da40ea3e36e5cece780e93e96d0df6f93fee492"
+    },
+    {
+      "path": "paired_statistics.csv",
+      "sha256": "eed65ac22c3d767e88e6dbf41890fce4cdeb71ed561f061edb1d7be8a74dcd0b"
+    },
+    {
+      "path": "statistics.json",
+      "sha256": "47a51a56a9ce2a027c744d86362873dcd145f420c6cc8953ebc4476bf4eb3eea"
+    },
+    {
+      "path": "figures/01_stageA_paired.pdf",
+      "sha256": "fc2ca42e0e2f26a0d9753bc897f48d4ac64494bbfaa1946ff876c776da310f92"
+    },
+    {
+      "path": "figures/01_stageA_paired.png",
+      "sha256": "b45f9583af9180d333492c3e15be3559f45e7b873ebf3cb367ad342ea832177a"
+    },
+    {
+      "path": "figures/02_stageB_generation_quality.pdf",
+      "sha256": "55047f4da70e8837530c7ea1e6e8b62e9a031214ae9e68831318f94301701522"
+    },
+    {
+      "path": "figures/02_stageB_generation_quality.png",
+      "sha256": "39ec58e10651c53eb0d741d830842ebfb1a0f6a5849077453acfcd5ef5263350"
+    },
+    {
+      "path": "figures/03_stageB_resource_cost.pdf",
+      "sha256": "2251ac9b25deb8d5c6217a597edce964bcaaabc3ff320bf348b264414b70db19"
+    },
+    {
+      "path": "figures/03_stageB_resource_cost.png",
+      "sha256": "1b9db31cd3c01ab1530b27deb0565b1f429df52ad104412e2af1b3c3dbb3dfff"
+    },
+    {
+      "path": "figures/04_budget_activation.pdf",
+      "sha256": "a8758705dc026d8a86b4084076ba3d18910b0349b52fc60430c6e6d6ebb2e484"
+    },
+    {
+      "path": "figures/04_budget_activation.png",
+      "sha256": "5f3a1a8b4747fc9abb5c62920f0bb57cb26b6b5c5daa7f593fe16469a6888912"
+    },
+    {
+      "path": "figures/05_archive_cost.pdf",
+      "sha256": "5fbd76c59c70e87458a711cf3a5fb165f71d8c1b14faca75dab7f4319dfe2c92"
+    },
+    {
+      "path": "figures/05_archive_cost.png",
+      "sha256": "77e280f5804d0a9d19af005d4fcedaf8ac67352a29824e9a107c87d94b2d9315"
+    },
+    {
+      "path": "figures/06_action_outcomes.pdf",
+      "sha256": "ad2c43ead2842e79f9b2e823d29685519cc6daea216dd1fce39816fea5d156ce"
+    },
+    {
+      "path": "figures/06_action_outcomes.png",
+      "sha256": "6785134c90f2834de7a4ec0ce898f5a362d92114e5a0cafe38dd68d8faf91919"
+    },
+    {
+      "path": "figures/07_stageB_paired_hv.pdf",
+      "sha256": "ed0aa2ab1603a859254aee157401b14fbe20a942241fff14a64a2c42dbda107b"
+    },
+    {
+      "path": "figures/07_stageB_paired_hv.png",
+      "sha256": "16253d148dffa8196ea0c6f65e1ea9b10784ad2fa1d360840576e67751f88ff0"
+    }
+  ]
+}

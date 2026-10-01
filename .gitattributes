@@ -1,0 +1,2 @@
+# Preserve the exact bytes of generated evidence for its SHA256 manifest.
+docs/reports/e15_interim_20261001/** -text
