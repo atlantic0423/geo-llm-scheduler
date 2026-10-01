@@ -81,7 +81,21 @@ except urllib.error.HTTPError as error:
             }
         ).encode(),
     )
-assets = {asset["name"]: asset for asset in call(api + f"/releases/{release['id']}/assets")}
+
+
+def _asset_pages() -> list[dict]:
+    """Read every asset page so multipart deliveries are verified completely."""
+    result = []
+    page = 1
+    while True:
+        rows = call(api + f"/releases/{release['id']}/assets?per_page=100&page={page}")
+        result.extend(rows)
+        if len(rows) < 100:
+            return result
+        page += 1
+
+
+assets = {asset["name"]: asset for asset in _asset_pages()}
 verification = []
 for name in names:
     data = (folder / name).read_bytes()
@@ -107,7 +121,7 @@ for name in names:
             "verified": True,
         }
     )
-refreshed = call(api + f"/releases/{release['id']}/assets")
+refreshed = _asset_pages()
 assert all(
     any(x["name"] == item["name"] and x["size"] == item["size"] for x in refreshed)
     for item in verification

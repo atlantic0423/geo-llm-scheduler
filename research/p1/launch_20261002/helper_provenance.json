@@ -45,9 +45,9 @@
     },
     {
       "name": "p1_release.py",
-      "deployed_original_sha256": "9f62a952e811b649730c41bd76b3ac0e12ab63a510504573dd5119d37c70eca4",
-      "readable_copy_sha256": "26491defaa961ce4a3e830e06305a6e1e7e8d5862343ba8ccab1d0c09ec2bcc3",
-      "readable_copy_lf_sha256": "26491defaa961ce4a3e830e06305a6e1e7e8d5862343ba8ccab1d0c09ec2bcc3",
+      "deployed_original_sha256": "f0e33233076d6aa60fe25b6de0eef1001b8d2888661668a886b02f654fa7b492",
+      "readable_copy_sha256": "2cea541603a159eeac3001494cc1029a32aae33a8fd752a1bd63fa50986fb573",
+      "readable_copy_lf_sha256": "2cea541603a159eeac3001494cc1029a32aae33a8fd752a1bd63fa50986fb573",
       "executable_AST_and_imports_equal": true
     }
   ],
