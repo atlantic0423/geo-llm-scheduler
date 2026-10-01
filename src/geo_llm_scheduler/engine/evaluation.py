@@ -2,6 +2,7 @@
 
 import time
 from collections import Counter, defaultdict
+from typing import Callable
 
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
@@ -23,6 +24,7 @@ class EvaluationGateway:
         self.counts: Counter[str] = Counter()
         self.seconds: dict[str, float] = defaultdict(float)
         self.exact_cap = exact_cap
+        self.candidate_sink: Callable[[Candidate], None] | None = None
 
     def evaluate(
         self, genotype: Genotype, schedule: Schedule | None = None, origin: str = "structural"
@@ -57,4 +59,6 @@ class EvaluationGateway:
             self.seconds["archive"] += duration
             self.seconds["archive:" + origin] += duration
             self.counts["archive_insertions:" + origin] += self.archive.insertions - insertions
+        if self.candidate_sink is not None:
+            self.candidate_sink(candidate)
         return candidate
