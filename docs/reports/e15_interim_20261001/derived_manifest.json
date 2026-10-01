@@ -16,11 +16,11 @@
     },
     {
       "path": "statistics.json",
-      "sha256": "47a51a56a9ce2a027c744d86362873dcd145f420c6cc8953ebc4476bf4eb3eea"
+      "sha256": "dad35b281dea81fff315cdaecfae146b3cfde2507e853f33dfa6c9ef9ba8fc3c"
     },
     {
       "path": "figures/01_stageA_paired.pdf",
-      "sha256": "f7b240012f5f0407c967d998f193e34f4f6eaf22c8faf095e2b2620023d24957"
+      "sha256": "6f17dada09eaa80570511a796289dc70963f4cb95347b7cd779eac7403919b27"
     },
     {
       "path": "figures/01_stageA_paired.png",
@@ -28,7 +28,7 @@
     },
     {
       "path": "figures/02_stageB_generation_quality.pdf",
-      "sha256": "7f20594c0da8f3ec665039c0accb154eb7fa6b1f6aa5493a8a35bf3082cedec4"
+      "sha256": "04045ed1e427f53bd6e0b31db87caa27d15f5c11f3b29b148b3f2ed21d7eeed5"
     },
     {
       "path": "figures/02_stageB_generation_quality.png",
@@ -36,7 +36,7 @@
     },
     {
       "path": "figures/03_stageB_resource_cost.pdf",
-      "sha256": "608887fe50f00d62a45464fd8300b9667f1e3e4a94282b5b7858f4c377c41158"
+      "sha256": "d923b97d0bd0eef5629098e3e9660debb7cdf0a739d53a3d083a327ebdbe04d2"
     },
     {
       "path": "figures/03_stageB_resource_cost.png",
@@ -44,7 +44,7 @@
     },
     {
       "path": "figures/04_budget_activation.pdf",
-      "sha256": "e6bc46725614414adf7cbe66b4ef6f48d287dd86871d3449d5a56db99531f404"
+      "sha256": "d3a70da53fc2e2b152c9dc5860ec631d1d2dcc160f147f98ef5e2273429e405b"
     },
     {
       "path": "figures/04_budget_activation.png",
@@ -52,7 +52,7 @@
     },
     {
       "path": "figures/05_archive_cost.pdf",
-      "sha256": "4ee542c8534b02a83b5eca3f17ade686ea1964e05cc254c293c0739492ddc6cc"
+      "sha256": "8aef4049b4f93b8892502da2a517404d279ab3f13f272715a77ab344bcef3cba"
     },
     {
       "path": "figures/05_archive_cost.png",
@@ -60,7 +60,7 @@
     },
     {
       "path": "figures/06_action_outcomes.pdf",
-      "sha256": "1850b77cb06f84d90cf853360d8e697d04bc5453e82858c1f803b76bbaa6577e"
+      "sha256": "fd92ff1b9a2559fd4d25a2d30ab10ae6e1f61db3b807ab19d828760d58d74655"
     },
     {
       "path": "figures/06_action_outcomes.png",
@@ -68,7 +68,7 @@
     },
     {
       "path": "figures/07_stageB_paired_hv.pdf",
-      "sha256": "139e86b34759ecb7ef7f42cbd66ad89770c5f9fc72b53179403f687c138cc211"
+      "sha256": "fc1abf92cf6bc48e505098c936f5cc48c9ff0e398e6b9ce51a2ccd439c908303"
     },
     {
       "path": "figures/07_stageB_paired_hv.png",

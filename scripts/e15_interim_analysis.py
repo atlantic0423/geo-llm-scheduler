@@ -176,7 +176,7 @@ def analyze(root: Path, output: Path) -> dict:
         ],
     }
     (output / "statistics.json").write_text(
-        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8", newline="\n"
     )
     _csv(output / "complete_stage_metrics.csv", rows)
     _csv(
