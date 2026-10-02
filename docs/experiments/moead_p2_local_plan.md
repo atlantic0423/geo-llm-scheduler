@@ -2,6 +2,8 @@
 
 日期：2026-10-02。状态：本地工程计划；算法收益待实验；服务器部署须由用户审阅本地结果后确认。
 
+执行记录：本地实现与全部工程质量门已完成，详见 [本地验收报告](moead_p2_local_acceptance.md)。正式实验与服务器部署仍待用户确认。
+
 ## 依据与范围
 
 本地基线为 GitHub main 的 `3ec2355fbc43993375daab06ec0ea39fb9d86991`。实现放在独立分支 `research/moead-p2-local-20261002`，不修改 P1 分析工作树、E15 暂停 campaign 或 E16 开发环境。
@@ -64,7 +66,7 @@ $$
 ## Material Passport
 
 - Type: LOCAL_IMPLEMENTATION_PLAN
-- Verification: UNVERIFIED until actual local gates complete
+- Verification: VERIFIED for local execution; see the acceptance report
 - Dependencies: P1 diagnosis; current Notion framework/model/Coding Contract; frozen base SHA
 - Scientific status: pending independent online experiments
 - External actions: no server deployment/run and no GitHub push in this batch
