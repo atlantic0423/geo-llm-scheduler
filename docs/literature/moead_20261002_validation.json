@@ -39,6 +39,7 @@
       "public_links": 136
     }
   },
+  "file_hash_encoding": "UTF-8 with LF newlines, verified against the Git index; Windows CRLF working copies may differ.",
   "files": [
     {
       "path": "docs/reports/moead_novelty_20261002.md",
@@ -47,13 +48,13 @@
     },
     {
       "path": "docs/literature/moead_20261002_catalog.md",
-      "bytes": 43128,
-      "sha256": "5c90b57f39b1ea68a6e9ec1cdde76db91b4f42ed4a765b80192fcfe76f1102b7"
+      "bytes": 42607,
+      "sha256": "f3a87184c5e6b5482516c8adcfc7895517bb5499fbcb4cb57ca47b87143aeef2"
     },
     {
       "path": "docs/literature/moead_20261002_catalog.json",
-      "bytes": 59743,
-      "sha256": "7f7978e2f7f0b48f7fd2903966b8422c4d3f9d6f801544099c2a4d8d36a576c2"
+      "bytes": 58320,
+      "sha256": "05bbb4eb2d3575f957b0878302eb517ed49ea237d5020f2045abebf93a826989"
     },
     {
       "path": "docs/literature/moead_20261002_claims.json",
