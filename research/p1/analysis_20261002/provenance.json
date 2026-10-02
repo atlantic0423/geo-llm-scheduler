@@ -1,0 +1,83 @@
+{
+  "status": "ANALYZED",
+  "source_commit": "3ec2355fbc43993375daab06ec0ea39fb9d86991",
+  "source_hash": "55e8137c4af517718394e43b96c477ac77b99cf6dc52b8844a9792ef90193ed7",
+  "completed_runs": 480,
+  "failed_runs": 0,
+  "independent_bases": 24,
+  "bootstrap_draws": 20000,
+  "seed": 20261002,
+  "initialization_control": {
+    "records": 48000,
+    "changed_starts": 0,
+    "changed_objectives": 0
+  },
+  "raw_archive": {
+    "members": 8883,
+    "size": 17864816640,
+    "sha256": "07893cdc4d756e7d210d68c2ccac1dc4c504244c634d6774cc044292387fcb31",
+    "local_delivery": "partial; second connection interruption",
+    "release_delivery": "full raw not published"
+  },
+  "compact_manifests": {
+    "counts": {
+      "runs": 480,
+      "h1": 5760,
+      "actions": 46040,
+      "h3": 5755,
+      "fronts": 1440
+    },
+    "files": [
+      {
+        "name": "runs.jsonl.gz",
+        "size": 479940,
+        "sha256": "9590841ae72e9d9b2b3742c1a638ee6f18c2dd6ae699023687da1a7e6c91de3c"
+      },
+      {
+        "name": "fronts.jsonl.gz",
+        "size": 1305035,
+        "sha256": "970892593155577c7c76731b7cff77a7afcbdd9ee525abbd0b92274d90975ee9"
+      },
+      {
+        "name": "h3.jsonl.gz",
+        "size": 8857164,
+        "sha256": "df387ce3cac78e86400cf492d9351a8cfba64114d63499e642a2b80cab7f2254"
+      },
+      {
+        "name": "h1.jsonl.gz",
+        "size": 356395,
+        "sha256": "37db4231515357c2c963240bba2f30a58c8cc96d239dbc0c12c48362e27b4965"
+      },
+      {
+        "name": "actions.jsonl.gz",
+        "size": 10348906,
+        "sha256": "12f14368d16f32227b4f25010519ff9a915b5a941645ae92b9f1d70fa2dd09c3"
+      }
+    ],
+    "schema_version": 1
+  },
+  "online_manifest": {
+    "file": "online.jsonl.gz",
+    "size": 651744,
+    "sha256": "e1f221cb7eb1dae831a08ec67c0fa1d4746bf9436109aa2a6aff44de76fbeba6",
+    "runs": 480,
+    "elapsed": 299.95450353622437
+  },
+  "local_validation": {
+    "python": "3.13.5",
+    "tests": 215,
+    "core_coverage_percent": 96.32,
+    "overall_coverage_percent": 86.19,
+    "lint": "passed",
+    "format": "passed",
+    "mypy_src": "passed",
+    "deterministic_replay": "aeb9824d2e671fe76771297ece91af40576124c930721193c18127cbdb814fa7",
+    "reanalysis_statistics_and_base_csv": "byte-identical"
+  },
+  "limits": [
+    "Exploratory clustered diagnostics, no online CT/RDIR ablation",
+    "A7 regret is sampled lower bound",
+    "A8 fine-grained mutually exclusive failure labels incomplete",
+    "P1 observer overhead differs between F6 and M0"
+  ]
+}
