@@ -1,0 +1,1423 @@
+{
+  "version": "1.0",
+  "as_of": "2026-10-02",
+  "scope": "Focused scoping/novelty review, not exhaustive systematic review",
+  "preferred_window": [
+    "2024-10-02",
+    "2026-10-02"
+  ],
+  "selection_policy": "中科院一区为主，补充JCR Q1；机制近邻不因分区低/未核而排除",
+  "counts": {
+    "all": 38,
+    "journal_issue_2025_2026": 30,
+    "historical_2024_or_earlier": 7,
+    "preprints": 1,
+    "key_fulltext_sections": 11,
+    "key_fulltext_sections_recent_issue": 10,
+    "official_cas_certified": 0
+  },
+  "integrity": "Public bibliographic metadata and authored notes only; no article fulltext redistribution; proposals scientifically unverified",
+  "papers": [
+    {
+      "id": "R01",
+      "doi": "10.1109/TEVC.2024.3496507",
+      "alias": "MOEA/D综述",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "A Survey of Multiobjective Evolutionary Algorithm Based on Decomposition: Past and Future",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "30",
+      "issue": "3",
+      "pages": "957-978",
+      "authors": [
+        "Ke Li"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://ieeexplore.ieee.org/document/10750458",
+      "reading_level": "关键全文章节",
+      "takeaway": "匹配、全局替换、AOS、资源分配和memetic均为既有研究线；先回溯经典方法再讨论新机制。",
+      "reading": {
+        "url": "https://arxiv.org/pdf/2404.14571",
+        "version": "2024作者预印本，非2026期刊定稿",
+        "scope": "PDF第8–14页：标量化、选择/匹配、AOS与混合搜索；并非41页逐页精读",
+        "pdf_key": "survey",
+        "sha256": "a7796ebd1c5baad1c5101b2a98049ec85251e2fdfff3c90d5ae7f3fa42db6184"
+      },
+      "online_date": "期刊early access 2024；预印本2024-04",
+      "window_note": "预印本早于窗口；2026期刊issue不双重计数",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R02",
+      "doi": "10.1109/TEVC.2025.3584207",
+      "alias": "CMOEA-TS",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "Learning-Based Temporal Sequence of Constrained Handling Selection for Constrained Multi-Objective Evolutionary Optimization",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "30",
+      "issue": "3",
+      "pages": "1123-1136",
+      "authors": [
+        "Chaoda Peng",
+        "Siyuan Yan",
+        "Cankun Zhong",
+        "Qiong Huang",
+        "Chunguo Wu",
+        "Han Huang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://ieeexplore.ieee.org/document/11058982",
+      "reading_level": "关键全文章节",
+      "takeaway": "DQN选择约束处理与遗传算子组合；连续时序决策已有直接近邻。",
+      "reading": {
+        "url": "https://www2.scut.edu.cn/_upload/article/files/74/7c/392c47d045e3948f22ded94344af/cc732e57-84f8-44bd-94e0-5baefe749f68.pdf",
+        "version": "作者accepted稿",
+        "scope": "PDF第4–10、13页：状态/9类动作/奖励、实验和限制",
+        "pdf_key": "temporal",
+        "sha256": "e586237f56245a609ff39b0113eedd764eb3f9e460b36bcb1a386b5fc7206d43"
+      },
+      "online_date": "2025-06-30",
+      "window_note": "early access与2026 issue分开",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R03",
+      "doi": "10.1109/TEVC.2025.3564335",
+      "alias": "DGVI",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "Dynamic Grouping With a Self-Aware Computational Resource Allocation for Large-Scale Multi-Objective Optimization",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "30",
+      "issue": "2",
+      "pages": "795-809",
+      "authors": [
+        "Yuning Chen",
+        "Ziqing Zhou",
+        "Yi Liu",
+        "Linqiang Hu",
+        "Zhuo Zou",
+        "Lida Xu",
+        "Zhongxue Gan",
+        "Chun Ouyang"
+      ],
+      "metadata_verification": "IEEE题录与作者上传稿交叉确认；Crossref限流",
+      "primary_url": "https://xplorestaging.ieee.org/document/10994449",
+      "reading_level": "关键全文章节",
+      "takeaway": "变量重要性动态分组和自感知计算分配已有；连续变量方法不能直接当作离散资源冲突方法。",
+      "reading": {
+        "url": "https://www.researchgate.net/publication/391622317_Dynamic_Grouping_With_a_Self-Aware_Computational_Resource_Allocation_for_Large-Scale_Multi-Objective_Optimization",
+        "version": "作者Chun Ouyang于2025-05-19上传稿",
+        "scope": "III方法/Algorithm1–2、IV实验/消融、可微假设局限；网页行596–765、1352–1491、1850–2066、2168–2288"
+      },
+      "online_date": "2025；作者上传2025-05-19",
+      "window_note": "上传日不等于正式出版日",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R04",
+      "doi": "10.1109/TEVC.2025.3555605",
+      "alias": "GPU tensorization",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "Bridging Evolutionary Multiobjective Optimization and GPU Acceleration via Tensorization",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "30",
+      "issue": "1",
+      "pages": "420-434",
+      "authors": [
+        "Zhenyu Liang",
+        "Hao Li",
+        "Naiwei Yu",
+        "Kebin Sun",
+        "Ran Cheng"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://ira.lib.polyu.edu.hk/handle/10397/114103",
+      "reading_level": "关键全文章节",
+      "takeaway": "MOEA/D批式张量化会重排搜索更新；大种群GPU速度不能外推到本项目CPU/SSGS。",
+      "reading": {
+        "url": "https://ira.lib.polyu.edu.hk/bitstream/10397/114103/1/Liang_Bridging_Evolutionary_Multiobjective.pdf",
+        "version": "大学公开作者稿",
+        "scope": "PDF第1、4–5、7、9、13页：张量化、MOEA/D更新、硬件/规模、限制",
+        "pdf_key": "tensor",
+        "sha256": "8b0ec62bdb31ca3e8cb8e98e4fe7ec1fd8b3a9c95e701ecef4e1673a6b417209"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R05",
+      "doi": "10.1109/TEVC.2024.3359120",
+      "alias": "模糊FJSP分解",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "A Decomposition-Based Evolutionary Algorithm With Clustering and Hierarchical Estimation for Multiobjective Fuzzy Flexible Jobshop Scheduling",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "30",
+      "issue": "1",
+      "pages": "2-15",
+      "authors": [
+        "Xuwei Zhang",
+        "Shixin Liu",
+        "Ziyan Zhao",
+        "Shengxiang Yang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://doi.org/10.1109/TEVC.2024.3359120",
+      "reading_level": "摘要/预览",
+      "takeaway": "聚类、层次估计与分解调度已有；early access在2024年1月，属于边界回溯。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2024-01-26",
+      "window_note": "严格窗口外；2026 issue不代表2026新提出",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R06",
+      "doi": "10.1177/10692509251363797",
+      "alias": "MOCMF",
+      "journal_code": "ICAE",
+      "issue_year": 2025,
+      "title": "Multiobjective cooperative multi-fitness in workflow scheduling problem",
+      "journal": "Integrated Computer-Aided Engineering",
+      "volume": "32",
+      "issue": "4",
+      "pages": "443-464",
+      "authors": [
+        "Pablo Barredo",
+        "Jorge Puente"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://journals.sagepub.com/doi/abs/10.1177/10692509251363797",
+      "reading_level": "关键全文章节",
+      "takeaway": "一染色体多表型、Lamarckian回编码与保留多输出已有，是时序继承的最强近邻。",
+      "reading": {
+        "url": "https://digibuo.uniovi.es/dspace/bitstream/handle/10651/80828/ICAE_postprint.pdf?isAllowed=y&sequence=1",
+        "version": "大学公开accepted稿",
+        "scope": "PDF第1–14、17–18页：多fitness/回编码、预算/结果/限制；第9页Algorithm2/Figure3目视核查",
+        "pdf_key": "mocmf",
+        "sha256": "195666f0cb067cc6f0324def2ad46f4a6e15e69c41276f20d95ebfe2b8052974"
+      },
+      "online_date": "2025-08-11",
+      "window_note": "期刊issue2025-11；本轮读取accepted稿",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R07",
+      "doi": "10.1016/j.swevo.2026.102416",
+      "alias": "MOEA/D-FAVG",
+      "journal_code": "Swarm",
+      "issue_year": 2026,
+      "title": "Feedback-driven adaptive variable grouping for decomposition-based large-scale multiobjective optimization",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "106",
+      "issue": null,
+      "pages": "102416",
+      "authors": [
+        "Qi Liu",
+        "Rui Lin",
+        "Li Lyu"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S2210650226001367",
+      "reading_level": "摘要/预览",
+      "takeaway": "反馈重分组与组级算子选择已有；具体规则仍需全文确认。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R08",
+      "doi": "10.1016/j.swevo.2025.102171",
+      "alias": "MOEA/D-BDN",
+      "journal_code": "Swarm",
+      "issue_year": 2025,
+      "title": "MOEA/D-BDN: Multimodal multi-objective evolutionary algorithm based on bi-dynamic niche strategy and adaptive weight decomposition",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "99",
+      "issue": null,
+      "pages": "102171",
+      "authors": [
+        "Chunliang Zhang",
+        "Huang Li",
+        "Shangbin Long",
+        "Xia Yue",
+        "Haibin Ouyang",
+        "Houyao Zhu",
+        "Steven Li"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S2210650225003281",
+      "reading_level": "摘要/预览",
+      "takeaway": "决策/目标双动态生态位、适应权重和历史存档已有，机会空间需与距离型生态位比较。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R09",
+      "doi": "10.1016/j.swevo.2025.102228",
+      "alias": "MOEA/D-BOS",
+      "journal_code": "Swarm",
+      "issue_year": 2026,
+      "title": "Decomposition-based multi-objective evolutionary algorithm for bi-optimal selection",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "100",
+      "issue": null,
+      "pages": "102228",
+      "authors": [
+        "Qinwei Fan",
+        "Dewei Yang",
+        "Jigen Peng",
+        "Haiyang Li",
+        "Jian Wang",
+        "Aoxue Yin"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S2210650225003852",
+      "reading_level": "摘要/预览",
+      "takeaway": "个体探索、权重构造和双优选择已有；单换环境选择缺少新机制证据。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R10",
+      "doi": "10.1016/j.eswa.2024.125607",
+      "alias": "Q-learning weight update",
+      "journal_code": "ESWA",
+      "issue_year": 2025,
+      "title": "A decomposition-based many-objective evolutionary algorithm with Q-learning guide weight vectors update",
+      "journal": "Expert Systems with Applications",
+      "volume": "262",
+      "issue": null,
+      "pages": "125607",
+      "authors": [
+        "HaiJian Zhang",
+        "Yiru Dai"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0957417424024746",
+      "reading_level": "摘要/预览",
+      "takeaway": "Q-learning控制权重更新与算子参数已有；不以再加Q表作为独立贡献。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，版本未指定",
+        "sources": [
+          "https://sxy.zjnu.edu.cn/_t28/2025/0623/c5995a522773/page.psp",
+          "https://dm.uestc.edu.cn/publication/"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R11",
+      "doi": "10.1016/j.engappai.2024.109482",
+      "alias": "HK-MOEA/D",
+      "journal_code": "EAAI",
+      "issue_year": 2025,
+      "title": "HK-MOEA/D: A historical knowledge-guided resource allocation for decomposition multiobjective optimization",
+      "journal": "Engineering Applications of Artificial Intelligence",
+      "volume": "139",
+      "issue": null,
+      "pages": "109482",
+      "authors": [
+        "Wei Li",
+        "Xiaolong Zeng",
+        "Ying Huang",
+        "Yiu-ming Cheung"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0952197624016403",
+      "reading_level": "摘要/预览",
+      "takeaway": "历史演化能力/收敛/密度驱动资源分配已有；需证明历史收益之外的信息价值。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R12",
+      "doi": "10.1016/j.swevo.2025.101991",
+      "alias": "MRLEA distributed HFS",
+      "journal_code": "Swarm",
+      "issue_year": 2025,
+      "title": "Multi-agent reinforcement learning-aided evolutionary algorithm for a many-objective distributed hybrid flow shop scheduling problem",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "97",
+      "issue": null,
+      "pages": "101991",
+      "authors": [
+        "Binhui Wang",
+        "Hongfeng Wang",
+        "Qi Yan",
+        "Enjie Ma"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://doi.org/10.1016/j.swevo.2025.101991",
+      "reading_level": "关键全文章节",
+      "takeaway": "GrEA加多目标agent选择搜索方向与算子；方向-算子联合控制本身已有。",
+      "reading": {
+        "version": "项目已有期刊PDF",
+        "scope": "PDF第5、7–10、12、14页：编码/方向/算子/Q、等时间实验/消融/结论；第7页Algorithm2–3目视核查",
+        "local_source_filename": "Multi-agent reinforcement learning-aided evolutionary algorithm for a many-objective distributed hybrid flow shop scheduling problem.pdf",
+        "sha256": "e8c94a732e17d27f44c614e23cf62a49fb2d835e474a62351496700c9fabf386"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R13",
+      "doi": "10.1016/j.swevo.2025.102200",
+      "alias": "RL MOEA/D fatigue FJSP",
+      "journal_code": "Swarm",
+      "issue_year": 2025,
+      "title": "An improved MOEA/D with reinforcement learning for flexible job shops incorporating manual operations and fatigue effects",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "99",
+      "issue": null,
+      "pages": "102200",
+      "authors": [
+        "Yibing Li",
+        "Xin Tong",
+        "Haiqi Zou",
+        "Jun Guo",
+        "Lei Wang",
+        "Hongtao Tang",
+        "Kaipu Wang",
+        "Xinyu Li"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S2210650225003578",
+      "reading_level": "摘要/预览",
+      "takeaway": "子问题难度、定制LS与RL参数控制已有；具体算子效果须全文验证。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R14",
+      "doi": "10.1016/j.cor.2025.107266",
+      "alias": "Q-MOEA/D-AWA low carbon",
+      "journal_code": "COR",
+      "issue_year": 2026,
+      "title": "A Q-learning-based evolutionary algorithm for solving the low-carbon multi-objective flexible job shop scheduling problem",
+      "journal": "Computers &amp; Operations Research",
+      "volume": "185",
+      "issue": null,
+      "pages": "107266",
+      "authors": [
+        "Zhixue Wang",
+        "Maowei He",
+        "Hanning Chen",
+        "Yabao Hu",
+        "Yelin Xia"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0305054825002953",
+      "reading_level": "摘要/预览",
+      "takeaway": "低碳FJSP结合MOEA/D、Q-learning和VNS参数控制已有。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "补充：JCR Q1机构表；中科院分区未核",
+        "edition_or_evidence_year": "机构JCR表列2025；OR&MS另有2025记录",
+        "sources": [
+          "https://www.iit.comillas.edu/publicacion/info_revista/en/282/Computers_&_Operations_Research",
+          "https://scholar.pusan.ac.kr/journals/12741"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R15",
+      "doi": "10.1016/j.asoc.2025.114484",
+      "alias": "SMODE batch machines",
+      "journal_code": "ASOC",
+      "issue_year": 2026,
+      "title": "A smart multi-objective differential evolution algorithm for energy-efficient scheduling in parallel batch processing machines",
+      "journal": "Applied Soft Computing",
+      "volume": "189",
+      "issue": null,
+      "pages": "114484",
+      "authors": [
+        "Yarong Chen",
+        "Hansen Su",
+        "Mudassar Rauf",
+        "Xue Zhao",
+        "Chen Wang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S1568494625017971",
+      "reading_level": "摘要/预览",
+      "takeaway": "老虎机式算子/参数选择用于节能批处理调度已有。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R16",
+      "doi": "10.1016/j.swevo.2026.102498",
+      "alias": "SGQL textile energy",
+      "journal_code": "Swarm",
+      "issue_year": 2026,
+      "title": "Reinforcement learning-driven multi-objective optimization for energy-efficient flexible job shop scheduling considering steam consumption in textile production",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "107",
+      "issue": null,
+      "pages": "102498",
+      "authors": [
+        "Lijun Pan",
+        "Xingjie Wang",
+        "Jing-fang Chen",
+        "Bin He",
+        "Jun Li"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S221065022600218X",
+      "reading_level": "摘要/预览",
+      "takeaway": "状态驱动Q-learning用于电/蒸汽能耗调度已有；总能耗与Demand收费不同。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R17",
+      "doi": "10.1016/j.swevo.2025.102065",
+      "alias": "Microscale search",
+      "journal_code": "Swarm",
+      "issue_year": 2025,
+      "title": "Weak-prior medical image matting based on microscale-searching evolutionary optimization",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "98",
+      "issue": null,
+      "pages": "102065",
+      "authors": [
+        "Li Kang",
+        "Han Huang",
+        "Yihui Liang",
+        "Baoxiong Zhuang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://doi.org/10.1016/j.swevo.2025.102065",
+      "reading_level": "关键全文章节",
+      "takeaway": "按实际特征关联子问题和动态微搜索分配已有；权重邻近需与搜索邻近区分。",
+      "reading": {
+        "url": "https://www2.scut.edu.cn/_upload/article/files/74/7c/392c47d045e3948f22ded94344af/fb97dfaf-7f51-4005-892b-e7ccdd5b05d2.pdf",
+        "version": "大学公开作者稿",
+        "scope": "PDF第1、3、5–7、10页：特征关联/微搜索/分配、实验条件和结论；未逐表复核全部胜负",
+        "pdf_key": "microsearch",
+        "sha256": "eb09535a8574eda210e96d6f913b31b5385696b247e1c4cd4c1ce5b16e2e6468"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R18",
+      "doi": "10.1007/s40747-025-01835-7",
+      "alias": "PEATSD",
+      "journal_code": "C&IS",
+      "issue_year": 2025,
+      "title": "A parallel large-scale multiobjective evolutionary algorithm based on two-space decomposition",
+      "journal": "Complex &amp; Intelligent Systems",
+      "volume": "11",
+      "issue": "5",
+      "pages": null,
+      "authors": [
+        "Feng Yin",
+        "Bin Cao"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://link.springer.com/article/10.1007/s40747-025-01835-7",
+      "reading_level": "关键全文章节",
+      "takeaway": "决策/目标两空间分解与并行子种群已有；第二空间和增加个体数不能直接称创新。",
+      "reading": {
+        "url": "https://link.springer.com/article/10.1007/s40747-025-01835-7",
+        "version": "出版社开放HTML",
+        "scope": "两空间/MPI方法、参数/个体数与结论；网页行127–285、466–470"
+      },
+      "online_date": "2025-03-25",
+      "window_note": "出版社日期",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R19",
+      "doi": "10.1007/s10462-024-11059-9",
+      "alias": "GP vs RL JSS survey",
+      "journal_code": "AIR",
+      "issue_year": 2025,
+      "title": "Learn to optimise for job shop scheduling: a survey with comparison between genetic programming and reinforcement learning",
+      "journal": "Artificial Intelligence Review",
+      "volume": "58",
+      "issue": "6",
+      "pages": null,
+      "authors": [
+        "Meng Xu",
+        "Yi Mei",
+        "Fangfang Zhang",
+        "Mengjie Zhang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://link.springer.com/article/10.1007/s10462-024-11059-9",
+      "reading_level": "关键全文章节",
+      "takeaway": "状态、策略和奖励已有系统比较；局部代理奖励可能与最终目标失配。",
+      "reading": {
+        "url": "https://link.springer.com/article/10.1007/s10462-024-11059-9",
+        "version": "出版社开放HTML",
+        "scope": "表示/策略/评价与奖励/讨论；网页行125–315、469–510；未逐一复核全部综述引文"
+      },
+      "online_date": "2025-03-15",
+      "window_note": "出版社日期",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R20",
+      "doi": "10.1016/j.eswa.2026.131978",
+      "alias": "ADC plus LLM satellite",
+      "journal_code": "ESWA",
+      "issue_year": 2026,
+      "title": "Integrating adaptive divide-and-conquer and large language model for scheduling large-scale tasks in electromagnetic satellite systems",
+      "journal": "Expert Systems with Applications",
+      "volume": "318",
+      "issue": null,
+      "pages": "131978",
+      "authors": [
+        "Xuemei Jiang",
+        "Jiting Li",
+        "Rammohan Mallipeddi",
+        "Guangyin Jin",
+        "Jian Wu",
+        "Lining Xing",
+        "Yanjie Song"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S0957417426008912",
+      "reading_level": "摘要/预览",
+      "takeaway": "时间窗口重叠分组、历史贡献分配和LLM生成策略已有。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，版本未指定",
+        "sources": [
+          "https://sxy.zjnu.edu.cn/_t28/2025/0623/c5995a522773/page.psp",
+          "https://dm.uestc.edu.cn/publication/"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R21",
+      "doi": "10.1016/j.swevo.2025.102219",
+      "alias": "Dynamic industrial allocation",
+      "journal_code": "Swarm",
+      "issue_year": 2025,
+      "title": "A Dynamic Multi-objective Optimization approach for computing resource allocation in industrial model repository",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "99",
+      "issue": null,
+      "pages": "102219",
+      "authors": [
+        "Dan Hu",
+        "Jianjun He"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S2210650225003761",
+      "reading_level": "摘要/预览",
+      "takeaway": "动态环境预测/历史记忆与本项目静态离线批次不同。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R22",
+      "doi": "10.1016/j.asoc.2026.115413",
+      "alias": "Parallel MOEA/D-MRA",
+      "journal_code": "ASOC",
+      "issue_year": 2026,
+      "title": "A parallel MOEA/D-MRA algorithm for solving multi-objective optimal power flow problems",
+      "journal": "Applied Soft Computing",
+      "volume": "200",
+      "issue": null,
+      "pages": "115413",
+      "authors": [
+        "Jiawei Tan",
+        "Xiaoqing Zhu",
+        "Jingrui Zhang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S1568494626008616",
+      "reading_level": "摘要/预览",
+      "takeaway": "迁移和资源分配型并行MOEA/D已有；两机跑不同seed属于实验加速。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R23",
+      "doi": "10.1016/j.swevo.2023.101463",
+      "alias": "Customized replacement",
+      "journal_code": "Swarm",
+      "issue_year": 2024,
+      "title": "MOEA/D with customized replacement neighborhood and dynamic resource allocation for solving 3L-SDHVRP",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "85",
+      "issue": null,
+      "pages": "101463",
+      "authors": [
+        "Han Li",
+        "Genghui Li",
+        "Qiaoyong Jiang",
+        "Jiashu Wang",
+        "Zhenkun Wang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S2210650223002353",
+      "reading_level": "摘要/预览",
+      "takeaway": "子代方向关联替换邻域已有；RDIR有诊断价值，单独创新风险高。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R24",
+      "doi": "10.1016/j.ejor.2025.07.055",
+      "alias": "AMCEA two-stage HFS",
+      "journal_code": "EJOR",
+      "issue_year": 2026,
+      "title": "An energy-efficient scheduling approach for a two-stage hybrid flow shop with parallel batch machines",
+      "journal": "European Journal of Operational Research",
+      "volume": "328",
+      "issue": "3",
+      "pages": "762-784",
+      "authors": [
+        "Zhao-hong Jia",
+        "Tianfu Wu",
+        "Han Zhang",
+        "Chuang Liu",
+        "Kai Li"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://doi.org/10.1016/j.ejor.2025.07.055",
+      "reading_level": "关键全文章节",
+      "takeaway": "参考方向分群、协同配对、区域LS和TOU时移已有；AMCEA不是标准MOEA/D。",
+      "reading": {
+        "version": "项目已有期刊PDF",
+        "scope": "PDF第6、10–14、21–22页：模型/配对/区域LS/TOU、等时间消融、限制；第12页Algorithm6目视核查",
+        "local_source_filename": "An energy-efficient scheduling approach for a two-stage hybrid flow shop.pdf",
+        "sha256": "fca7091710062bcdaf020b6e8a562f4d86582956bb649dcd7147fdca60ad1d0b"
+      },
+      "online_date": "2025，具体日未独立核验",
+      "window_note": "issue2026-02",
+      "ranking": {
+        "assessment": "补充：JCR Q1机构表；中科院分区未核",
+        "edition_or_evidence_year": "机构JCR表列2025，学科未列",
+        "sources": [
+          "https://www.iit.comillas.edu/publicacion/info_revista/en/50/European_Journal_of_Operational_Research"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R25",
+      "doi": "10.1016/j.ins.2024.121364",
+      "alias": "Dual feature transfer",
+      "journal_code": "INS",
+      "issue_year": 2025,
+      "title": "Multi-objective evolutionary algorithm based on transfer learning and neural networks: Dual operator feature fusion and weight vector adaptation",
+      "journal": "Information Sciences",
+      "volume": "686",
+      "issue": null,
+      "pages": "121364",
+      "authors": [
+        "Xuepeng Ren",
+        "Maocai Wang",
+        "Guangming Dai",
+        "Lei Peng",
+        "Xiaoyu Chen",
+        "Zhiming Song"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0020025524012787",
+      "reading_level": "摘要/预览",
+      "takeaway": "双算子特征融合、迁移和权重适应已有；神经网络包装不足以区分机制。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "公开中科院标注冲突；本次不认证一区",
+        "edition_or_evidence_year": "2025机构论文标注，版本未指定",
+        "sources": [
+          "https://it.ouc.edu.cn/xh/list.htm",
+          "https://cs.shu.edu.cn/info/1461/40401.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R26",
+      "doi": "10.1016/j.ins.2025.122884",
+      "alias": "Learning guided buffer HFS",
+      "journal_code": "INS",
+      "issue_year": 2026,
+      "title": "A learning-guided multi-objective approach for energy-oriented hybrid flow shop scheduling with limited buffers",
+      "journal": "Information Sciences",
+      "volume": "731",
+      "issue": null,
+      "pages": "122884",
+      "authors": [
+        "Lamei He",
+        "Sheng-Long Jiang",
+        "Liangliang Sun",
+        "Raymond Chiong"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0020025525010205",
+      "reading_level": "摘要/预览",
+      "takeaway": "目标引导邻域与学习选算子已有；有限buffer和本项目约束差异需明确。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "公开中科院标注冲突；本次不认证一区",
+        "edition_or_evidence_year": "2025机构论文标注，版本未指定",
+        "sources": [
+          "https://it.ouc.edu.cn/xh/list.htm",
+          "https://cs.shu.edu.cn/info/1461/40401.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R27",
+      "doi": "10.1016/j.cie.2025.111754",
+      "alias": "TREA TOU FJSP",
+      "journal_code": "CIE",
+      "issue_year": 2026,
+      "title": "A twin-reinforced evolutionary algorithm for flexible job shop scheduling problem under time-of-use tariffs",
+      "journal": "Computers &amp; Industrial Engineering",
+      "volume": "212",
+      "issue": null,
+      "pages": "111754",
+      "authors": [
+        "Shicun Zhao",
+        "Hong Zhou",
+        "Feng Chu",
+        "Da Wang",
+        "Kaizhou Gao"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0360835225009003",
+      "reading_level": "摘要/预览",
+      "takeaway": "RL配对/算子及full-active解码、right-shift已有；本轮未取得全文。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R28",
+      "doi": "10.1016/j.ins.2024.121397",
+      "alias": "Multi-state RL MOEA",
+      "journal_code": "INS",
+      "issue_year": 2025,
+      "title": "A novel multi-state reinforcement learning-based multi-objective evolutionary algorithm",
+      "journal": "Information Sciences",
+      "volume": "688",
+      "issue": null,
+      "pages": "121397",
+      "authors": [
+        "Jing Wang",
+        "Yuxin Zheng",
+        "Ziyun Zhang",
+        "Hu Peng",
+        "Hui Wang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S0020025524013112",
+      "reading_level": "摘要/预览",
+      "takeaway": "目标几何状态和权重适应已有；early access 2024年8月，属于边界回溯。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2024-08-28",
+      "window_note": "严格窗口外",
+      "ranking": {
+        "assessment": "公开中科院标注冲突；本次不认证一区",
+        "edition_or_evidence_year": "2025机构论文标注，版本未指定",
+        "sources": [
+          "https://it.ouc.edu.cn/xh/list.htm",
+          "https://cs.shu.edu.cn/info/1461/40401.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R29",
+      "doi": "10.1016/j.asoc.2024.112272",
+      "alias": "MOEA/D-DKS",
+      "journal_code": "ASOC",
+      "issue_year": 2024,
+      "title": "A decomposition-based multi-objective evolutionary algorithm using infinitesimal method",
+      "journal": "Applied Soft Computing",
+      "volume": "167",
+      "issue": null,
+      "pages": "112272",
+      "authors": [
+        "Jing Wang",
+        "Shunce Mei",
+        "Changxin Liu",
+        "Hu Peng",
+        "Zhijian Wu"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/pii/S1568494624010469",
+      "reading_level": "摘要/预览",
+      "takeaway": "PF分区适应权重已有；early access 2024年9月在严格窗口外。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2024-09，具体日未核",
+      "window_note": "严格窗口外",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R30",
+      "doi": "10.1016/j.swevo.2021.101013",
+      "alias": "Test-and-Apply AOS",
+      "journal_code": "Swarm",
+      "issue_year": 2022,
+      "title": "Adaptive operator selection with test-and-apply structure for decomposition-based multi-objective optimization",
+      "journal": "Swarm and Evolutionary Computation",
+      "volume": "68",
+      "issue": null,
+      "pages": "101013",
+      "authors": [
+        "Lisha Dong",
+        "Qiuzhen Lin",
+        "Yu Zhou",
+        "Jianmin Jiang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://doi.org/10.1016/j.swevo.2021.101013",
+      "reading_level": "摘要/预览",
+      "takeaway": "先测试再分配后续预算已有；segment资源与一次best-of-B候选数不同。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注一区；另有二区记录，待官方复核",
+        "edition_or_evidence_year": "2026公告与2025论文列表，版本未指定",
+        "sources": [
+          "https://ie.hbue.edu.cn/99/b7/c317a367031/pagem.htm",
+          "https://eee.wzu.edu.cn/info/1019/32400.htm",
+          "https://www5.zzu.edu.cn/cilab/yjfxjkycg/qklw.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R31",
+      "doi": "10.1109/TEVC.2013.2239648",
+      "alias": "FRRMAB",
+      "journal_code": "TEVC",
+      "issue_year": 2014,
+      "title": "Adaptive Operator Selection With Bandits for a Multiobjective Evolutionary Algorithm Based on Decomposition",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "18",
+      "issue": "1",
+      "pages": "114-130",
+      "authors": [
+        "Ke Li",
+        "Alvaro Fialho",
+        "Sam Kwong",
+        "Qingfu Zhang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://scholars.cityu.edu.hk/en/publications/adaptive-operator-selection-with-bandits-for-a-multiobjective-evo/",
+      "reading_level": "摘要/预览",
+      "takeaway": "滑窗fitness-rate-rank老虎机AOS是经典强对照。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R32",
+      "doi": "10.1109/TEVC.2013.2293776",
+      "alias": "Stable matching",
+      "journal_code": "TEVC",
+      "issue_year": 2014,
+      "title": "Stable Matching-Based Selection in Evolutionary Multiobjective Optimization",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": "18",
+      "issue": "6",
+      "pages": "909-923",
+      "authors": [
+        "Ke Li",
+        "Qingfu Zhang",
+        "Sam Kwong",
+        "Miqing Li",
+        "Ran Wang"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://repository.essex.ac.uk/11559/",
+      "reading_level": "摘要/预览",
+      "takeaway": "解和子问题双向偏好匹配已有，增加匹配层不构成首次创新。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R33",
+      "doi": null,
+      "alias": "Weight adaptation trigger",
+      "journal_code": "arXiv",
+      "issue_year": 2025,
+      "title": "A Weight Adaptation Trigger Mechanism in Decomposition-based Evolutionary Multi-Objective Optimisation",
+      "journal": "arXiv:2502.16481",
+      "volume": null,
+      "issue": null,
+      "pages": null,
+      "authors": [],
+      "metadata_verification": "项目既有阅读记录；本轮未重读全文",
+      "primary_url": "https://arxiv.org/abs/2502.16481",
+      "reading_level": "项目既有阅读记录",
+      "takeaway": "权重调整触发与memetic Trigger不同；本轮核对项目记录，未重读全文。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2025-02，具体日未核",
+      "window_note": "预印本，不计期刊一区",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R34",
+      "doi": "10.1016/j.asoc.2020.106968",
+      "alias": "MOEA/D-BRA",
+      "journal_code": "ASOC",
+      "issue_year": 2021,
+      "title": "Balancing convergence and diversity in resource allocation strategy for decomposition-based multi-objective evolutionary algorithm",
+      "journal": "Applied Soft Computing",
+      "volume": "100",
+      "issue": null,
+      "pages": "106968",
+      "authors": [
+        "Liping Wang",
+        "Xiaotian Pan",
+        "Xiao Shen",
+        "Peipei Zhao",
+        "Qicang Qiu"
+      ],
+      "metadata_verification": "Crossref title/DOI/journal/year verified",
+      "primary_url": "https://www.sciencedirect.com/science/article/abs/pii/S1568494620309066",
+      "reading_level": "摘要/预览",
+      "takeaway": "历史逃逸概率量化evolvability，兼顾密度与收益；未来机会不能仅改名历史成功率。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R35",
+      "doi": "10.1007/978-3-319-10762-2_63",
+      "alias": "Shake Them All!",
+      "journal_code": "PPSN",
+      "issue_year": 2014,
+      "title": "Shake Them All! Rethinking Selection and Replacement in MOEA/D",
+      "journal": "PPSN XIII, LNCS 8672",
+      "volume": null,
+      "issue": null,
+      "pages": "641-651",
+      "authors": [
+        "Gauvain Marquet",
+        "Bilel Derbel",
+        "Arnaud Liefooghe",
+        "El-Ghazali Talbi"
+      ],
+      "metadata_verification": "Springer章节页与原论文全文核对",
+      "primary_url": "https://link.springer.com/chapter/10.1007/978-3-319-10762-2_63",
+      "reading_level": "关键全文章节",
+      "takeaway": "被替换解失去后续繁殖机会的动机早已有，保留搜索潜力本身不是新命题。",
+      "reading": {
+        "url": "https://www.cmap.polytechnique.fr/~nikolaus.hansen/proceedings/2014/PPSN/papers/8672/86720641.pdf",
+        "version": "公开会议全文",
+        "scope": "PDF第1–7页：动机/Algorithm1、共享组件/预算和anytime结果；未复算全部参数表"
+      },
+      "online_date": "未独立核验",
+      "window_note": "issue年份为主，严格窗口归属待核",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R36",
+      "doi": "10.1109/TEVC.2026.3708200",
+      "alias": "Physics-informed satellite",
+      "journal_code": "TEVC",
+      "issue_year": 2026,
+      "title": "A Physics-informed Memetic Framework for Multi-objective Satellite Range Scheduling",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "volume": null,
+      "issue": null,
+      "pages": null,
+      "authors": [
+        "Yaru Hu",
+        "Wei Sun",
+        "Shouyong Jiang",
+        "Junwei Ou",
+        "Jinhua Zheng",
+        "Juan Zou",
+        "Shengxiang Yang"
+      ],
+      "metadata_verification": "作者大学官网题录；Crossref限流，方法正文未取得",
+      "primary_url": "https://www.tech.dmu.ac.uk/~syang/publications.html",
+      "reading_level": "题录；正文待核",
+      "takeaway": "作者官网确认2026-07-01 early access；primary方法全文未取得。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2026-07-01",
+      "window_note": "作者大学官网early access记录；issue未核",
+      "ranking": {
+        "assessment": "机构标注中科院一区；官方年度表未核",
+        "edition_or_evidence_year": "2025/2026机构页面，分区版本未指定",
+        "sources": [
+          "https://jwxy.xtu.edu.cn/info/1154/3452.htm"
+        ],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R37",
+      "doi": "10.1162/EVCO.a.382",
+      "alias": "Adaptive Sampled Walk",
+      "journal_code": "EvolComp",
+      "issue_year": 2026,
+      "title": "Adaptive Sampled Walk: A Simple and Efficient Autonomous Local Search",
+      "journal": "Evolutionary Computation",
+      "volume": null,
+      "issue": null,
+      "pages": null,
+      "authors": [
+        "Matthieu Basseur",
+        "Arnaud Liefooghe",
+        "Sara Tari"
+      ],
+      "metadata_verification": "NLM收录作者摘要和DOI；期刊全文未取得",
+      "primary_url": "https://pubmed.ncbi.nlm.nih.gov/41666298/",
+      "reading_level": "摘要/预览",
+      "takeaway": "作者摘要确认滑窗距离决定邻居评价数；候选数自适应不是空白。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2026-02-11",
+      "window_note": "采用NLM题录，不采用OpenAlex相差1天的日期",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    },
+    {
+      "id": "R38",
+      "doi": "10.3390/electronics14132586",
+      "alias": "Workflow adaptive grouping",
+      "journal_code": "Electronics",
+      "issue_year": 2025,
+      "title": "An Evolutionary Algorithm for Multi-Objective Workflow Scheduling with Adaptive Dynamic Grouping",
+      "journal": "Electronics 14(13), 2586",
+      "volume": null,
+      "issue": null,
+      "pages": null,
+      "authors": [],
+      "metadata_verification": "出版社检索页题录/摘要；全文429，未继续重试",
+      "primary_url": "https://www.mdpi.com/2079-9292/14/13/2586",
+      "reading_level": "摘要/预览",
+      "takeaway": "任务依赖分组和按组贡献分配搜索资源已有；非一区直接近邻也需保留。",
+      "reading": {
+        "version": "题录/摘要，未取得可核查全文",
+        "scope": "只使用明确摘要机制；细节和定量效果不作已核验断言"
+      },
+      "online_date": "2025-06-26",
+      "window_note": "出版社记录",
+      "ranking": {
+        "assessment": "分区未核；机制近邻补充",
+        "edition_or_evidence_year": "未核",
+        "sources": [],
+        "official_cas_verified": false
+      }
+    }
+  ]
+}

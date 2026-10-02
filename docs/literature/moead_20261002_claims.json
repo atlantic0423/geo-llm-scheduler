@@ -1,0 +1,120 @@
+{
+  "version": "1.0",
+  "as_of": "2026-10-02",
+  "status": "CLAIMS_AUDITED_FOR_SCOPE_NOT_NOVELTY_PROVEN",
+  "claims": [
+    {
+      "id": "C01",
+      "type": "prior_art",
+      "claim": "Multi-phenotype decoding and Lamarckian recoding already exist.",
+      "sources": [
+        "R06"
+      ],
+      "level": "key_fulltext_sections",
+      "boundary": "Does not prove this project's implicit-wait transfer already solved."
+    },
+    {
+      "id": "C02",
+      "type": "prior_art",
+      "claim": "Direction/operator joint control in scheduling already exists.",
+      "sources": [
+        "R12",
+        "R24"
+      ],
+      "level": "key_fulltext_sections",
+      "boundary": "MRLEA uses GrEA and AMCEA reference-vector subpopulations; neither is vanilla MOEA/D."
+    },
+    {
+      "id": "C03",
+      "type": "prior_art",
+      "claim": "Historical evolvability and resource allocation already exist.",
+      "sources": [
+        "R11",
+        "R34"
+      ],
+      "level": "abstract",
+      "boundary": "No reconstruction of unpublished method details; fulltext further verification required."
+    },
+    {
+      "id": "C04",
+      "type": "prior_art",
+      "claim": "Two-space decomposition, dynamic grouping and representation-linked cooperation have antecedents.",
+      "sources": [
+        "R03",
+        "R17",
+        "R18",
+        "R08"
+      ],
+      "level": "mixed_fulltext_and_abstract",
+      "boundary": "Does not establish action-opportunity signatures are novel or useful."
+    },
+    {
+      "id": "C05",
+      "type": "project_result",
+      "claim": "P1 shows timing-redecode tradeoffs and replacement mismatch under diagnosed frozen contexts.",
+      "project_source": "https://app.notion.com/p/3ed8878b80198199a5aaedc6a9f7cb5a",
+      "boundary": "No causal final-HV claim; observer overhead asymmetric; raw delivery incomplete."
+    },
+    {
+      "id": "C06",
+      "type": "project_state",
+      "claim": "Six P2 arms are locally accepted and preserved; online effects pending.",
+      "project_source": "https://app.notion.com/p/3ed8878b8019816da528f4fb6de627dd",
+      "local_commit": "acda6090af005b09ce1268db31e4f3f58e76bbe2",
+      "boundary": "No P2 GitHub push, deployment, experiments or server state refresh in this batch."
+    },
+    {
+      "id": "C07",
+      "type": "hypothesis",
+      "claim": "Conditional timing-intent transfer after mandatory SSGS may retain useful implicit waits.",
+      "sources": [
+        "R06",
+        "R24"
+      ],
+      "status": "UNVERIFIED",
+      "falsifier": "No advantage against shuffled intent or cost-matched fresh local search."
+    },
+    {
+      "id": "C08",
+      "type": "hypothesis",
+      "claim": "Action-opportunity information may improve quality-matched parent/cooperation selection.",
+      "sources": [
+        "R08",
+        "R11",
+        "R17",
+        "R18",
+        "R34",
+        "R35"
+      ],
+      "status": "UNVERIFIED",
+      "falsifier": "No held-out value after quality/distance/history controls or only more-storage advantage."
+    },
+    {
+      "id": "C09",
+      "type": "hypothesis",
+      "claim": "Source/operator-conditioned pre-search target routing may improve MOEA/D cooperation.",
+      "sources": [
+        "R12",
+        "R23",
+        "R31",
+        "R32"
+      ],
+      "status": "UNVERIFIED",
+      "falsifier": "Fails same-pool RGAIN/cost-matched baselines."
+    },
+    {
+      "id": "C10",
+      "type": "conditional_mathematical_proposal",
+      "claim": "Removed active-union residual is a peak-power lower bound under a fixed horizon and frozen nonselected tasks.",
+      "status": "PROOF_AND_EXACT_EQUIVALENCE_PENDING",
+      "boundary": "Necessary condition only; reinsertion, new peak and total Bill still require exact checks."
+    },
+    {
+      "id": "C11",
+      "type": "ranking",
+      "claim": "Institutional CAS rank annotations guided selection, but no official annual table certification was obtained.",
+      "status": "ATTRIBUTED_WITH_CONFLICTS",
+      "boundary": "JCR, SJR, CAS big/small category and publication year not conflated."
+    }
+  ]
+}

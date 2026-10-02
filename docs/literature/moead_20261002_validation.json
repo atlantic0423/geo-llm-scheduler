@@ -1,0 +1,72 @@
+{
+  "status": "PASS_SCOPE_STRUCTURE_AND_LOCAL_ACCEPTANCE",
+  "as_of": "2026-10-02",
+  "baseline": "3ec2355fbc43993375daab06ec0ea39fb9d86991",
+  "catalog_counts": {
+    "all": 38,
+    "journal_issue_2025_2026": 30,
+    "historical_2024_or_earlier": 7,
+    "preprints": 1,
+    "key_fulltext_sections": 11,
+    "key_fulltext_sections_recent_issue": 10,
+    "official_cas_certified": 0
+  },
+  "claim_count": 11,
+  "p2_preserved_commit": "acda6090af005b09ce1268db31e4f3f58e76bbe2",
+  "p2_worktree_clean": true,
+  "quality_gate": {
+    "command": "python scripts/validate_all.py",
+    "exit_code": 0,
+    "tests_passed": 211,
+    "python_version": "3.13.5",
+    "overall_coverage_percent": 86.0,
+    "core_coverage_percent": 96.32,
+    "ruff_lint": "PASS",
+    "ruff_format": "139 files already formatted",
+    "mypy": "75 source files PASS"
+  },
+  "markdown_checks": {
+    "docs/reports/moead_novelty_20261002.md": {
+      "display_formula_pairs": 7,
+      "inline_formula_pairs": 28,
+      "relative_file_links": 3,
+      "public_links": 23
+    },
+    "docs/literature/moead_20261002_catalog.md": {
+      "display_formula_pairs": 0,
+      "inline_formula_pairs": 0,
+      "relative_file_links": 1,
+      "public_links": 136
+    }
+  },
+  "file_hash_encoding": "UTF-8 with LF newlines, verified against the Git index; Windows CRLF working copies may differ.",
+  "files": [
+    {
+      "path": "docs/reports/moead_novelty_20261002.md",
+      "bytes": 35293,
+      "sha256": "80c7081f0dec71d68cb841f6f2ecf4490d84aa070dad454684c746ad670744e6"
+    },
+    {
+      "path": "docs/literature/moead_20261002_catalog.md",
+      "bytes": 42607,
+      "sha256": "f3a87184c5e6b5482516c8adcfc7895517bb5499fbcb4cb57ca47b87143aeef2"
+    },
+    {
+      "path": "docs/literature/moead_20261002_catalog.json",
+      "bytes": 58320,
+      "sha256": "05bbb4eb2d3575f957b0878302eb517ed49ea237d5020f2045abebf93a826989"
+    },
+    {
+      "path": "docs/literature/moead_20261002_claims.json",
+      "bytes": 4096,
+      "sha256": "49550bf5b89705a44ba1f471a8ad17f885817fbcd10cf54d1c98f42dcc4d922a"
+    }
+  ],
+  "boundaries": [
+    "Not a proof of novelty or a complete systematic review.",
+    "Key fulltext sections are not complete paper or supplement reading.",
+    "Official annual CAS certification not available.",
+    "No experiments, server connections, deployments or P2 publication in this batch.",
+    "GitHub and Notion final delivery tracked separately from this precommit snapshot."
+  ]
+}
