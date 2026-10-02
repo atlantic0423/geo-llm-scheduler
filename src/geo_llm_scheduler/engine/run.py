@@ -8,6 +8,7 @@ from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationCapReached, EvaluationGateway
+from geo_llm_scheduler.engine.offspring import create_offspring
 from geo_llm_scheduler.engine.trajectory import improve
 from geo_llm_scheduler.engine.trigger import triggered
 from geo_llm_scheduler.initialization.generators import initial_genotypes
@@ -20,7 +21,7 @@ from geo_llm_scheduler.moead.core import (
     replace_neighbors,
     weights,
 )
-from geo_llm_scheduler.moead.variation import reproduce
+from geo_llm_scheduler.moead.replacement import replacement_neighborhood
 from geo_llm_scheduler.rl.controller import Controller
 from geo_llm_scheduler.utils.numeric import TOL, less
 from geo_llm_scheduler.utils.rng import RNGManager
@@ -128,17 +129,10 @@ def run(
                 and gateway.counts["exact"] >= config.exact_evaluation_cap
             ):
                 return finish("exact_evaluation_cap")
-            rng = streams.stream("variation")
+            streams.stream("variation")
             observe("before_offspring", {"generation": generation, "subproblem": i})
-            pool = (
-                neighbors[i]
-                if rng.random() < config.neighbor_probability
-                else tuple(range(len(population)))
-            )
-            a, b = rng.sample(pool, 2)
-            child = gateway.evaluate(
-                reproduce(problem, population[a].genotype, population[b].genotype, config, rng)
-            )
+            child = create_offspring(population, i, neighbors[i], config, gateway, streams)
+            offspring_route = child.origin
             context = NormalizationContext(gateway.ideal, maximum(population))
             previous = population[i]
             steps: list[dict] = []
@@ -183,18 +177,21 @@ def run(
                     ):
                         gateway.counts["trigger_successes"] += 1
             context = NormalizationContext(gateway.ideal, maximum(population))
+            replacement_order = replacement_neighborhood(
+                config.replacement_policy, i, child, neighbors, lambdas, context, streams
+            )
             observe(
                 "before_replacement",
                 {
                     "candidate": child,
                     "context": context,
-                    "neighbors": neighbors[i],
+                    "neighbors": replacement_order,
                     "generation": generation,
                     "subproblem": i,
                 },
             )
             replaced = replace_neighbors(
-                population, child, neighbors[i], lambdas, context, config.replacement_cap
+                population, child, replacement_order, lambdas, context, config.replacement_cap
             )
             improved = less(
                 context.scalar(population[i], lambdas[i]),
@@ -213,6 +210,10 @@ def run(
                 "trigger": hit,
                 "steps": steps,
             }
+            if config.offspring_policy != "variation":
+                row["offspring_route"] = offspring_route
+            if config.replacement_policy != "birth":
+                row["replacement_neighbors"] = replacement_order
             if retain_trace:
                 row["archive_objectives"] = [
                     c.evaluation.objectives for c in gateway.archive.members
