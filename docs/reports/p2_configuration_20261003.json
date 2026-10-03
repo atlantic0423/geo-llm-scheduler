@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "execution_commit": "f6b7fbaf8eaf3362db45fd02ba1bb2b23e8911ce",
+  "canonical_source_sha256": "8dfe06321a4421e27f0ae7d97f4f5710b67bb1cbb8efc4d0f01182b5bd848e4e",
+  "campaign_manifest_sha256": "2b32aa2342d84270eca997c9b4bfd2451b897f87cfb3146c43abb9ebef9ff7a5",
+  "arms": {
+    "F6": "variation",
+    "CG": "genotype_clone",
+    "CT": "phenotype_clone"
+  },
+  "configuration_other_than_arm_seed_input_output_seconds": {
+    "population": 100,
+    "neighborhood": 20,
+    "neighbor_probability": 0.9,
+    "replacement_cap": 2,
+    "clone_probability": 0.2,
+    "replacement_policy": "birth",
+    "a7_representative_policy": "compression",
+    "crossover_probability": 0.9,
+    "mutation_probability": 0.2,
+    "mutation_weights": [
+      0.4,
+      0.4,
+      0.2
+    ],
+    "rl_steps": 5,
+    "alpha": 0.3,
+    "gamma": 0.7,
+    "epsilon_start": 0.3,
+    "epsilon_end": 0.05,
+    "stagnation_threshold": 5,
+    "severity_thresholds": [
+      0.13,
+      0.05,
+      0.6,
+      0.43,
+      0.33,
+      0.16
+    ],
+    "budgets": [
+      3,
+      6,
+      10
+    ],
+    "severity_budget_cutoffs": [
+      1.0,
+      2.0
+    ],
+    "action_mask_policy": "none",
+    "a8_singleton_attempts": 2,
+    "a8_member_cap": 8,
+    "a8_position_limit": 6,
+    "a8_attempt_multiplier": 2,
+    "generations": 1000000,
+    "exact_evaluation_cap": null,
+    "method": "full",
+    "controller": "qlearning",
+    "budget_policy": "fixed",
+    "trigger_delta": 0.1,
+    "trigger_quality_gate": true,
+    "trigger_mode": "preference",
+    "fixed_ls_probability": 0.5,
+    "fixed_budget": 6,
+    "static_budgets": [
+      3,
+      6,
+      6,
+      3,
+      3,
+      10,
+      6,
+      10
+    ],
+    "enabled_operators": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "polish": true,
+    "polish_mode": "trajectory",
+    "initialization_attempts": 10000,
+    "initialization_perturbation": 0.1,
+    "random_attempt_multiplier": 20,
+    "a6_destroy_ratio": 0.1
+  },
+  "base_instance_seeds": {
+    "50": [
+      810001,
+      810002,
+      810003,
+      810004,
+      810005,
+      810006,
+      810007,
+      810008,
+      810009,
+      810010,
+      810011,
+      810012
+    ],
+    "100": [
+      820001,
+      820002,
+      820003,
+      820004,
+      820005,
+      820006,
+      820007,
+      820008,
+      820009,
+      820010,
+      820011,
+      820012
+    ]
+  },
+  "tariffs": [
+    "H",
+    "T"
+  ],
+  "algorithm_seeds": [
+    1101,
+    2202,
+    3303,
+    4404,
+    5505
+  ],
+  "engine_seconds": {
+    "50": 600,
+    "100": 1200
+  },
+  "max_solver_concurrency": 16,
+  "arm_order": "six permutations balanced; blocks shuffled with explicit RNG seed 20261002",
+  "formal_runs": 720,
+  "paired_triads": 240,
+  "interrupted_attempts_excluded": 16,
+  "execution_complete": true,
+  "quality_statistics_performed": false
+}
