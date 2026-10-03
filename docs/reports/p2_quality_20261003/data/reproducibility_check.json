@@ -1,0 +1,51 @@
+{
+  "status": "byte-identical",
+  "scope": "two fresh computations of derived CSV/JSON with explicit RNG; no optimizer rerun",
+  "files": [
+    {
+      "file": "analysis_plan.json",
+      "bytes": 1123,
+      "sha256": "1fe5b59b4d812dd1d2cad5079842906ce1ae38d0414060caee020c5116b044b1"
+    },
+    {
+      "file": "anytime_metrics.csv",
+      "bytes": 461041,
+      "sha256": "ed7116dfff4db41b91fca7adeb51705c687a83a551744abf102a21ba26a40f8b"
+    },
+    {
+      "file": "input_evidence.json",
+      "bytes": 634685,
+      "sha256": "bdf84d3b52153b646db150d3f6d8df3dee5378d0044e5165f19f6341722a5a45"
+    },
+    {
+      "file": "operator_totals.csv",
+      "bytes": 652090,
+      "sha256": "58dc261dec08a79a9b5cd7ce892485b619a1f28f48c4b39481b40cd3d15d2b47"
+    },
+    {
+      "file": "paired_contrasts.csv",
+      "bytes": 208600,
+      "sha256": "184ad18520d04758fc481330e46ccdd6378ad37551eea74390f225c40519fc51"
+    },
+    {
+      "file": "references.json",
+      "bytes": 1711097,
+      "sha256": "8c83b749be9646aaa742e06462213363ab5de0670e3e77469f6501c9ac3054c4"
+    },
+    {
+      "file": "run_metrics.csv",
+      "bytes": 293799,
+      "sha256": "acbf6ec183899f63096ff3cb5a3a0f81db354e2dc0f04c342ca837a31c0474ca"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 105969,
+      "sha256": "2220ed7696e505ce17129bfd647f1ad1159de74d970c8fb3a7176fe41a7305d9"
+    },
+    {
+      "file": "supplementary_diagnostics.json",
+      "bytes": 12861,
+      "sha256": "31733c4e9177fc905296326162aeef75dd494e6d2b92ddc9e39f3381dc5086d7"
+    }
+  ]
+}

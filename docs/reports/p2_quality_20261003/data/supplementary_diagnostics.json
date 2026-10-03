@@ -1,0 +1,404 @@
+{
+  "status": "exploratory supplementary diagnostics; not a new confirmatory family",
+  "arc_weights": "half adjacent normalized arc lengths; only actual empirical reference points",
+  "front_regions": "three equal-count sections sorted by Flow; not preference bins or causal routes",
+  "structural_offspring_definition": "processed offspring minus clone-route offspring; an exploration opportunity proxy, not the number of newly distinct genotypes",
+  "population_unique_schedules_definition": "distinct serialized start-time vectors, not necessarily distinct complete phenotypes",
+  "contrasts": {
+    "CG-F6": {
+      "igd_arc_weighted": {
+        "n_bases": 24,
+        "mean": -0.025246973775379298,
+        "median": -0.0261294905231531,
+        "ci95": [
+          -0.03187129167648062,
+          -0.018202897520281387
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 2,
+        "negative_bases": 22,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.4026732704235414
+      },
+      "igd_flow_edge": {
+        "n_bases": 24,
+        "mean": -0.0093892206235921,
+        "median": -0.01060232141767892,
+        "ci95": [
+          -0.012279050297885421,
+          -0.006170866680641222
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 3,
+        "negative_bases": 21,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.1533647140493792
+      },
+      "igd_middle": {
+        "n_bases": 24,
+        "mean": -0.019470857537549815,
+        "median": -0.01741294894250999,
+        "ci95": [
+          -0.024698105649422358,
+          -0.014347345352403095
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 2,
+        "negative_bases": 22,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.4524516926423483
+      },
+      "igd_bill_edge": {
+        "n_bases": 24,
+        "mean": -0.03316701428162722,
+        "median": -0.03455352639878408,
+        "ci95": [
+          -0.04305364282380691,
+          -0.022667957159549553
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 2,
+        "negative_bases": 22,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.24019541145934
+      },
+      "population_unique_genotypes": {
+        "n_bases": 24,
+        "mean": -8.0,
+        "median": -7.65,
+        "ci95": [
+          -8.666666666666666,
+          -7.341666666666666
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -3.6015897480737142
+      },
+      "population_unique_schedules": {
+        "n_bases": 24,
+        "mean": -1.5208333333333333,
+        "median": -0.95,
+        "ci95": [
+          -2.5041666666666664,
+          -0.5416666666666669
+        ],
+        "p_signflip": 0.010698930106989302,
+        "positive_bases": 7,
+        "negative_bases": 17,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.5751433126151423
+      },
+      "structural_offspring": {
+        "n_bases": 24,
+        "mean": -37.14990630973684,
+        "median": -39.208178383210964,
+        "ci95": [
+          -38.667626219911554,
+          -35.57298211714577
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -8.78767973093918
+      },
+      "archive_unique_objectives": {
+        "n_bases": 24,
+        "mean": -0.041666666666666595,
+        "median": 0.2,
+        "ci95": [
+          -1.695833333333333,
+          1.6084374999999915
+        ],
+        "p_signflip": 0.9707029297070293,
+        "positive_bases": 12,
+        "negative_bases": 11,
+        "tie_bases": 1,
+        "standardized_paired_effect": -0.008666841834102742
+      }
+    },
+    "CT-F6": {
+      "igd_arc_weighted": {
+        "n_bases": 24,
+        "mean": -0.007931970285119536,
+        "median": -0.00656863783622659,
+        "ci95": [
+          -0.015093963155944193,
+          -0.0004565580226700863
+        ],
+        "p_signflip": 0.053094690530946904,
+        "positive_bases": 10,
+        "negative_bases": 14,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.41733750808658093
+      },
+      "igd_flow_edge": {
+        "n_bases": 24,
+        "mean": -0.014487350940174013,
+        "median": -0.017150662442000753,
+        "ci95": [
+          -0.017420351122616928,
+          -0.011507757227159588
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 2,
+        "negative_bases": 22,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.6765943281997484
+      },
+      "igd_middle": {
+        "n_bases": 24,
+        "mean": -0.026629240432993875,
+        "median": -0.0250067544248036,
+        "ci95": [
+          -0.031823624825661256,
+          -0.021533438624031728
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -2.017232293597186
+      },
+      "igd_bill_edge": {
+        "n_bases": 24,
+        "mean": -0.002815820106822917,
+        "median": 0.0003591842948875096,
+        "ci95": [
+          -0.013427066029549451,
+          0.007813125494206692
+        ],
+        "p_signflip": 0.6248375162483751,
+        "positive_bases": 12,
+        "negative_bases": 12,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.10237427782462108
+      },
+      "population_unique_genotypes": {
+        "n_bases": 24,
+        "mean": -23.483333333333334,
+        "median": -22.95,
+        "ci95": [
+          -24.675,
+          -22.129062500000007
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -5.037957521288147
+      },
+      "population_unique_schedules": {
+        "n_bases": 24,
+        "mean": -6.270833333333333,
+        "median": -6.85,
+        "ci95": [
+          -7.170833333333332,
+          -5.3374999999999995
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -2.5315129102963803
+      },
+      "structural_offspring": {
+        "n_bases": 24,
+        "mean": -40.04425824050148,
+        "median": -40.645266332562734,
+        "ci95": [
+          -41.671027028901584,
+          -38.43478553561489
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -8.072311709759047
+      },
+      "archive_unique_objectives": {
+        "n_bases": 24,
+        "mean": 20.558333333333334,
+        "median": 19.6,
+        "ci95": [
+          18.641666666666666,
+          22.52916666666667
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 24,
+        "negative_bases": 0,
+        "tie_bases": 0,
+        "standardized_paired_effect": 3.7610096955415533
+      }
+    },
+    "CT-CG": {
+      "igd_arc_weighted": {
+        "n_bases": 24,
+        "mean": 0.017315003490259762,
+        "median": 0.015206162014980543,
+        "ci95": [
+          0.011615788403539778,
+          0.023234697457141722
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 22,
+        "negative_bases": 2,
+        "tie_bases": 0,
+        "standardized_paired_effect": 1.1677921556798574
+      },
+      "igd_flow_edge": {
+        "n_bases": 24,
+        "mean": -0.005098130316581913,
+        "median": -0.0041612940798699295,
+        "ci95": [
+          -0.007648527751261192,
+          -0.002631387840862891
+        ],
+        "p_signflip": 0.000999900009999,
+        "positive_bases": 6,
+        "negative_bases": 18,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.7656716689403361
+      },
+      "igd_middle": {
+        "n_bases": 24,
+        "mean": -0.007158382895444057,
+        "median": -0.009781872061768244,
+        "ci95": [
+          -0.012170421164532673,
+          -0.0019172069082629103
+        ],
+        "p_signflip": 0.0174982501749825,
+        "positive_bases": 7,
+        "negative_bases": 17,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.5251786249617556
+      },
+      "igd_bill_edge": {
+        "n_bases": 24,
+        "mean": 0.030351194174804308,
+        "median": 0.026219543358039263,
+        "ci95": [
+          0.022544074633674752,
+          0.0385156788044003
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 23,
+        "negative_bases": 1,
+        "tie_bases": 0,
+        "standardized_paired_effect": 1.472033538156414
+      },
+      "population_unique_genotypes": {
+        "n_bases": 24,
+        "mean": -15.483333333333334,
+        "median": -15.85,
+        "ci95": [
+          -16.829166666666666,
+          -14.058333333333332
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 0,
+        "negative_bases": 24,
+        "tie_bases": 0,
+        "standardized_paired_effect": -3.8675067464134263
+      },
+      "population_unique_schedules": {
+        "n_bases": 24,
+        "mean": -4.75,
+        "median": -4.75,
+        "ci95": [
+          -5.912499999999999,
+          -3.5833333333333335
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 1,
+        "negative_bases": 23,
+        "tie_bases": 0,
+        "standardized_paired_effect": -1.6059127838079792
+      },
+      "structural_offspring": {
+        "n_bases": 24,
+        "mean": -3.484488768878761,
+        "median": -5.066513331839541,
+        "ci95": [
+          -5.787187147907805,
+          -0.9830915274899023
+        ],
+        "p_signflip": 0.0174982501749825,
+        "positive_bases": 5,
+        "negative_bases": 19,
+        "tie_bases": 0,
+        "standardized_paired_effect": -0.5201665857500644
+      },
+      "archive_unique_objectives": {
+        "n_bases": 24,
+        "mean": 20.599999999999998,
+        "median": 19.85,
+        "ci95": [
+          18.400000000000002,
+          22.92093749999999
+        ],
+        "p_signflip": 9.999000099990002e-05,
+        "positive_bases": 24,
+        "negative_bases": 0,
+        "tie_bases": 0,
+        "standardized_paired_effect": 3.5490646660957967
+      }
+    }
+  },
+  "arm_descriptive_means": {
+    "F6": {
+      "hv": 0.9445444351146767,
+      "igd_plus": 0.05635155840391034,
+      "trigger_rate": 0.21398919521915147,
+      "trigger_success_rate": 0.8300550889947843,
+      "trigger_hits": 549.075,
+      "offspring": 2552.9416666666666,
+      "exact": 35897.75833333333,
+      "overshoot": 1.2741471262459527,
+      "archive_size": 131.0,
+      "archive_unique_objectives": 49.6875,
+      "population_unique_genotypes": 57.104166666666664,
+      "population_unique_schedules": 53.87083333333333,
+      "clone_count": 0.0,
+      "clone_archive_insertions": 0.0,
+      "timing_origin_share": 0.6927321686171497
+    },
+    "CG": {
+      "hv": 0.9044269847299679,
+      "igd_plus": 0.07691575310143793,
+      "trigger_rate": 0.2816502845023704,
+      "trigger_success_rate": 0.819334184748516,
+      "trigger_hits": 559.6166666666667,
+      "offspring": 1976.9208333333333,
+      "exact": 35723.64166666667,
+      "overshoot": 1.0752504524985853,
+      "archive_size": 120.52916666666667,
+      "archive_unique_objectives": 49.645833333333336,
+      "population_unique_genotypes": 49.104166666666664,
+      "population_unique_schedules": 52.35,
+      "clone_count": 393.7916666666667,
+      "clone_archive_insertions": 0.0,
+      "timing_origin_share": 0.7123797908650222
+    },
+    "CT": {
+      "hv": 0.9420669505595423,
+      "igd_plus": 0.07108500605602362,
+      "trigger_rate": 0.27158918692071804,
+      "trigger_success_rate": 0.7505382770845153,
+      "trigger_hits": 511.81666666666666,
+      "offspring": 1906.9958333333334,
+      "exact": 36555.7125,
+      "overshoot": 1.423108437081828,
+      "archive_size": 222.47083333333333,
+      "archive_unique_objectives": 70.24583333333334,
+      "population_unique_genotypes": 33.62083333333333,
+      "population_unique_schedules": 47.6,
+      "clone_count": 381.3333333333333,
+      "clone_archive_insertions": 0.0,
+      "timing_origin_share": 0.8352814226242639
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "mode": "exploratory; analysis choices fixed before quality calculation",
+  "source_commit": "f6b7fbaf8eaf3362db45fd02ba1bb2b23e8911ce",
+  "seed": 20261003,
+  "bootstrap": 20000,
+  "permutations": 100000,
+  "independent_unit": "24 base structures",
+  "aggregation": "paired seeds within tariff; equal tariffs within base; equal bases",
+  "bootstrap_strata": "50/100 jobs, observed base counts retained",
+  "reference": "union of all 15 final archives per base/tariff; exact objective duplicates removed",
+  "normalization": "coordinate min/max of the entire union, fixed for all arms/seeds/times",
+  "hv_reference": [
+    1.1,
+    1.1
+  ],
+  "igd_reference": "strict nondominated union",
+  "primary_family": "3 contrasts x HV absolute difference and IGD+ absolute decrease; Holm six",
+  "secondary": "HV relative gain, IGD+ relative decrease, extrema, throughput and mechanism counts",
+  "sensitivity": "HV references1.01/1.5; leave-one-algorithm-seed-out IGD+; epoch; no mixed blocks",
+  "snapshots": "first safe boundary at/after target fractions, not exact synchronized times"
+}
