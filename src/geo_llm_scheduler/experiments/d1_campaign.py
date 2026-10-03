@@ -629,7 +629,8 @@ def supervise(root: Path, source_workers: int = 6, probe_workers: int = 2) -> No
                             spec_key = key if role == "samples" else key.rsplit("_s", 1)[0]
                             spec = json.loads((root / "specs" / f"{spec_key}.json").read_text())
                             flags = (
-                                subprocess.CREATE_NO_WINDOW | subprocess.BELOW_NORMAL_PRIORITY_CLASS
+                                getattr(subprocess, "CREATE_NO_WINDOW", 0)
+                                | getattr(subprocess, "BELOW_NORMAL_PRIORITY_CLASS", 0)
                                 if sys.platform == "win32"
                                 else 0
                             )
