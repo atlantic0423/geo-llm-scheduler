@@ -16,6 +16,21 @@ from geo_llm_scheduler.experiments.d2_observation import CONTROL_NAMES, OPPORTUN
 from geo_llm_scheduler.utils.rng import RNGManager
 
 POLICIES = ("RANDOM", "QUALITY", "DISTANCE", "HISTORY", "BASE", "OPPORTUNITY", "SHUFFLED")
+ANALYSIS_FIELDS = (
+    "action",
+    "index",
+    "controls",
+    "opportunities",
+    "gain",
+    "seconds",
+    "feature_seconds",
+    "control_seconds",
+    "empty",
+    "exact",
+    "construction_seconds",
+    "evaluation_seconds",
+    "audit_seconds",
+)
 
 
 def ridge_predictions(training: list[dict], testing: list[dict], extended: bool) -> list[float]:
@@ -103,7 +118,9 @@ def analyse_opportunity(root: Path) -> dict:
             for row in panel["d2"]["rows"]:
                 rows.append(
                     {
-                        **row,
+                        # Full schedules and proposal audits stay in the immutable
+                        # raw artifacts, not in the cumulative regression table.
+                        **{field: row[field] for field in ANALYSIS_FIELDS},
                         "key": key,
                         "base": spec["base_seed"],
                         "split": spec["split"],
@@ -112,7 +129,17 @@ def analyse_opportunity(root: Path) -> dict:
                     }
                 )
             for row in panel["d1"]["rows"]:
-                cost_rows.append({**row, "base": spec["base_seed"], "key": key})
+                cost_rows.append(
+                    {
+                        "binding": row["binding"],
+                        "same": row["same"],
+                        **{
+                            f"{variant}_seconds": row["twins"][variant]["shared_seconds"]
+                            + row["twins"][variant]["groups"]["CONDITIONAL"]["seconds"]
+                            for variant in ("reference", "fast")
+                        },
+                    }
+                )
     rows.sort(key=lambda r: (r["key"], r["panel"], r["action"], r["index"]))
     report = {
         "status": "ANALYZED",
@@ -280,16 +307,8 @@ def analyse_opportunity(root: Path) -> dict:
         "pairs": len(cost_rows),
         "binding": sum(r["binding"] for r in cost_rows),
         "nonbinding_mismatch": sum(not r["same"] and not r["binding"] for r in cost_rows),
-        "reference_seconds": sum(
-            r["twins"]["reference"]["shared_seconds"]
-            + r["twins"]["reference"]["groups"]["CONDITIONAL"]["seconds"]
-            for r in cost_rows
-        ),
-        "fast_seconds": sum(
-            r["twins"]["fast"]["shared_seconds"]
-            + r["twins"]["fast"]["groups"]["CONDITIONAL"]["seconds"]
-            for r in cost_rows
-        ),
+        "reference_seconds": sum(r["reference_seconds"] for r in cost_rows),
+        "fast_seconds": sum(r["fast_seconds"] for r in cost_rows),
     }
     directory = root / "analysis"
     atomic_json(directory / "report.json", report)
