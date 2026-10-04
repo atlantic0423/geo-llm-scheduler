@@ -284,7 +284,10 @@ def test_complete_analysis_heldout_selection_and_inventory(tmp_path, problem, mo
         path = tmp_path / "probes" / key
         path.mkdir(parents=True)
         (path / "data.json").write_text(json.dumps({"panels": [record]}))
-    report = analyse_opportunity(tmp_path)
+    # Windows byte locking makes the active lease unreadable. Analysis excludes
+    # this transient control file while retaining all immutable job evidence.
+    with d2_campaign.campaign_lease(tmp_path / "ops/supervisor.lock"):
+        report = analyse_opportunity(tmp_path)
     assert report["rows"] == 54 and report["passes_primary_screen"] is False
     assert report["heldout_bases"] == [2]
     assert set(report["primary_contrasts"]) == {"BASE", "SHUFFLED"}
@@ -292,4 +295,5 @@ def test_complete_analysis_heldout_selection_and_inventory(tmp_path, problem, mo
     assert report["panel_diagnostics"]["panels"] == 2
     assert set(report["action_diagnostics"]) == {str(a) for a in range(9)}
     assert (tmp_path / "analysis/heldout_decisions.csv").exists()
-    assert json.loads((tmp_path / "analysis/files_manifest.json").read_text())
+    inventory = json.loads((tmp_path / "analysis/files_manifest.json").read_text())
+    assert inventory and "ops/supervisor.lock" not in {r["path"] for r in inventory}

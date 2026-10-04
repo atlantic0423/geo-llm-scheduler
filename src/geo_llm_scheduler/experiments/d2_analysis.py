@@ -325,6 +325,7 @@ def analyse_opportunity(root: Path) -> dict:
         {"path": p.relative_to(root).as_posix(), "bytes": p.stat().st_size, "sha256": file_hash(p)}
         for p in sorted(root.rglob("*"))
         if p.is_file()
+        and p.relative_to(root).as_posix() != "ops/supervisor.lock"
         and not p.relative_to(root)
         .as_posix()
         .startswith(("ops/heartbeats/", "ops/status", "logs/"))
