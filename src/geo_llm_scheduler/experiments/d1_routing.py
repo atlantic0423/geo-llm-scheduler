@@ -59,6 +59,8 @@ def routing_probe(
     *,
     allow_unchanged: bool = False,
     normalization: Literal["frozen", "updated"] = "frozen",
+    precheck_structure: bool = False,
+    policy_groups: tuple[str, ...] = GROUPS,
 ) -> dict:
     """Execute all three actual policies on a paired target, charging their guards.
 
@@ -77,6 +79,12 @@ def routing_probe(
         raise ValueError("A changed target and positive finite quota are required")
     if normalization not in ("frozen", "updated"):
         raise ValueError("Unknown normalization mode")
+    if (
+        not policy_groups
+        or len(set(policy_groups)) != len(policy_groups)
+        or any(group not in GROUPS for group in policy_groups)
+    ):
+        raise ValueError("Invalid policy groups")
     if not math.isfinite(cap_seconds) or cap_seconds <= 0:
         raise ValueError("A positive finite intent cap is required")
     if len(weight) != 2 or any(not math.isfinite(w) or w < 0 for w in weight):
@@ -95,7 +103,7 @@ def routing_probe(
     )
     base_scalar = frozen.scalar(base, weight)
     common_seconds = perf_counter() - tick
-    order = list(GROUPS)
+    order = list(policy_groups)
     RNGManager(seed).stream("D1H:policy_order").shuffle(order)
     records = {}
     for group in order:
@@ -104,7 +112,10 @@ def routing_probe(
         nonzero = 0
         intent: tuple[float, ...] = ()
         transfer = False
-        if group != "ALWAYS_A7":
+        structural_match = source.genotype.ms == target.ms and source.genotype.os != target.os
+        if group != "ALWAYS_A7" and not (
+            precheck_structure and group == "CONDITIONAL" and not structural_match
+        ):
             tick = perf_counter()
             intent = extract_intent(problem, source)
             nonzero = sum(w > TOL.time for w in intent)
