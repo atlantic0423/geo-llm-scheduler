@@ -102,3 +102,15 @@ python -m geo_llm_scheduler.experiments.d1_holdout run --root RUN_ROOT --workers
 python -m geo_llm_scheduler.experiments.d1_holdout validate --root RUN_ROOT --p2-root P2_ROOT
 python -m geo_llm_scheduler.experiments.d1_holdout analyse --root RUN_ROOT
 ```
+
+## Execution and independent audit (2026-10-04)
+
+The frozen runtime 78659c3 completed 96/96 jobs, 384 sources and 2304 paired
+targets. Every new proposal record was independently checked against exact;
+48 targets were replayed and base-level inference independently recomputed.
+The prespecified internal quality screen passed both controls. The source and
+rule remained frozen throughout computation; the online default is unchanged.
+See the [reviewed report](../reports/d1_terminal_holdout_20261004.md) for effects,
+costs, the full statistical review and limitations. The protocol's original
+UNVERIFIED passport describes its state at planning; the reviewed report is
+ANALYZED after execution and audit.
