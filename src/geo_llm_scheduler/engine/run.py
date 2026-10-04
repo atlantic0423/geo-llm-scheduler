@@ -40,6 +40,7 @@ class RunResult:
     termination_reason: str
     adaptive: AdaptiveBudget | None = None
     offspring_count: int = 0
+    observer_seconds: float = 0.0
 
 
 def run(
@@ -57,13 +58,22 @@ def run(
     """
     validate_problem(problem)
     begin = perf_counter()
+    observer_seconds = 0.0
     streams = RNGManager(config.seed)
     gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
     if observer is not None:
-        gateway.candidate_sink = lambda candidate: observer(
-            "candidate",
-            {"candidate": candidate, "gateway": gateway, "elapsed": perf_counter() - begin},
-        )
+
+        def observe_candidate(candidate: Candidate) -> None:
+            nonlocal observer_seconds
+            tick = perf_counter()
+            assert observer is not None
+            observer(
+                "candidate",
+                {"candidate": candidate, "gateway": gateway, "elapsed": perf_counter() - begin},
+            )
+            observer_seconds += perf_counter() - tick
+
+        gateway.candidate_sink = observe_candidate
     adaptive = (
         AdaptiveBudget()
         if config.budget_policy in ("coverage_v2", "severity_v2", "sequential")
@@ -89,7 +99,9 @@ def run(
     processed = 0
 
     def observe(event: str, extra: dict) -> None:
+        nonlocal observer_seconds
         if observer is not None:
+            tick = perf_counter()
             observer(
                 event,
                 {
@@ -102,6 +114,7 @@ def run(
                     **extra,
                 },
             )
+            observer_seconds += perf_counter() - tick
 
     observe("initialization", {})
 
@@ -116,6 +129,7 @@ def run(
             reason,
             adaptive,
             processed,
+            observer_seconds,
         )
 
     for generation in range(config.generations):
@@ -131,7 +145,30 @@ def run(
                 return finish("exact_evaluation_cap")
             streams.stream("variation")
             observe("before_offspring", {"generation": generation, "subproblem": i})
-            child = create_offspring(population, i, neighbors[i], config, gateway, streams)
+
+            def observe_structure(event: str, values: dict) -> None:
+                nonlocal observer_seconds
+                tick = perf_counter()
+                payload = {
+                    "generation": generation,
+                    "subproblem": i,
+                    "weight": lambdas[i],
+                    "context": values.get("context")
+                    or NormalizationContext(gateway.ideal, maximum(population)),
+                    **values,
+                }
+                observer_seconds += perf_counter() - tick
+                observe(event, payload)
+
+            child = create_offspring(
+                population,
+                i,
+                neighbors[i],
+                config,
+                gateway,
+                streams,
+                observer=observe_structure if observer is not None else None,
+            )
             offspring_route = child.origin
             context = NormalizationContext(gateway.ideal, maximum(population))
             previous = population[i]
@@ -166,6 +203,7 @@ def run(
                             streams,
                             population,
                             adaptive,
+                            observer=observe_structure if observer is not None else None,
                         )
                     except EvaluationCapReached:
                         return finish("exact_evaluation_cap")

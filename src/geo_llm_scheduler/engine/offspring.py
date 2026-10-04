@@ -1,6 +1,7 @@
 """Opt-in CG/CT controls around the unchanged MOEA/D variation pathway."""
 
 from dataclasses import replace
+from typing import Callable
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate
@@ -16,6 +17,8 @@ def create_offspring(
     config: Config,
     gateway: EvaluationGateway,
     streams: RNGManager,
+    *,
+    observer: Callable[[str, dict], None] | None = None,
 ) -> Candidate:
     """Evaluate one child; CT retains the whole incumbent schedule, CG rebuilds it.
 
@@ -36,6 +39,10 @@ def create_offspring(
         neighbors if rng.random() < config.neighbor_probability else tuple(range(len(population)))
     )
     a, b = rng.sample(pool, 2)
-    return gateway.evaluate(
-        reproduce(gateway.problem, population[a].genotype, population[b].genotype, config, rng)
-    )
+    target = reproduce(gateway.problem, population[a].genotype, population[b].genotype, config, rng)
+    if observer is not None:
+        observer(
+            "structure",
+            {"source": population[a], "target": target, "path": "variation", "parents": (a, b)},
+        )
+    return gateway.evaluate(target)

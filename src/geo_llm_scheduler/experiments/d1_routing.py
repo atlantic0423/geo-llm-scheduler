@@ -6,6 +6,7 @@ import math
 import random
 from dataclasses import asdict
 from time import perf_counter
+from typing import Literal
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
@@ -55,6 +56,9 @@ def routing_probe(
     random_transfer: bool,
     quota_seconds: float,
     cap_seconds: float = 900.0,
+    *,
+    allow_unchanged: bool = False,
+    normalization: Literal["frozen", "updated"] = "frozen",
 ) -> dict:
     """Execute all three actual policies on a paired target, charging their guards.
 
@@ -65,8 +69,14 @@ def routing_probe(
     Atomic late work is recorded and charged, but cannot supply a retained result.
     A7 uses an identical named RNG in every policy, so A7 fallback is truly paired.
     """
-    if target == source.genotype or not math.isfinite(quota_seconds) or quota_seconds <= 0:
+    if (
+        (target == source.genotype and not allow_unchanged)
+        or not math.isfinite(quota_seconds)
+        or quota_seconds <= 0
+    ):
         raise ValueError("A changed target and positive finite quota are required")
+    if normalization not in ("frozen", "updated"):
+        raise ValueError("Unknown normalization mode")
     if not math.isfinite(cap_seconds) or cap_seconds <= 0:
         raise ValueError("A positive finite intent cap is required")
     if len(weight) != 2 or any(not math.isfinite(w) or w < 0 for w in weight):
@@ -101,7 +111,7 @@ def routing_probe(
             transfer = (
                 gate_transfer(source.genotype, target, intent)
                 if group == "CONDITIONAL"
-                else random_transfer and nonzero > 0
+                else random_transfer and nonzero > 0 and target != source.genotype
             )
             extract_seconds = perf_counter() - tick
         route = "TRUE" if transfer else "A7"
@@ -157,7 +167,16 @@ def routing_probe(
                     )
                 )
         eligible = [base] + [c for c, on_time in proposals if on_time and c.evaluation.feasible]
-        best = min(eligible, key=lambda c: (frozen.scalar(c, weight), c.schedule.starts))
+        selection = frozen
+        if normalization == "updated":
+            selection = NormalizationContext(
+                (
+                    min(frozen.ideal[0], *(c.evaluation.flow for c in eligible)),
+                    min(frozen.ideal[1], *(c.evaluation.bill for c in eligible)),
+                ),
+                frozen.maximum,
+            )
+        best = min(eligible, key=lambda c: (selection.scalar(c, weight), c.schedule.starts))
         seconds = perf_counter() - begin
         records[group] = {
             "route": route,
@@ -180,6 +199,7 @@ def routing_probe(
             "scalar": frozen.scalar(best, weight),
             "relative_gain": (base_scalar - frozen.scalar(best, weight)) / max(base_scalar, 1e-12),
             "base_is_best": best is base,
+            "selection_context": asdict(selection),
             "proposals": [
                 {
                     "starts": c.schedule.starts,
@@ -198,6 +218,7 @@ def routing_probe(
         "seed": seed,
         "weight": weight,
         "context": asdict(frozen),
+        "normalization": normalization,
         "policy_order": order,
         "random_transfer": random_transfer,
         "target": asdict(target),
