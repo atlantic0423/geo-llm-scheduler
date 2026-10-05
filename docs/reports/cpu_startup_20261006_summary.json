@@ -1,0 +1,154 @@
+{
+  "status": "startup_verified_execution_incomplete_quality_unanalyzed",
+  "snapshot_shanghai": "2026-10-06T00:52:05+08:00",
+  "original_files_preserved": 27750,
+  "original_logical_bytes": 104188942164,
+  "cleanup": {
+    "total_regular_files_deleted": 25705,
+    "total_bytes_removed": 103729351681,
+    "previous_e15_files_deleted": 12366,
+    "previous_e15_bytes_removed": 38934150250,
+    "regular_files_deleted": 13339,
+    "bytes_removed": 64795201431,
+    "delivery": "verified_local_and_github"
+  },
+  "source_commits": {
+    "p2": "6dd6d4a84d403a2dd2737d166cb4d3ee1eca25b0",
+    "d2": "9e4a8510fa534f65c5116775a8c90d6cb95505eb"
+  },
+  "packages": [
+    {
+      "bytes": 39741255,
+      "sha256": "571b7475c80c2a5600fe1a5bf1bf593e1c6d6d386c0e58c8a0affd7584224592",
+      "name": "p2_source_6dd6d4a.bundle"
+    },
+    {
+      "bytes": 2514942,
+      "sha256": "630cb789a42ace95816e9b9b642e7642f8d382f4f7d30db745e134b78e53cdb3",
+      "name": "p2_frozen_campaign_inputs.tar.gz"
+    },
+    {
+      "bytes": 39966797,
+      "sha256": "d94a436120a104ce29e44ae211ef76a586bd460a8543e695fed1251d6126f0fb",
+      "name": "d2_source_9e4a851.bundle"
+    },
+    {
+      "bytes": 722699181,
+      "sha256": "af85d2cc298c0ed670ca8838344974d36295d74c5d057354e0a0260566621bfc",
+      "name": "d2_migration_9e4a851.tar.gz"
+    }
+  ],
+  "p2_nodes": [
+    {
+      "node": 0,
+      "host": "550708f8d937",
+      "source_commit": "6dd6d4a84d403a2dd2737d166cb4d3ee1eca25b0",
+      "supervisor_pid": 2311,
+      "started_shanghai": "2026-10-06T00:47:34+08:00",
+      "workers": 24,
+      "completed_runs": 0,
+      "cgroup_memory_available_gib": 19.86981201171875,
+      "exact_growth_min": 2438,
+      "exact_growth_max": 9736,
+      "worker_peak_rss_gib_at_start": 0.034114837646484375,
+      "pilot_runs": 96,
+      "pilot_final_exact_reverified_solutions": 15009,
+      "pilot_max_worker_rss_gib": 0.034648895263671875,
+      "pilot_max_verification_export_seconds": 1.0470686396583915,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 513577,
+        "oom": 0,
+        "oom_kill": 0
+      }
+    },
+    {
+      "node": 1,
+      "host": "196ec6b261f1",
+      "source_commit": "6dd6d4a84d403a2dd2737d166cb4d3ee1eca25b0",
+      "supervisor_pid": 1024,
+      "started_shanghai": "2026-10-06T00:47:34+08:00",
+      "workers": 24,
+      "completed_runs": 0,
+      "cgroup_memory_available_gib": 31.25677490234375,
+      "exact_growth_min": 3463,
+      "exact_growth_max": 9757,
+      "worker_peak_rss_gib_at_start": 0.03491973876953125,
+      "pilot_runs": 96,
+      "pilot_final_exact_reverified_solutions": 16826,
+      "pilot_max_worker_rss_gib": 0.0390472412109375,
+      "pilot_max_verification_export_seconds": 1.7256593760102987,
+      "memory_events": {
+        "low": 0,
+        "high": 0,
+        "max": 0,
+        "oom": 0,
+        "oom_kill": 0
+      }
+    }
+  ],
+  "pilot_accepted_runs": 192,
+  "d2": {
+    "supervisor_pid": 1221,
+    "started_shanghai": "2026-10-06T00:39:06+08:00",
+    "source_cap": 8,
+    "probe_cap": 2,
+    "completed_sources": 128,
+    "completed_probes": 128,
+    "active_source": 8,
+    "active_probe": 0,
+    "pairs_reused": 128,
+    "pairs_restarted_after_explicit_review": 16,
+    "root_cause_of_original_entry_guard_failure": "unknown"
+  },
+  "target_tests": [
+    {
+      "node": 0,
+      "tests": [
+        {
+          "name": "p2",
+          "exit_code": 0,
+          "tail": "..........                                                               [100%]\n10 passed in 19.74s\n"
+        },
+        {
+          "name": "d2",
+          "exit_code": 0,
+          "tail": "..................                                                       [100%]\n18 passed in 2.32s\n"
+        }
+      ]
+    },
+    {
+      "node": 1,
+      "tests": [
+        {
+          "name": "p2",
+          "exit_code": 0,
+          "tail": "..........                                                               [100%]\n10 passed in 19.30s\n"
+        }
+      ]
+    }
+  ],
+  "eta": {
+    "p2_hours_range": [
+      16,
+      19
+    ],
+    "p2_completion_shanghai": [
+      "2026-10-06T16:47:34+08:00",
+      "2026-10-06T19:47:34+08:00"
+    ],
+    "d2_hours_range": [
+      2,
+      3
+    ],
+    "d2_completion_shanghai": [
+      "2026-10-06T02:39:06+08:00",
+      "2026-10-06T03:39:06+08:00"
+    ],
+    "limitations": "Budget-only ordered queue is 16h per shard. Pilot confirms engineering/resource capacity; final exact export and archive growth may add overhead. D2 overlap and shared-host contention remain recorded factors. ETA does not include result archival and scientific analysis."
+  },
+  "default_algorithm_upgraded": false,
+  "old_e15_resumed": false,
+  "e15_raw_github_published": false
+}
