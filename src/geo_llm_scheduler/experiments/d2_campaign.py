@@ -61,6 +61,12 @@ def frozen_manifest(root: Path) -> dict:
         != manifest["d4_protocol_sha256"]
     ):
         raise ValueError("D4 protocol changed")
+    if (
+        manifest["kind"] == "D3_response_v1"
+        and file_hash(repository / "docs/experiments/d3_response.md")
+        != manifest["d3_protocol_sha256"]
+    ):
+        raise ValueError("D3 protocol changed")
     for name, sha in manifest["input_files"].items():
         if file_hash(campaign_path(root, name)) != sha:
             raise ValueError(f"Frozen input changed: {name}")
@@ -68,10 +74,14 @@ def frozen_manifest(root: Path) -> dict:
 
 
 def prepare_opportunity(
-    root: Path, repository: Path, pilot_seconds: float | None = None, study: str = "D2"
+    root: Path,
+    repository: Path,
+    pilot_seconds: float | None = None,
+    study: str = "D2",
+    node: int = 0,
 ) -> dict:
     """Freeze 24 unseen bases, split by base before labels, with 144 source runs."""
-    if study not in ("D2", "D4"):
+    if study not in ("D2", "D4", "D3") or node not in (0, 1):
         raise ValueError("Unknown observation study")
     provenance = git_metadata(repository)
     if not provenance["git_commit"] or provenance["git_dirty"]:
@@ -97,9 +107,17 @@ def prepare_opportunity(
         pilot_base = (
             (810001 if n == 50 else 820001) if study == "D2" else (874001 if n == 50 else 884001)
         )
+        if study == "D3":
+            formal_bases = tuple(
+                range(895001 if n == 50 else 905001, 895025 if n == 50 else 905025)
+            )
+            pilot_base = (894001 if n == 50 else 904001) + node
         bases = (pilot_base,) if pilot_seconds else formal_bases
-        development.extend(bases[:8])
-        heldout.extend(bases[8:])
+        split_at = 16 if study == "D3" else 8
+        development.extend(bases[:split_at])
+        heldout.extend(bases[split_at:])
+        if study == "D3" and not pilot_seconds:
+            bases = tuple(b for i, b in enumerate(bases) if i % 2 == node)
         for base in bases:
             pair = generate_e15_pair(n, base)
             for tariff, problem in zip(("H", "T"), pair):
@@ -151,7 +169,9 @@ def prepare_opportunity(
     RNGManager(MASTER_SEED).stream("D2:source_order").shuffle(keys)
     manifest: dict = {
         "schema": 1,
-        "kind": "D2_opportunity_v1" if study == "D2" else "D4_peak_diagnosis_v1",
+        "kind": {"D2": "D2_opportunity_v1", "D4": "D4_peak_diagnosis_v1", "D3": "D3_response_v1"}[
+            study
+        ],
         "pilot": pilot_seconds is not None,
         "source_commit": provenance["git_commit"],
         "source_hash": source_hash,
@@ -185,6 +205,20 @@ def prepare_opportunity(
         )
         manifest["input_files"]["inputs/d4_peak_diagnosis.md"] = file_hash(protocol_copy)
         manifest["d4_protocol_sha256"] = file_hash(protocol_copy)
+    if study == "D3":
+        protocol_copy = root / "inputs/d3_response.md"
+        protocol_copy.write_bytes((repository / "docs/experiments/d3_response.md").read_bytes())
+        manifest["input_files"]["inputs/d3_response.md"] = file_hash(protocol_copy)
+        manifest.update(
+            d3_protocol_sha256=file_hash(protocol_copy),
+            node=node,
+            nodes=2,
+            source_workers=8,
+            probe_workers=2,
+            minimum_source_wall_hours=worker_seconds / 3600 / 8,
+            scope="Pre-search direction selection from six identical neighbor slots; same raw A1-A8 pool; no online HV claim",
+            max_action_rows=len(keys) * 9 * 6 * 8,
+        )
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", {"manifest.json": file_hash(root / "manifest.json")})
     return manifest
@@ -347,6 +381,11 @@ def execute_opportunity_job(root: Path, role: str, key: str) -> dict:
 
                     diagnostic = probe_peak_panel(problem, panel, config, seed)
                     twins: dict = {"rows": []}
+                elif manifest["kind"] == "D3_response_v1":
+                    from geo_llm_scheduler.experiments.d3_response import probe_response_panel
+
+                    diagnostic = probe_response_panel(problem, panel, config, seed)
+                    twins = {"rows": []}
                 else:
                     diagnostic = probe_panel(problem, panel, config, seed)
                     twins = d1_cost_twins(problem, panel, config, seed)
@@ -521,7 +560,10 @@ def run_opportunity(root: Path, source_workers: int = 10, probe_workers: int = 2
                 stopping = failed or (root / "stop.request").exists()
                 memory, disk = available_memory_gb(), free_disk_gb(root)
                 cgroup = Path("/sys/fs/cgroup")
-                if manifest["kind"] == "D4_peak_diagnosis_v1" and (cgroup / "memory.max").exists():
+                if (
+                    manifest["kind"] in ("D4_peak_diagnosis_v1", "D3_response_v1")
+                    and (cgroup / "memory.max").exists()
+                ):
                     limit = (cgroup / "memory.max").read_text().strip()
                     if limit != "max":
                         memory = min(
@@ -638,6 +680,10 @@ def run_opportunity(root: Path, source_workers: int = 10, probe_workers: int = 2
                         from geo_llm_scheduler.experiments.d4_peak import analyse_peak
 
                         analyse_peak(root)
+                    elif manifest.get("kind") == "D3_response_v1":
+                        from geo_llm_scheduler.experiments.d3_response import analyse_response
+
+                        analyse_response(root)
                     else:
                         analyse_opportunity(root)
                 except Exception:
@@ -660,7 +706,8 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--repository", type=Path, default=Path(__file__).resolve().parents[3])
     parser.add_argument("--pilot-seconds", type=float)
-    parser.add_argument("--study", choices=("D2", "D4"), default="D2")
+    parser.add_argument("--study", choices=("D2", "D4", "D3"), default="D2")
+    parser.add_argument("--node", type=int, default=0)
     parser.add_argument("--source-workers", type=int, default=10)
     parser.add_argument("--probe-workers", type=int, default=2)
     parser.add_argument("--role", choices=("samples", "probes"))
@@ -669,7 +716,7 @@ def main() -> None:
     root = args.root.resolve()
     if args.command == "prepare":
         result = prepare_opportunity(
-            root, args.repository.resolve(), args.pilot_seconds, args.study
+            root, args.repository.resolve(), args.pilot_seconds, args.study, args.node
         )
         print(
             json.dumps(

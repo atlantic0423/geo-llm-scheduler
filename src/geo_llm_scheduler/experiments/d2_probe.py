@@ -246,10 +246,11 @@ def d1_cost_twins(problem: ProblemInstance, panel: dict, config: Config, seed: i
                 ):
                     raise ValueError("D1 cost twin exact mismatch")
             twins["fast" if fast else "reference"] = result
-        reference, fast = (twins[k]["groups"]["CONDITIONAL"] for k in ("reference", "fast"))
-        binding = bool(reference["overshoot_seconds"] or fast["overshoot_seconds"])
+        reference, fast_result = (twins[k]["groups"]["CONDITIONAL"] for k in ("reference", "fast"))
+        binding = bool(reference["overshoot_seconds"] or fast_result["overshoot_seconds"])
         same = all(
-            reference[field] == fast[field] for field in ("route", "starts", "objectives", "exact")
+            reference[field] == fast_result[field]
+            for field in ("route", "starts", "objectives", "exact")
         )
         if not binding and not same:
             raise ValueError("Cheap guard changed a nonbinding result")
