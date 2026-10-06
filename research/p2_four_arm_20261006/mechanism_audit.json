@@ -1,0 +1,379 @@
+{
+  "status": "descriptive_only",
+  "units": "all equal complete base/tariff/seed blocks; no new primary test",
+  "population_diversity": {
+    "F6": {
+      "population": 100.0,
+      "genotype_unique_fraction": 0.631125,
+      "phenotype_unique_fraction": 0.6014583333333333,
+      "ms_pairwise_hamming": 0.3662780892255892,
+      "os_pairwise_hamming": 0.8532302609427609
+    },
+    "RPERM": {
+      "population": 100.0,
+      "genotype_unique_fraction": 0.6820833333333333,
+      "phenotype_unique_fraction": 0.6442083333333334,
+      "ms_pairwise_hamming": 0.34830218855218853,
+      "os_pairwise_hamming": 0.8577618308080808
+    },
+    "RDIR": {
+      "population": 100.0,
+      "genotype_unique_fraction": 0.6439166666666666,
+      "phenotype_unique_fraction": 0.6157083333333334,
+      "ms_pairwise_hamming": 0.3212228745791246,
+      "os_pairwise_hamming": 0.8489878451178451
+    },
+    "A7B": {
+      "population": 100.0,
+      "genotype_unique_fraction": 0.632375,
+      "phenotype_unique_fraction": 0.6006666666666667,
+      "ms_pairwise_hamming": 0.3651948695286195,
+      "os_pairwise_hamming": 0.849083648989899
+    }
+  },
+  "operator_totals": {
+    "A7B-A6": {
+      "attempts": 1683066.0,
+      "effective": 1683066.0,
+      "feasible": 1683066.0,
+      "accepted": 11405.0,
+      "reward": 76647.10163912919,
+      "seconds": 23181.090867017396
+    },
+    "A7B-A5": {
+      "attempts": 4708938.0,
+      "effective": 2354481.0,
+      "feasible": 2354481.0,
+      "accepted": 46065.0,
+      "reward": 125999.78988943981,
+      "seconds": 39722.67972530238
+    },
+    "A7B-A7": {
+      "attempts": 179181099.0,
+      "effective": 9900279.0,
+      "feasible": 9900279.0,
+      "accepted": 532933.0,
+      "reward": 960856.3201899892,
+      "seconds": 183612.61056020763
+    },
+    "A7B-A4": {
+      "attempts": 4164453.0,
+      "effective": 2091154.0,
+      "feasible": 2091154.0,
+      "accepted": 31952.0,
+      "reward": 83758.60870662946,
+      "seconds": 33862.66355339065
+    },
+    "A7B-A2": {
+      "attempts": 888820400.0,
+      "effective": 3174426.0,
+      "feasible": 3174426.0,
+      "accepted": 70993.0,
+      "reward": 235392.9067817268,
+      "seconds": 52823.574960100465
+    },
+    "A7B-A3": {
+      "attempts": 582007400.0,
+      "effective": 1997346.0,
+      "feasible": 1997346.0,
+      "accepted": 25267.0,
+      "reward": 71924.19278338137,
+      "seconds": 55528.609775600955
+    },
+    "A7B-A1": {
+      "attempts": 174442600.0,
+      "effective": 3792852.0,
+      "feasible": 3792852.0,
+      "accepted": 111626.0,
+      "reward": 353870.90955027443,
+      "seconds": 60321.5207971558
+    },
+    "A7B-A8": {
+      "attempts": 2355552.0,
+      "effective": 469773.0,
+      "feasible": 469773.0,
+      "accepted": 22944.0,
+      "reward": 71404.93718774915,
+      "seconds": 15039.775590724312
+    },
+    "F6-A6": {
+      "attempts": 1692066.0,
+      "effective": 1692066.0,
+      "feasible": 1692066.0,
+      "accepted": 11642.0,
+      "reward": 78347.58077796543,
+      "seconds": 23276.344626846723
+    },
+    "F6-A5": {
+      "attempts": 4745027.0,
+      "effective": 2372533.0,
+      "feasible": 2372533.0,
+      "accepted": 46340.0,
+      "reward": 126178.41616939903,
+      "seconds": 40097.83289748989
+    },
+    "F6-A7": {
+      "attempts": 178791215.0,
+      "effective": 9872634.0,
+      "feasible": 9872634.0,
+      "accepted": 528875.0,
+      "reward": 949259.6664365131,
+      "seconds": 179712.3804537654
+    },
+    "F6-A4": {
+      "attempts": 4202857.0,
+      "effective": 2110531.0,
+      "feasible": 2110531.0,
+      "accepted": 32593.0,
+      "reward": 84407.64944677957,
+      "seconds": 34274.88080257643
+    },
+    "F6-A2": {
+      "attempts": 898924000.0,
+      "effective": 3206202.0,
+      "feasible": 3206202.0,
+      "accepted": 70663.0,
+      "reward": 234727.73752979844,
+      "seconds": 53368.73461839091
+    },
+    "F6-A3": {
+      "attempts": 590573100.0,
+      "effective": 2029956.0,
+      "feasible": 2029956.0,
+      "accepted": 26950.0,
+      "reward": 75276.97980879532,
+      "seconds": 56061.666273159906
+    },
+    "F6-A1": {
+      "attempts": 180214200.0,
+      "effective": 3944292.0,
+      "feasible": 3944292.0,
+      "accepted": 115939.0,
+      "reward": 364593.1984297274,
+      "seconds": 61942.77128607314
+    },
+    "F6-A8": {
+      "attempts": 2363174.0,
+      "effective": 474844.0,
+      "feasible": 474844.0,
+      "accepted": 23009.0,
+      "reward": 74713.36705529584,
+      "seconds": 15022.52664987091
+    },
+    "RDIR-A6": {
+      "attempts": 1658190.0,
+      "effective": 1658190.0,
+      "feasible": 1658190.0,
+      "accepted": 8410.0,
+      "reward": 57400.65482450194,
+      "seconds": 23187.32748694904
+    },
+    "RDIR-A8": {
+      "attempts": 2201227.0,
+      "effective": 426545.0,
+      "feasible": 426545.0,
+      "accepted": 19234.0,
+      "reward": 53098.62589455678,
+      "seconds": 14117.253251343034
+    },
+    "RDIR-A5": {
+      "attempts": 4659537.0,
+      "effective": 2329811.0,
+      "feasible": 2329811.0,
+      "accepted": 45517.0,
+      "reward": 125230.28414389808,
+      "seconds": 39953.33251404017
+    },
+    "RDIR-A7": {
+      "attempts": 176376968.0,
+      "effective": 9865825.0,
+      "feasible": 9865825.0,
+      "accepted": 521481.0,
+      "reward": 952163.9430901508,
+      "seconds": 190394.2968785353
+    },
+    "RDIR-A4": {
+      "attempts": 4164783.0,
+      "effective": 2092624.0,
+      "feasible": 2092624.0,
+      "accepted": 31975.0,
+      "reward": 84057.5818115506,
+      "seconds": 34795.56986414734
+    },
+    "RDIR-A2": {
+      "attempts": 874468400.0,
+      "effective": 3117966.0,
+      "feasible": 3117966.0,
+      "accepted": 66054.0,
+      "reward": 220588.09653144862,
+      "seconds": 52841.69986745529
+    },
+    "RDIR-A3": {
+      "attempts": 566989800.0,
+      "effective": 1950720.0,
+      "feasible": 1950720.0,
+      "accepted": 21330.0,
+      "reward": 63578.637663067595,
+      "seconds": 54305.58823207952
+    },
+    "RDIR-A1": {
+      "attempts": 173052200.0,
+      "effective": 3755868.0,
+      "feasible": 3755868.0,
+      "accepted": 110995.0,
+      "reward": 340095.48124526266,
+      "seconds": 60853.88145102654
+    },
+    "RPERM-A6": {
+      "attempts": 1654482.0,
+      "effective": 1654482.0,
+      "feasible": 1654482.0,
+      "accepted": 11855.0,
+      "reward": 79557.2708721342,
+      "seconds": 23030.544509775937
+    },
+    "RPERM-A5": {
+      "attempts": 4667789.0,
+      "effective": 2333913.0,
+      "feasible": 2333913.0,
+      "accepted": 48731.0,
+      "reward": 131668.40645318734,
+      "seconds": 39474.177010775544
+    },
+    "RPERM-A7": {
+      "attempts": 181524401.0,
+      "effective": 10239582.0,
+      "feasible": 10239582.0,
+      "accepted": 590015.0,
+      "reward": 1093576.903023904,
+      "seconds": 186476.7359541338
+    },
+    "RPERM-A4": {
+      "attempts": 4071535.0,
+      "effective": 2044352.0,
+      "feasible": 2044352.0,
+      "accepted": 33456.0,
+      "reward": 87660.02171289941,
+      "seconds": 33021.7754327422
+    },
+    "RPERM-A2": {
+      "attempts": 879209500.0,
+      "effective": 3118422.0,
+      "feasible": 3118422.0,
+      "accepted": 73256.0,
+      "reward": 242042.37928292342,
+      "seconds": 52534.1545566665
+    },
+    "RPERM-A3": {
+      "attempts": 563711200.0,
+      "effective": 1933260.0,
+      "feasible": 1933260.0,
+      "accepted": 25080.0,
+      "reward": 72348.23010594578,
+      "seconds": 53743.125184053555
+    },
+    "RPERM-A1": {
+      "attempts": 175838200.0,
+      "effective": 3831630.0,
+      "feasible": 3831630.0,
+      "accepted": 120026.0,
+      "reward": 375980.8702622378,
+      "seconds": 60670.6670589596
+    },
+    "RPERM-A8": {
+      "attempts": 2394509.0,
+      "effective": 467543.0,
+      "feasible": 467543.0,
+      "accepted": 24526.0,
+      "reward": 81674.28213317077,
+      "seconds": 15417.854262934066
+    }
+  },
+  "checkpoint_hv": {
+    "0.1": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.025182642926816975
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.013778717258541993
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.003250572912655163
+      }
+    },
+    "0.25": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.027624011778285218
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.01094572777268843
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.005989208509062938
+      }
+    },
+    "0.5": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.025687861219992572
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.008535903330668866
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.004338167135260981
+      }
+    },
+    "0.75": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.020644573922898927
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.005713584308060404
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.005959898063403708
+      }
+    },
+    "0.9": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.020497881771563305
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.004537157890260079
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.004074058996500777
+      }
+    },
+    "1.0": {
+      "RDIR-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.019339198969147427
+      },
+      "RDIR-RPERM": {
+        "matched_blocks": 240,
+        "mean_hv_difference": 0.004976460062607321
+      },
+      "A7B-F6": {
+        "matched_blocks": 240,
+        "mean_hv_difference": -0.0050974523220834785
+      }
+    }
+  },
+  "limitations": "Hamming is encoding distance, not physical schedule distance. Phenotype identity uses assignment+exact starts. Light totals do not record beneficiary-slot histogram; do not infer direction causality or absence of takeover. Checkpoint snapshots can be delayed at safe boundaries; retrospective common final normalization."
+}

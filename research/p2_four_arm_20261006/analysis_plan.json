@@ -1,0 +1,15 @@
+{
+  "source_commit": "6dd6d4a84d403a2dd2737d166cb4d3ee1eca25b0",
+  "primary": "Three prespecified HV contrasts; Holm three",
+  "independent_units": 24,
+  "normalization": "all 20 final archives per base/tariff, pooled coordinate min/max",
+  "hv_reference": [
+    1.1,
+    1.1
+  ],
+  "igd_reference": "pooled strict nondominated empirical approximation",
+  "bootstrap": 20000,
+  "signflips": 100000,
+  "seed": 20261006,
+  "guardrails": "IGD+ and middle third of empirical front; positive gain means better"
+}
