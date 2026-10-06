@@ -55,14 +55,24 @@ def frozen_manifest(root: Path) -> dict:
     repository = Path(__file__).resolve().parents[3]
     if file_hash(repository / PROTOCOL) != manifest["protocol_sha256"]:
         raise ValueError("Protocol changed")
+    if (
+        manifest["kind"] == "D4_peak_diagnosis_v1"
+        and file_hash(repository / "docs/experiments/d4_peak_diagnosis.md")
+        != manifest["d4_protocol_sha256"]
+    ):
+        raise ValueError("D4 protocol changed")
     for name, sha in manifest["input_files"].items():
         if file_hash(campaign_path(root, name)) != sha:
             raise ValueError(f"Frozen input changed: {name}")
     return manifest
 
 
-def prepare_opportunity(root: Path, repository: Path, pilot_seconds: float | None = None) -> dict:
+def prepare_opportunity(
+    root: Path, repository: Path, pilot_seconds: float | None = None, study: str = "D2"
+) -> dict:
     """Freeze 24 unseen bases, split by base before labels, with 144 source runs."""
+    if study not in ("D2", "D4"):
+        raise ValueError("Unknown observation study")
     provenance = git_metadata(repository)
     if not provenance["git_commit"] or provenance["git_dirty"]:
         raise ValueError("Freeze a clean source commit first")
@@ -79,7 +89,15 @@ def prepare_opportunity(root: Path, repository: Path, pilot_seconds: float | Non
     development: list[int] = []
     heldout: list[int] = []
     for n in (50, 100):
-        bases = ((810001,) if n == 50 else (820001,)) if pilot_seconds else BASES[n]
+        formal_bases = (
+            BASES[n]
+            if study == "D2"
+            else tuple(range(875001 if n == 50 else 885001, 875017 if n == 50 else 885017))
+        )
+        pilot_base = (
+            (810001 if n == 50 else 820001) if study == "D2" else (874001 if n == 50 else 884001)
+        )
+        bases = (pilot_base,) if pilot_seconds else formal_bases
         development.extend(bases[:8])
         heldout.extend(bases[8:])
         for base in bases:
@@ -131,9 +149,9 @@ def prepare_opportunity(root: Path, repository: Path, pilot_seconds: float | Non
                     keys.append(key)
                     worker_seconds += seconds
     RNGManager(MASTER_SEED).stream("D2:source_order").shuffle(keys)
-    manifest = {
+    manifest: dict = {
         "schema": 1,
-        "kind": "D2_opportunity_v1",
+        "kind": "D2_opportunity_v1" if study == "D2" else "D4_peak_diagnosis_v1",
         "pilot": pilot_seconds is not None,
         "source_commit": provenance["git_commit"],
         "source_hash": source_hash,
@@ -149,7 +167,9 @@ def prepare_opportunity(root: Path, repository: Path, pilot_seconds: float | Non
         "minimum_source_wall_hours": worker_seconds / 3600 / 10,
         "panels": len(keys) * 9,
         "max_action_rows": len(keys) * 9 * 6 * 9,
-        "scope": "Prospective fixed-mate/neighbor-donor predictive screening; not online benefit",
+        "scope": "Prospective fixed-mate/neighbor-donor predictive screening; not online benefit"
+        if study == "D2"
+        else "Offline A8 failure diagnosis; no online pruning or quality claim",
         "budget": "B=3 unique complete exact per source/action; costs fully recorded",
         "protocol_sha256": file_hash(repository / PROTOCOL),
         "input_files": {
@@ -158,6 +178,13 @@ def prepare_opportunity(root: Path, repository: Path, pilot_seconds: float | Non
             for p in sorted((root / folder).glob("*.json"))
         },
     }
+    if study == "D4":
+        protocol_copy = root / "inputs/d4_peak_diagnosis.md"
+        protocol_copy.write_bytes(
+            (repository / "docs/experiments/d4_peak_diagnosis.md").read_bytes()
+        )
+        manifest["input_files"]["inputs/d4_peak_diagnosis.md"] = file_hash(protocol_copy)
+        manifest["d4_protocol_sha256"] = file_hash(protocol_copy)
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", {"manifest.json": file_hash(root / "manifest.json")})
     return manifest
@@ -315,12 +342,20 @@ def execute_opportunity_job(root: Path, role: str, key: str) -> dict:
                     raise ValueError("Partial panel identity mismatch")
             else:
                 seed = config.seed + index * 1000003
+                if manifest["kind"] == "D4_peak_diagnosis_v1":
+                    from geo_llm_scheduler.experiments.d4_peak import probe_peak_panel
+
+                    diagnostic = probe_peak_panel(problem, panel, config, seed)
+                    twins: dict = {"rows": []}
+                else:
+                    diagnostic = probe_panel(problem, panel, config, seed)
+                    twins = d1_cost_twins(problem, panel, config, seed)
                 record = {
                     "spec_hash": digest(spec),
                     "sample_sha256": sample_sha,
                     "host": platform.node(),
-                    "d2": probe_panel(problem, panel, config, seed),
-                    "d1": d1_cost_twins(problem, panel, config, seed),
+                    "d2": diagnostic,
+                    "d1": twins,
                 }
                 atomic_json(checkpoint, record)
                 atomic_json(checkpoint_sha, {"sha256": file_hash(checkpoint)})
@@ -485,6 +520,14 @@ def run_opportunity(root: Path, source_workers: int = 10, probe_workers: int = 2
                         done[item["role"]].add(item["key"])
                 stopping = failed or (root / "stop.request").exists()
                 memory, disk = available_memory_gb(), free_disk_gb(root)
+                cgroup = Path("/sys/fs/cgroup")
+                if manifest["kind"] == "D4_peak_diagnosis_v1" and (cgroup / "memory.max").exists():
+                    limit = (cgroup / "memory.max").read_text().strip()
+                    if limit != "max":
+                        memory = min(
+                            memory,
+                            (int(limit) - int((cgroup / "memory.current").read_text())) / 1024**3,
+                        )
                 guarded = memory < 4 or disk < 10
                 if not stopping and not guarded:
                     for role, cap in (("samples", source_workers), ("probes", probe_workers)):
@@ -591,7 +634,12 @@ def run_opportunity(root: Path, source_workers: int = 10, probe_workers: int = 2
                 from geo_llm_scheduler.experiments.d2_analysis import analyse_opportunity
 
                 try:
-                    analyse_opportunity(root)
+                    if manifest.get("kind") == "D4_peak_diagnosis_v1":
+                        from geo_llm_scheduler.experiments.d4_peak import analyse_peak
+
+                        analyse_peak(root)
+                    else:
+                        analyse_opportunity(root)
                 except Exception:
                     atomic_json(
                         root / "ops/failures/analysis.json",
@@ -612,6 +660,7 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--repository", type=Path, default=Path(__file__).resolve().parents[3])
     parser.add_argument("--pilot-seconds", type=float)
+    parser.add_argument("--study", choices=("D2", "D4"), default="D2")
     parser.add_argument("--source-workers", type=int, default=10)
     parser.add_argument("--probe-workers", type=int, default=2)
     parser.add_argument("--role", choices=("samples", "probes"))
@@ -619,7 +668,9 @@ def main() -> None:
     args = parser.parse_args()
     root = args.root.resolve()
     if args.command == "prepare":
-        result = prepare_opportunity(root, args.repository.resolve(), args.pilot_seconds)
+        result = prepare_opportunity(
+            root, args.repository.resolve(), args.pilot_seconds, args.study
+        )
         print(
             json.dumps(
                 {
