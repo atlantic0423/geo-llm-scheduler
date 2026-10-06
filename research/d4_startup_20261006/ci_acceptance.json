@@ -1,0 +1,15 @@
+{
+  "sha": "cfeb369573b06229332827c73076bd5a73abcce5",
+  "checks": [
+    {
+      "name": "Python 3.11",
+      "url": "https://github.com/atlantic0423/geo-llm-scheduler/actions/runs/37395799169/job/112051325308",
+      "conclusion": "success"
+    },
+    {
+      "name": "Python 3.13",
+      "url": "https://github.com/atlantic0423/geo-llm-scheduler/actions/runs/37395799169/job/112051325003",
+      "conclusion": "success"
+    }
+  ]
+}

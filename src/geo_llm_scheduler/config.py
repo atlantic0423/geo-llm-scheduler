@@ -15,6 +15,10 @@ class Config:
     neighborhood: int = 20
     neighbor_probability: float = 0.90
     replacement_cap: int = 2
+    offspring_policy: str = "variation"  # P2 only; default preserves the current algorithm
+    clone_probability: float = 0.20  # provisional CG/CT working value
+    replacement_policy: str = "birth"  # P2: birth, permuted, direction
+    a7_representative_policy: str = "compression"  # P2: compression or bill_proxy
     crossover_probability: float = 0.90
     mutation_probability: float = 0.20
     mutation_weights: tuple[float, ...] = (0.4, 0.4, 0.2)
@@ -92,6 +96,18 @@ class Config:
             raise ValueError("Two finite, positive, increasing severity budget cutoffs required")
         if self.action_mask_policy not in ("none", "no_a6", "no_a4a5", "no_a4a5a6"):
             raise ValueError("Unknown experimental action mask policy")
+        if self.offspring_policy not in ("variation", "genotype_clone", "phenotype_clone"):
+            raise ValueError("Unknown experimental offspring policy")
+        if self.replacement_policy not in ("birth", "permuted", "direction"):
+            raise ValueError("Unknown experimental replacement policy")
+        if self.a7_representative_policy not in ("compression", "bill_proxy"):
+            raise ValueError("Unknown experimental A7 representative policy")
+        if self.method != "full" and (
+            self.offspring_policy != "variation"
+            or self.replacement_policy != "birth"
+            or self.a7_representative_policy != "compression"
+        ):
+            raise ValueError("P2 experimental mechanisms require method=full")
         if self.method not in (
             "plain",
             "full",
@@ -161,6 +177,7 @@ class Config:
             self.initialization_perturbation,
             self.fixed_ls_probability,
             self.a6_destroy_ratio,
+            self.clone_probability,
         ):
             if not 0 <= value <= 1:
                 raise ValueError("Probability outside [0,1]")

@@ -1,0 +1,22 @@
+{
+  "status": "complete_raw_and_scientific_analysis_verified",
+  "source_commit": "9e4a8510fa534f65c5116775a8c90d6cb95505eb",
+  "source_jobs": 144,
+  "probe_jobs": 144,
+  "panels": 1296,
+  "formal_rows": 69984,
+  "primary_gate": false,
+  "primary_holm_p": [
+    0.625,
+    0.625
+  ],
+  "independent_statistics": "verified",
+  "raw_files": 4323,
+  "raw_bytes": 11288733608,
+  "archive_sha256": "9ca74e7d16da510a207fccd2d0321be725302e6e568145c7ad9d935cd39d94bc",
+  "release": "https://github.com/atlantic0423/geo-llm-scheduler/releases/tag/d2-complete-20261006-9e4a851",
+  "original_assets_verified": 8,
+  "server_originals": "retained",
+  "D4_status": "running_not_complete",
+  "D4_source": "cfeb369573b06229332827c73076bd5a73abcce5"
+}
