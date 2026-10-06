@@ -1,0 +1,18 @@
+{
+  "state": "started",
+  "pid": 3415,
+  "host": "196ec6b261f1",
+  "started": 1791248251.619483,
+  "source_commit": "cfeb369573b06229332827c73076bd5a73abcce5",
+  "source_hash": "9102cf8419ae33b125c0844953f620d2df92d58b9d4d6605e46819e30d4ed467",
+  "source_workers": 10,
+  "probe_workers": 2,
+  "source_jobs": 192,
+  "probe_jobs": 192,
+  "source_worker_hours": 144,
+  "calendar_lower_bound_hours": 14.4,
+  "estimated_hours": [
+    16,
+    20
+  ]
+}

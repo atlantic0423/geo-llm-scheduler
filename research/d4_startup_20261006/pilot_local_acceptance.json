@@ -1,0 +1,14 @@
+{
+  "status": "verified_full_pilot",
+  "members": 368,
+  "archive_sha256": "d6143d003d4bcc6bc596ff92871477d1741b84f4564626547d13dfbfef21f2f8",
+  "checks": {
+    "source_final_exact": 1977,
+    "probe_exact": 4896,
+    "source_rss_peak_gib": 0.034038543701171875,
+    "probe_rss_peak_gib": 0.04412841796875
+  },
+  "false_rejections": 0,
+  "quality_claim": "none",
+  "server_originals": "retained"
+}
