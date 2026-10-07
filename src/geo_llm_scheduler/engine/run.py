@@ -22,6 +22,7 @@ from geo_llm_scheduler.moead.core import (
     weights,
 )
 from geo_llm_scheduler.moead.replacement import replacement_neighborhood
+from geo_llm_scheduler.operators.base import Operator
 from geo_llm_scheduler.rl.controller import Controller
 from geo_llm_scheduler.utils.numeric import TOL, less
 from geo_llm_scheduler.utils.rng import RNGManager
@@ -50,6 +51,7 @@ def run(
     *,
     retain_trace: bool = True,
     observer: Callable[[str, dict], None] | None = None,
+    operator_overrides: dict[int, Operator] | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -204,6 +206,7 @@ def run(
                             population,
                             adaptive,
                             observer=observe_structure if observer is not None else None,
+                            operator_overrides=operator_overrides,
                         )
                     except EvaluationCapReached:
                         return finish("exact_evaluation_cap")

@@ -39,6 +39,7 @@ def improve(
     adaptive: AdaptiveBudget | None = None,
     *,
     observer: Callable[[str, dict], None] | None = None,
+    operator_overrides: dict[int, Operator] | None = None,
 ) -> tuple[Candidate, list[dict]]:
     """Run L_RL decisions; each batch restarts from that step's frozen incumbent."""
     problem = gateway.problem
@@ -46,6 +47,10 @@ def improve(
     records = []
     operators: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 7)}
     operators.update({7: ActivePack(), 8: PeakCoalition()})
+    if operator_overrides is not None:
+        if set(operator_overrides) - {8}:
+            raise ValueError("Research overrides are limited to A8")
+        operators.update(operator_overrides)
     values = severities(problem, current)
     for step in range(config.rl_steps):
         start = perf_counter()
