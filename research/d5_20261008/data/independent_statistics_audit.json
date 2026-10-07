@@ -1,0 +1,7 @@
+{
+  "status": "all_cluster_statistics_and_joint_Holm_independently_reproduced",
+  "statistics": 108,
+  "independent_bases": 24,
+  "method": "CSV arithmetic means; stratified resampling; independent dot sign-flip; same explicit RNG stream",
+  "not_algorithm_rerun": true
+}
