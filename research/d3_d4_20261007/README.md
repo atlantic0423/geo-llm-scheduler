@@ -45,4 +45,6 @@ D4-W 的单次 gain 增加约 29.5%，构造 CPU 按每 base 比例平均增加 
 
 报告工具只做离线分析，不改运行源码。`scripts/analyse_d4_results.py` 保留空调用、平均计时循环、按 base 聚类，独立恢复 Flow 与 Bill=TOU+Demand 并重算 scalar。`audit_d3_csv.py`、`audit_d4_csv.py` 提供独立 CSV 汇总复核；使用原源码验证时必须将 PYTHONPATH 指向相应冻结 runtime/src。`plot_results.py` 从已发布的小型 JSON 重建 PNG/PDF。
 
+Git 中 D4 的 base_means 只保留32个独立base的总体摘要；完整阶段/偏好/规模/电价分层base文件和逐调用CSV在Release中保留，独立CSV复核使用Release的完整文件。
+
 每个正式源/输入/配置/协议 hash、全文件清单、源码 bundle、raw 与复现说明由 Release 交付；适合 Git 的报告、JSON、科学图与分析程序走独立 PR。完整验收和交付限制集中在 DELIVERY.md。
