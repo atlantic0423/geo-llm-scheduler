@@ -2,10 +2,11 @@
 
 from dataclasses import replace
 from time import perf_counter
+from typing import Callable
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.diagnostics.severity import severities
-from geo_llm_scheduler.domain.models import Candidate
+from geo_llm_scheduler.domain.models import Candidate, Genotype
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.macrosearch.adaptive import AdaptiveBudget
 from geo_llm_scheduler.macrosearch.budget import choose_budget
@@ -36,6 +37,8 @@ def improve(
     streams: RNGManager,
     population: list[Candidate] | None = None,
     adaptive: AdaptiveBudget | None = None,
+    *,
+    observer: Callable[[str, dict], None] | None = None,
 ) -> tuple[Candidate, list[dict]]:
     """Run L_RL decisions; each batch restarts from that step's frozen incumbent."""
     problem = gateway.problem
@@ -93,6 +96,21 @@ def improve(
         gateway.counts[f"proposals:A{action}"] += len(batch.proposals)
         insertions = gateway.archive.insertions
         archive_before = {identity(candidate) for candidate in gateway.archive.members}
+
+        def observe_target(target: Genotype) -> None:
+            if observer is not None:
+                observer(
+                    "structure",
+                    {
+                        "source": current,
+                        "target": target,
+                        "path": f"A{action}",
+                        "step": step,
+                        "context": context,
+                        "weight": weights[index],
+                    },
+                )
+
         result = execute(
             batch,
             current,
@@ -102,6 +120,7 @@ def improve(
             gateway,
             f"A{action}",
             sequential=config.budget_policy == "sequential",
+            structural_observer=observe_target if observer is not None else None,
         )
         archive_after = {identity(candidate) for candidate in gateway.archive.members}
         before = result.context.scalar(current, weights[index])
