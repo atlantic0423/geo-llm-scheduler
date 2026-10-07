@@ -1,5 +1,10 @@
 [
   {
+    "path": ".gitattributes",
+    "bytes": 86,
+    "sha256": "73f96879e33943314c947580c7debe998da826ab194265d87de2ee8afb36635f"
+  },
+  {
     "path": "analysis_plan.md",
     "bytes": 2154,
     "sha256": "fb1e1d509a50df19a164e2b4e2bd46cf81fa52ca746ef867e1a8140a4ef629b0"
