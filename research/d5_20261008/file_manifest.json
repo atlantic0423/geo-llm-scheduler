@@ -1,0 +1,97 @@
+[
+  {
+    "path": "analysis_plan.md",
+    "bytes": 2154,
+    "sha256": "fb1e1d509a50df19a164e2b4e2bd46cf81fa52ca746ef867e1a8140a4ef629b0"
+  },
+  {
+    "path": "completion_summary.json",
+    "bytes": 1337,
+    "sha256": "5163aedb7c38646e23001fdb5f5e1f28b9d725b0c9abc94f9488fdce2922ed92"
+  },
+  {
+    "path": "D5_results_analysis.md",
+    "bytes": 15452,
+    "sha256": "bdc9248412016af2e4792d059a72547e8ccdae6c6361be4bb1b1155943be9c8b"
+  },
+  {
+    "path": "data/a8_preference_descriptive.csv",
+    "bytes": 1260,
+    "sha256": "b7e818830110702cf8c26c12698367a0944722328c6a0d9550cbb26b0573ad91"
+  },
+  {
+    "path": "data/a8_state_metrics.csv",
+    "bytes": 674880,
+    "sha256": "055b59a3bc1fc63369f947b591d5f72437ae1329a0ed0e686bc45daafc90cfd1"
+  },
+  {
+    "path": "data/anytime_metrics.csv",
+    "bytes": 328039,
+    "sha256": "3b952b66ba766ed491d8dcb218f5c9d5c593fe2168a3120edd7cbfb95644b575"
+  },
+  {
+    "path": "data/base_metrics.csv",
+    "bytes": 144467,
+    "sha256": "39f2681eb0a3a12b37a15cbd1d4d8a8d6d97eca1299bb5bfebc68a6965481442"
+  },
+  {
+    "path": "data/independent_statistics_audit.json",
+    "bytes": 277,
+    "sha256": "25ff1876e4f560b8b356ebee0080aadaa97c54d255fe57b453c1cb1dd0e6506e"
+  },
+  {
+    "path": "data/paired_metrics.csv",
+    "bytes": 271107,
+    "sha256": "7df81bec24187a9607a8150f995f38f385b964d55dd3e5d25b7afb31d8f3a7c5"
+  },
+  {
+    "path": "data/references.json",
+    "bytes": 296920,
+    "sha256": "512f704f25e4bda648b9854e6a3408e1271584ce77301e01502d754ae342fe17"
+  },
+  {
+    "path": "data/report.json",
+    "bytes": 76540,
+    "sha256": "b24ebc360ee0cae202ed94b60b6436fc44811e171803b4562d5e36acd14769c9"
+  },
+  {
+    "path": "data/run_metrics.csv",
+    "bytes": 190242,
+    "sha256": "98eb15aa563e06cebcf3c63c472259d82b4849a50c5aecd7fa0018acba31f1ae"
+  },
+  {
+    "path": "figures/anytime_strata.pdf",
+    "bytes": 27699,
+    "sha256": "882a0e5efe53d39f7f6ddc2d42ef9121f5b5c20d3926e64ff289338fad84d985"
+  },
+  {
+    "path": "figures/anytime_strata.png",
+    "bytes": 190689,
+    "sha256": "6b8ee023d6c5ed3e209422dd722be0b13ea86ef5f0c05b7612ca6f4f0cc583a4"
+  },
+  {
+    "path": "figures/primary_effects.pdf",
+    "bytes": 18723,
+    "sha256": "98f2a060804d9d82f0ebb3d430d422564741e683e8e413cbe632fbf9ca922534"
+  },
+  {
+    "path": "figures/primary_effects.png",
+    "bytes": 50911,
+    "sha256": "ef98db43eebba4eef0f8e493031b885f9f30910c257481a9335917dbad3f5263"
+  },
+  {
+    "path": "full_raw_local_validation.json",
+    "bytes": 590,
+    "sha256": "52b5d26ef4b6f43dc4e3ea51e1f36eddc9be92c2abe114401f899ae9f974b935"
+  },
+  {
+    "path": "local_frozen_validator.json",
+    "bytes": 196,
+    "sha256": "ef4a6835b64751c708ade58e40f36bda83b48a5c89087a7ec12af6d16e05e03b"
+  },
+  {
+    "path": "README.md",
+    "bytes": 1532,
+    "sha256": "b127ecb3b701c33202858180ba61b590991adac6c6c7fde500c9ca9df923e907"
+  }
+]
