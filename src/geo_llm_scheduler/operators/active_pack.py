@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
+from geo_llm_scheduler.operators.packing_proxy import PackingBillProxy
 from geo_llm_scheduler.scheduling.timing import move, packing_moves
 
 Move = tuple[int, float, float, float]
@@ -61,17 +62,31 @@ class PackingAudit:
 
 
 def select_packing_moves(
-    problem: ProblemInstance, incumbent: Candidate, budget: int, rng: random.Random
+    problem: ProblemInstance,
+    incumbent: Candidate,
+    budget: int,
+    rng: random.Random,
+    *,
+    representative_policy: str = "compression",
 ) -> PackingAudit:
-    """Expose existing A7 filtering stages without changing draws or move order."""
+    """Expose A7 stages; opt-in bill_proxy changes only the first representative."""
+    if representative_policy not in ("compression", "bill_proxy"):
+        raise ValueError("Unknown experimental A7 representative policy")
     all_moves = packing_moves(problem, incumbent.genotype, incumbent.schedule)
+    proxy = PackingBillProxy(problem, incumbent) if representative_policy == "bill_proxy" else None
     representatives = []
     for o in range(problem.operation_count):
         available = [m for m in all_moves if m[0] == o]
         if not available:
             continue
         old = incumbent.schedule.starts[o]
-        first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
+        if proxy is None:
+            first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
+        else:
+            first = min(
+                available,
+                key=lambda m: (proxy.score(o, m[1]), -m[2], m[3], abs(m[1] - old), m[1]),
+            )
         representatives.append(first)
         available.remove(first)
         if available:
@@ -115,7 +130,9 @@ class ActivePack:
         rng: random.Random,
     ) -> ProposalBatch:
         """Prescreen at most two moves per operation, then sample from a 2B pool."""
-        audit = select_packing_moves(problem, incumbent, budget, rng)
+        audit = select_packing_moves(
+            problem, incumbent, budget, rng, representative_policy=config.a7_representative_policy
+        )
         proposals = []
         for o, t, _, _ in audit.selected:
             schedule = move(problem, incumbent.genotype, incumbent.schedule, o, t)
