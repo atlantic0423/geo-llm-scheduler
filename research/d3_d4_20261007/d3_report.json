@@ -1,0 +1,55 @@
+{
+  "status": "ANALYZED",
+  "source_commit": "2725e1d8c34ca5f003fbfc3ebb058a1cbdc96e79",
+  "unit": "16 wholly held-out independent bases, equal panel/action/tariff/seed",
+  "primary": {
+    "RESPONSE-BASE": {
+      "bases": 16,
+      "mean": -1.6615394261989773e-06,
+      "ci": [
+        -9.264560208189028e-06,
+        6.147037855852021e-06
+      ],
+      "p": 0.707000732421875,
+      "positive_bases": 6,
+      "p_holm": 1.0
+    },
+    "RESPONSE-RGAIN": {
+      "bases": 16,
+      "mean": -5.320160849803491e-06,
+      "ci": [
+        -1.9954726004450564e-05,
+        9.911524021707266e-06
+      ],
+      "p": 0.508056640625,
+      "positive_bases": 7,
+      "p_holm": 1.0
+    },
+    "RESPONSE-SHUFFLED": {
+      "bases": 16,
+      "mean": 8.18325264450352e-07,
+      "ci": [
+        -5.7407540929163025e-06,
+        7.19238857164536e-06
+      ],
+      "p": 0.779541015625,
+      "positive_bases": 7,
+      "p_holm": 1.0
+    }
+  },
+  "pass_screen": false,
+  "policy_means": {
+    "GEOMETRIC": 5.096803595244022e-05,
+    "RANDOM": -1.7267798362539441e-06,
+    "RGAIN": 0.00010432605630535734,
+    "BASE": 0.00010066743488175282,
+    "RESPONSE": 9.900589545555385e-05,
+    "SHUFFLED": 9.81875701911035e-05,
+    "POST_RGAIN": 0.00015513367012369238
+  },
+  "prediction_seconds": 1.3604434803128242,
+  "training_bases": 32,
+  "heldout_bases": 16,
+  "rows": 124416,
+  "limits": "Same raw B3 pool; six sampled neighbor slots, not global direction search. Current generators are weight-independent. POST_RGAIN is post-generation upper bound. No online HV/IGD benefit or novelty inference."
+}

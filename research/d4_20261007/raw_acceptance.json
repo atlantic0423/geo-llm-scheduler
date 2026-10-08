@@ -1,0 +1,12 @@
+{
+  "status": "full_raw_archive_and_local_files_verified",
+  "files": 5738,
+  "raw_bytes": 2307308169,
+  "archive": "d4_complete_raw_20261007.tar.gz",
+  "archive_bytes": 153138420,
+  "archive_sha256": "92af9425ce11d00d6e0c4ed8ce4b1e0ace2b5001451cc668570d44534850ae17",
+  "manifest_sha256": "c387c982763f670ade6a9382277acb9a8c6021f087da8c817db0ecc543453665",
+  "source_commit": "cfeb369573b06229332827c73076bd5a73abcce5",
+  "server_originals": "retained",
+  "time": 1791334287.6579397
+}
