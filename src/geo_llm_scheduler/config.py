@@ -32,6 +32,8 @@ class Config:
     budgets: tuple[int, ...] = (3, 6, 10)
     severity_budget_cutoffs: tuple[float, float] = (1.0, 2.0)
     action_mask_policy: str = "none"
+    rl_state_policy: str = "dominant"  # D7: dominant, pooled, compound
+    a3_region_policy: str = "load"  # D7: load or tariff; exact acceptance unchanged
     a8_singleton_attempts: int = 2
     a8_member_cap: int = 8
     a8_position_limit: int = 6
@@ -96,6 +98,16 @@ class Config:
             raise ValueError("Two finite, positive, increasing severity budget cutoffs required")
         if self.action_mask_policy not in ("none", "no_a6", "no_a4a5", "no_a4a5a6"):
             raise ValueError("Unknown experimental action mask policy")
+        if self.rl_state_policy not in ("dominant", "pooled", "compound"):
+            raise ValueError("Unknown RL state policy")
+        if self.a3_region_policy not in ("load", "tariff"):
+            raise ValueError("Unknown A3 region policy")
+        if self.rl_state_policy != "dominant" and self.action_mask_policy != "none":
+            raise ValueError("Historical action masks require the dominant state encoding")
+        if self.method != "full" and (
+            self.rl_state_policy != "dominant" or self.a3_region_policy != "load"
+        ):
+            raise ValueError("D7 experimental mechanisms require method=full")
         if self.offspring_policy not in ("variation", "genotype_clone", "phenotype_clone"):
             raise ValueError("Unknown experimental offspring policy")
         if self.replacement_policy not in ("birth", "permuted", "direction"):

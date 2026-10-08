@@ -155,7 +155,7 @@ def improve(
         # Each short trajectory ends an episode; keep the run-level Q table.
         # Polish is outside the episode and never contributes bootstrap/reward.
         controller.update(state, action, signal, next_state, terminal=step == config.rl_steps - 1)
-        preference_label, condition_label, progress_label = decode(state)
+        preference_label, condition_label, progress_label = decode(state, config.rl_state_policy)
         records.append(
             {
                 "step": step,
