@@ -1,0 +1,35 @@
+{
+  "source_commit": "3a1342cef98dae4b09cd370f40417a119efb4703",
+  "source_hash": "592cf56992cfd0079f7dd9f3e581efdf01215af4cbe5f6d66ccba443cdd9e2d9",
+  "runs": 480,
+  "blocks": 96,
+  "independent_bases": 24,
+  "original_worker_final_exact_evidence": 231532,
+  "fresh_full_exact_reevaluation": false,
+  "local_gates": {
+    "tests": 424,
+    "overall_coverage": 84.76,
+    "core_coverage": 96.71,
+    "lint_format_mypy": "pass",
+    "deterministic_replay": "pass",
+    "d03_verifier": "pass",
+    "wheel_cli": "pass"
+  },
+  "raw": {
+    "status": "complete_archive_members_and_local_files_size_sha256_verified",
+    "files": 5874,
+    "raw_bytes": 1906492462,
+    "archive_bytes": 122913964,
+    "archive_sha256": "80b9b27c9cd2842e81eec82b2f705f92b894cdcc3c42bfcc3a923a33eba73024",
+    "manifest_sha256": "521f89fd68d904208d8c5087f9f5a6428fcbb59a1479ee8dd7dfee769849e01a",
+    "runs": 480,
+    "blocks": 96,
+    "source_commit": "3a1342cef98dae4b09cd370f40417a119efb4703",
+    "source_hash": "592cf56992cfd0079f7dd9f3e581efdf01215af4cbe5f6d66ccba443cdd9e2d9",
+    "server_originals": "retained",
+    "finished": 1791408914.2457006
+  },
+  "pilots_excluded": true,
+  "algorithm_changed_in_analysis_batch": false,
+  "status": "calculation_acceptance_analysis_local_gates_complete; GitHub delivery pending"
+}
