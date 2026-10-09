@@ -1,0 +1,23 @@
+{
+  "status": "posthoc_numeric_mechanism_audit_not_primary_experiment",
+  "sources": 128,
+  "by_tariff": {
+    "H": {
+      "sources": 64,
+      "sources_with_roundoff": 64,
+      "top12_order_changed": 62,
+      "top12_set_changed": 62,
+      "max_abs_equal_exposure_delta": 1.7763568394002505e-15
+    },
+    "T": {
+      "sources": 64,
+      "sources_with_roundoff": 0,
+      "top12_order_changed": 64,
+      "top12_set_changed": 64,
+      "max_abs_equal_exposure_delta": 0
+    }
+  },
+  "frozen_runtime_modified": false,
+  "formal_results_unchanged": true,
+  "scope": "One first initial genotype per formal eight-arm block, no online rerun; equal exposures have mathematical delta zero but left-associative a+b-a-b can be nonzero"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "independent_csv_cluster_means_bootstrap_signflip_Holm_and_all_HV_reproduced",
+  "statistics": 84,
+  "independent_bases": 32,
+  "primary_tests": 7,
+  "secondary_tests": 7,
+  "independent_hv_runs": 1024,
+  "algorithm_rerun": false
+}
