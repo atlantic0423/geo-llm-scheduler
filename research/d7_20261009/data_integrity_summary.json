@@ -1,0 +1,16 @@
+{
+  "status": "complete_archive_members_and_local_files_size_sha256_verified",
+  "files": 12434,
+  "raw_bytes": 3769303573,
+  "archive_bytes": 248520032,
+  "archive_sha256": "a3b83c6256e3a48d94d0e8b715e865d377ec645097d17f5c2c9469d1e51f08e0",
+  "manifest_sha256": "4a43adca27a6038b9337ed91e84089b66e5c6c728b622e00245cbbb359fe2d30",
+  "runs": 1024,
+  "blocks": 128,
+  "source_commit": "f01b1417cf6be1cb5e1f375dbc710eb575c06123",
+  "source_hash": "6e4385dd639db34aec25f526943eda84bb66bb9961ca12252ef138d7888da114",
+  "server_originals": "retained",
+  "finished": 1791561473.0314424,
+  "original_worker_final_exact_solutions": 456272,
+  "fresh_full_re_evaluation": false
+}

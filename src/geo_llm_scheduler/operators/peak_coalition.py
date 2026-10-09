@@ -2,6 +2,7 @@
 
 import math
 import random
+from time import perf_counter
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
@@ -145,6 +146,7 @@ def repair(
     region: int,
     positions: int,
     rng: random.Random,
+    diagnostics: dict | None = None,
 ) -> Schedule | None:
     """One greedy path; first feasible position; any failure rolls back whole recipe."""
     g = x.genotype
@@ -169,10 +171,24 @@ def repair(
                 found = True
                 break
         if not found:
+            if diagnostics is not None:
+                diagnostics.update(
+                    stage="precedence_bounds"
+                    if bounds[o][1] < bounds[o][0]
+                    else "empty_positions"
+                    if not times[:positions]
+                    else "resource_positions",
+                    operation=o,
+                    bounds=bounds[o],
+                    positions_checked=min(len(times), positions),
+                )
             return None
         pending.remove(o)
     schedule = Schedule(tuple(starts))
-    return None if violations(problem, g, schedule) else schedule
+    errors = violations(problem, g, schedule)
+    if errors and diagnostics is not None:
+        diagnostics.update(stage="final_feasibility", violations=errors)
+    return None if errors else schedule
 
 
 def peak_reduced(
@@ -196,6 +212,10 @@ class PeakCoalition:
     """One target Region per invocation with independent same-incumbent recipes."""
 
     action = 8
+
+    def __init__(self, diagnose: bool = False) -> None:
+        """Enable offline recipe evidence without changing selection or RNG draws."""
+        self.diagnose = diagnose
 
     def propose(
         self,
@@ -241,6 +261,8 @@ class PeakCoalition:
         seen = {tuple(round(t / TOL.time) for t in incumbent.schedule.starts)}
         singleton_success = False
         result.diagnostics = {"region": region, "peaks": peaks, "recipes": []}
+        if self.diagnose:
+            result.diagnostics["trace"] = []
         result.instrumentation = {
             "target_region": region,
             "original_peak": peak,
@@ -264,19 +286,43 @@ class PeakCoalition:
             attempt_kind = "singleton_attempts" if use_singleton else "coalition_attempts"
             result.instrumentation[attempt_kind] += 1
             result.diagnostics["recipes"].append(tuple(sorted(members)))
+            record: dict | None = (
+                {"members": tuple(sorted(members)), "stage": "empty_members"}
+                if self.diagnose
+                else None
+            )
+            if self.diagnose:
+                result.diagnostics["trace"].append(record)
             if not members:
                 continue
-            schedule = repair(problem, incumbent, members, region, config.a8_position_limit, rng)
+            repair_started = perf_counter() if self.diagnose else 0.0
+            schedule = repair(
+                problem,
+                incumbent,
+                members,
+                region,
+                config.a8_position_limit,
+                rng,
+                record if self.diagnose else None,
+            )
+            if record is not None:
+                record["repair_seconds"] = perf_counter() - repair_started
             if schedule is None:
                 continue
             result.instrumentation["repair_successes"] += 1
+            if record is not None:
+                record.update(stage="peak_gate", repaired_starts=schedule.starts)
             if not peak_reduced(problem, g, schedule, region, peak):
                 continue
             result.instrumentation["strict_peak_reductions"] += 1
             schedule_key = tuple(round(t / TOL.time) for t in schedule.starts)
             if schedule_key in seen:
+                if record is not None:
+                    record["stage"] = "duplicate"
                 continue
             seen.add(schedule_key)
             singleton_success |= len(members) == 1
             result.proposals.append(Proposal(g, schedule, tuple(sorted(members))))
+            if record is not None:
+                record["stage"] = "proposal"
         return result
