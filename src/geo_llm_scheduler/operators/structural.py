@@ -41,6 +41,19 @@ def relocation_tou_proxy(
     return result
 
 
+def relocation_tou_rank(prefill_delta: float, decode_delta: float) -> int:
+    """Return a deterministic absolute-cost bucket for the relocation proxy.
+
+    Phase differences are summed with fsum, avoiding a+b-a-b cancellation.
+    Absolute deltas within TOL.cost are zero; otherwise nearest integer cost
+    buckets (ties-to-even) give a transitive ordering. Equal buckets retain the
+    existing region-load, path-load, KV and identity tie breakers. Bucket edges
+    do not imply every pair less than TOL.cost apart has the same rank.
+    """
+    delta = math.fsum((prefill_delta, decode_delta))
+    return 0 if abs(delta) <= TOL.cost else round(delta / TOL.cost)
+
+
 def operation_order(genotype: Genotype) -> list[int]:
     """Expand repeated jobs into explicit P/D operation identities."""
     seen: set[int] = set()
@@ -194,13 +207,11 @@ class StructuralOperator:
                 else:
                     key = (imbalance(region_loads(p, new)), pathload, newkv, i, a, b)
                     if tariff is not None:
-                        delta = (
-                            tariff[2 * i, a]
-                            + tariff[2 * i + 1, b]
-                            - tariff[2 * i, g.ms[2 * i]]
-                            - tariff[2 * i + 1, g.ms[2 * i + 1]]
+                        rank = relocation_tou_rank(
+                            tariff[2 * i, a] - tariff[2 * i, g.ms[2 * i]],
+                            tariff[2 * i + 1, b] - tariff[2 * i + 1, g.ms[2 * i + 1]],
                         )
-                        key = (delta, *key)
+                        key = (rank, *key)
                 ranked.append((key, new))
         ranked.sort(key=lambda item: item[0])
         return [g for _, g in ranked], attempts, {"move_space": attempts}
