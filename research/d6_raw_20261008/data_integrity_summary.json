@@ -1,0 +1,43 @@
+{
+  "status": "complete_archive_members_and_local_files_size_sha256_verified",
+  "files": 12562,
+  "raw_bytes": 4367630002,
+  "archive_bytes": 278790471,
+  "archive_sha256": "5b513fa9ebd5e7359810da68131e03458ceb9dca0748a0cffb3cab792f148f6b",
+  "manifest_sha256": "a43220ab5df8c0d1ec2e0e9d2c4d589ab9cc669869015f7e54bad1393474bded",
+  "runs": 1024,
+  "blocks": 256,
+  "source_commit": "3a1342cef98dae4b09cd370f40417a119efb4703",
+  "source_hash": "592cf56992cfd0079f7dd9f3e581efdf01215af4cbe5f6d66ccba443cdd9e2d9",
+  "server_originals": "retained",
+  "finished": 1791466991.0417426,
+  "matrix": {
+    "bases": 64,
+    "jobs": [
+      50,
+      100
+    ],
+    "tariffs": [
+      "H",
+      "T"
+    ],
+    "algorithm_seeds": [
+      1101,
+      2202
+    ],
+    "arms": [
+      "LEGACY",
+      "REFERENCE",
+      "W",
+      "GW"
+    ],
+    "seconds_by_jobs": {
+      "50": 1200,
+      "100": 2400
+    }
+  },
+  "original_worker_final_exact_solutions": 545341,
+  "quality_analysis_performed": false,
+  "quality_analysis_status": "deferred_by_user",
+  "release_tag": "d6-formal-raw-20261008-3a1342c"
+}

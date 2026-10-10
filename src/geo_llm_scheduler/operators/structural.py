@@ -13,6 +13,47 @@ from geo_llm_scheduler.scheduling.resources import est_for
 from geo_llm_scheduler.utils.numeric import EPS_RATIO, TOL
 
 
+def relocation_tou_proxy(
+    problem: ProblemInstance, incumbent: Candidate
+) -> dict[tuple[int, int], float]:
+    """Cache tariff exposure per operation/target instance at incumbent times.
+
+    Values use active-minus-idle kW and seconds/3600. They are ranking proxies,
+    not exact marginal bills: union overlap, changed starts and demand are ignored.
+    """
+    result = {}
+    for operation in range(problem.operation_count):
+        start = incumbent.schedule.starts[operation]
+        end = start + problem.profile(operation).duration
+        exposure = {}
+        for region, data in enumerate(problem.regions):
+            exposure[region] = (
+                sum(
+                    max(0.0, min(end, period.end) - max(start, period.start)) * period.price
+                    for period in data.tariffs
+                )
+                / 3600
+            )
+        for machine, instance in enumerate(problem.instances):
+            result[operation, machine] = (instance.active_kw - instance.idle_kw) * exposure[
+                instance.region
+            ]
+    return result
+
+
+def relocation_tou_rank(prefill_delta: float, decode_delta: float) -> int:
+    """Return a deterministic absolute-cost bucket for the relocation proxy.
+
+    Phase differences are summed with fsum, avoiding a+b-a-b cancellation.
+    Absolute deltas within TOL.cost are zero; otherwise nearest integer cost
+    buckets (ties-to-even) give a transitive ordering. Equal buckets retain the
+    existing region-load, path-load, KV and identity tie breakers. Bucket edges
+    do not imply every pair less than TOL.cost apart has the same rank.
+    """
+    delta = math.fsum((prefill_delta, decode_delta))
+    return 0 if abs(delta) <= TOL.cost else round(delta / TOL.cost)
+
+
 def operation_order(genotype: Genotype) -> list[int]:
     """Expand repeated jobs into explicit P/D operation identities."""
     seen: set[int] = set()
@@ -119,6 +160,11 @@ class StructuralOperator:
             resource / config.severity_thresholds[0] >= kv / config.severity_thresholds[1]
         )
         attempts = 0
+        tariff = (
+            relocation_tou_proxy(p, x)
+            if self.action == 3 and config.a3_region_policy == "tariff"
+            else None
+        )
         for i, job in enumerate(p.jobs):
             region = p.instances[g.ms[2 * i]].region
             if self.action == 1:
@@ -144,6 +190,7 @@ class StructuralOperator:
                 newloads = machine_loads(p, new)
                 pathload = max(newloads[a], newloads[b])
                 newkv = job.kv_delay * (a != b)
+                key: tuple[float, ...]
                 if self.action == 2:
                     key = (
                         (-wait[2 * i] - wait[2 * i + 1], pathload, newkv, i, a, b)
@@ -159,6 +206,12 @@ class StructuralOperator:
                     )
                 else:
                     key = (imbalance(region_loads(p, new)), pathload, newkv, i, a, b)
+                    if tariff is not None:
+                        rank = relocation_tou_rank(
+                            tariff[2 * i, a] - tariff[2 * i, g.ms[2 * i]],
+                            tariff[2 * i + 1, b] - tariff[2 * i + 1, g.ms[2 * i + 1]],
+                        )
+                        key = (rank, *key)
                 ranked.append((key, new))
         ranked.sort(key=lambda item: item[0])
         return [g for _, g in ranked], attempts, {"move_space": attempts}
