@@ -22,10 +22,23 @@ def encode(preference_id: int, dominant: int, stagnant: bool) -> int:
     return (preference_id * 7 + dominant) * 2 + int(stagnant)
 
 
-def decode(state: int) -> tuple[str, str, str]:
-    """Return the three stable labels represented by a 42-state identifier."""
-    if state not in range(42):
-        raise ValueError("State identifier outside the 42-state space")
+def state_count(policy: str = "dominant") -> int:
+    """Return the frozen D7 state-space size; reject unknown policies."""
+    sizes = {"dominant": 42, "pooled": 6, "compound": 84}
+    if policy not in sizes:
+        raise ValueError("Unknown RL state policy")
+    return sizes[policy]
+
+
+def decode(state: int, policy: str = "dominant") -> tuple[str, str, str]:
+    """Decode labels; compound's low bit records coexistence separately."""
+    if state not in range(state_count(policy)):
+        raise ValueError("State identifier outside the configured state space")
+    if policy == "pooled":
+        preference_id, stagnant = divmod(state, 2)
+        return PREFERENCE_LABELS[preference_id], "Pooled", PROGRESS_LABELS[stagnant]
+    if policy == "compound":
+        state //= 2
     preference_id, remainder = divmod(state, 14)
     dominant, stagnant = divmod(remainder, 2)
     return (
@@ -39,11 +52,18 @@ def extract(index: int, values: tuple[float, ...], stagnant_count: int, config: 
     """Select largest relative threshold violation; fixed-order severity ties."""
     ratios = [v / t for v, t in zip(values, config.severity_thresholds)]
     dominant = 0 if max(ratios, default=0) <= 1 else 1 + max(range(6), key=lambda k: ratios[k])
-    return encode(
+    base = encode(
         preference(index, config.population),
         dominant,
         stagnant_count >= config.stagnation_threshold,
     )
+    if config.rl_state_policy == "pooled":
+        return 2 * preference(index, config.population) + int(
+            stagnant_count >= config.stagnation_threshold
+        )
+    if config.rl_state_policy == "compound":
+        return 2 * base + int(sum(r > 1 for r in ratios) >= 2)
+    return base
 
 
 def direction(weight: tuple[float, float]) -> tuple[float, float]:

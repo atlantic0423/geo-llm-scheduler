@@ -1,0 +1,1349 @@
+{
+  "status": "VERIFIED_independent_record_and_frozen_gate_recompute",
+  "source_commit": "cfeb369573b06229332827c73076bd5a73abcce5",
+  "source_hash": "9102cf8419ae33b125c0844953f620d2df92d58b9d4d6605e46819e30d4ed467",
+  "bases": {
+    "875001": {
+      "counts": {
+        "calls": 324,
+        "empty": 174,
+        "exact": 301,
+        "bill_improved": 301,
+        "scalar_improved": 67,
+        "scalar_positive_calls": 47,
+        "recipes": 1907,
+        "nonempty_recipes": 1907,
+        "applicable": 1905,
+        "denied": 255,
+        "prunable_recipes": 255,
+        "peak_gate": 1415,
+        "denied_peak_gate": 247,
+        "proposal": 301,
+        "denied_proposal": 0,
+        "resource_positions": 170,
+        "denied_resource_positions": 8,
+        "duplicate": 21,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.6762048192322254,
+        "evaluation_seconds": 0.5172334089875221,
+        "audit_seconds": 3.988666471093893,
+        "certificate_seconds": 0.3085295148193836,
+        "repair_seconds": 2.263990143314004,
+        "denied_repair_seconds": 0.29278405383229256
+      }
+    },
+    "875002": {
+      "counts": {
+        "calls": 324,
+        "empty": 204,
+        "exact": 221,
+        "bill_improved": 221,
+        "scalar_improved": 17,
+        "scalar_positive_calls": 13,
+        "recipes": 1921,
+        "nonempty_recipes": 1921,
+        "applicable": 1826,
+        "denied": 240,
+        "prunable_recipes": 240,
+        "resource_positions": 362,
+        "denied_resource_positions": 44,
+        "proposal": 221,
+        "denied_proposal": 0,
+        "peak_gate": 1331,
+        "denied_peak_gate": 196,
+        "duplicate": 7,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.7370361536741257,
+        "evaluation_seconds": 0.4300373336300254,
+        "audit_seconds": 3.898401001468301,
+        "certificate_seconds": 0.3784377910196781,
+        "repair_seconds": 2.3009588019922376,
+        "denied_repair_seconds": 0.2688400447368622
+      }
+    },
+    "875003": {
+      "counts": {
+        "calls": 324,
+        "empty": 139,
+        "exact": 309,
+        "bill_improved": 309,
+        "scalar_improved": 31,
+        "scalar_positive_calls": 25,
+        "recipes": 1932,
+        "nonempty_recipes": 1932,
+        "applicable": 1917,
+        "denied": 226,
+        "prunable_recipes": 226,
+        "proposal": 309,
+        "denied_proposal": 0,
+        "peak_gate": 1391,
+        "denied_peak_gate": 213,
+        "duplicate": 16,
+        "denied_duplicate": 0,
+        "resource_positions": 216,
+        "denied_resource_positions": 13
+      },
+      "costs": {
+        "construction_seconds": 2.4661142798140645,
+        "evaluation_seconds": 0.5032410873100162,
+        "audit_seconds": 3.7273907847702503,
+        "certificate_seconds": 0.2563873454928398,
+        "repair_seconds": 2.1262471098452806,
+        "denied_repair_seconds": 0.24650526698678732
+      }
+    },
+    "875004": {
+      "counts": {
+        "calls": 324,
+        "empty": 154,
+        "exact": 328,
+        "bill_improved": 328,
+        "scalar_improved": 31,
+        "scalar_positive_calls": 18,
+        "recipes": 1895,
+        "nonempty_recipes": 1895,
+        "applicable": 1895,
+        "denied": 267,
+        "prunable_recipes": 267,
+        "peak_gate": 1285,
+        "denied_peak_gate": 252,
+        "proposal": 328,
+        "denied_proposal": 0,
+        "duplicate": 6,
+        "denied_duplicate": 0,
+        "resource_positions": 276,
+        "denied_resource_positions": 15
+      },
+      "costs": {
+        "construction_seconds": 2.576394859701395,
+        "evaluation_seconds": 0.5682845823466778,
+        "audit_seconds": 4.080374300479889,
+        "certificate_seconds": 0.3118452448397875,
+        "repair_seconds": 2.185546448454261,
+        "denied_repair_seconds": 0.30904676392674446
+      }
+    },
+    "875005": {
+      "counts": {
+        "calls": 324,
+        "empty": 162,
+        "exact": 298,
+        "bill_improved": 298,
+        "scalar_improved": 29,
+        "scalar_positive_calls": 24,
+        "recipes": 1873,
+        "nonempty_recipes": 1873,
+        "applicable": 1804,
+        "denied": 171,
+        "prunable_recipes": 171,
+        "peak_gate": 1446,
+        "denied_peak_gate": 171,
+        "proposal": 298,
+        "denied_proposal": 0,
+        "resource_positions": 112,
+        "denied_resource_positions": 0,
+        "duplicate": 17,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.5313053922727704,
+        "evaluation_seconds": 0.5081865275278687,
+        "audit_seconds": 3.8123562382534146,
+        "certificate_seconds": 0.2858572518453002,
+        "repair_seconds": 2.1760830050334334,
+        "denied_repair_seconds": 0.19769262429326773
+      }
+    },
+    "875006": {
+      "counts": {
+        "calls": 324,
+        "empty": 218,
+        "exact": 226,
+        "bill_improved": 226,
+        "scalar_improved": 17,
+        "scalar_positive_calls": 10,
+        "recipes": 1878,
+        "nonempty_recipes": 1878,
+        "applicable": 1806,
+        "denied": 343,
+        "prunable_recipes": 343,
+        "peak_gate": 1389,
+        "denied_peak_gate": 334,
+        "proposal": 226,
+        "denied_proposal": 0,
+        "resource_positions": 257,
+        "denied_resource_positions": 9,
+        "duplicate": 6,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.9072488518431783,
+        "evaluation_seconds": 0.43699874728918076,
+        "audit_seconds": 3.902572209946811,
+        "certificate_seconds": 0.2958556981757283,
+        "repair_seconds": 2.4823034135624766,
+        "denied_repair_seconds": 0.47005676571279764
+      }
+    },
+    "875007": {
+      "counts": {
+        "calls": 324,
+        "empty": 167,
+        "exact": 303,
+        "bill_improved": 303,
+        "scalar_improved": 58,
+        "scalar_positive_calls": 35,
+        "recipes": 1917,
+        "nonempty_recipes": 1917,
+        "applicable": 1913,
+        "denied": 347,
+        "prunable_recipes": 347,
+        "peak_gate": 1519,
+        "denied_peak_gate": 337,
+        "proposal": 303,
+        "denied_proposal": 0,
+        "resource_positions": 93,
+        "denied_resource_positions": 10,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 3.163309666328132,
+        "evaluation_seconds": 0.5885145040228963,
+        "audit_seconds": 4.6068221954628825,
+        "certificate_seconds": 0.32637782394886017,
+        "repair_seconds": 2.6557207852602005,
+        "denied_repair_seconds": 0.4644872574135661
+      }
+    },
+    "875008": {
+      "counts": {
+        "calls": 324,
+        "empty": 146,
+        "exact": 349,
+        "bill_improved": 349,
+        "scalar_improved": 42,
+        "scalar_positive_calls": 27,
+        "recipes": 1883,
+        "nonempty_recipes": 1883,
+        "applicable": 1883,
+        "denied": 302,
+        "prunable_recipes": 302,
+        "peak_gate": 1348,
+        "denied_peak_gate": 289,
+        "resource_positions": 173,
+        "denied_resource_positions": 13,
+        "proposal": 349,
+        "denied_proposal": 0,
+        "duplicate": 13,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.4556753747165203,
+        "evaluation_seconds": 0.5611745715141296,
+        "audit_seconds": 3.7867940068244934,
+        "certificate_seconds": 0.28032875806093216,
+        "repair_seconds": 2.108592212200165,
+        "denied_repair_seconds": 0.3350443644449115
+      }
+    },
+    "875009": {
+      "counts": {
+        "calls": 324,
+        "empty": 209,
+        "exact": 199,
+        "bill_improved": 199,
+        "scalar_improved": 30,
+        "scalar_positive_calls": 23,
+        "recipes": 1932,
+        "nonempty_recipes": 1932,
+        "applicable": 1932,
+        "denied": 337,
+        "prunable_recipes": 337,
+        "peak_gate": 1591,
+        "denied_peak_gate": 320,
+        "proposal": 199,
+        "denied_proposal": 0,
+        "resource_positions": 133,
+        "denied_resource_positions": 17,
+        "duplicate": 9,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.6606646766886115,
+        "evaluation_seconds": 0.3284555086866021,
+        "audit_seconds": 3.75550602003932,
+        "certificate_seconds": 0.2689187163487077,
+        "repair_seconds": 2.277035721577704,
+        "denied_repair_seconds": 0.37778792157769203
+      }
+    },
+    "875010": {
+      "counts": {
+        "calls": 324,
+        "empty": 191,
+        "exact": 240,
+        "bill_improved": 239,
+        "scalar_improved": 23,
+        "scalar_positive_calls": 15,
+        "recipes": 1916,
+        "nonempty_recipes": 1916,
+        "applicable": 1916,
+        "denied": 350,
+        "prunable_recipes": 350,
+        "peak_gate": 1382,
+        "denied_peak_gate": 328,
+        "proposal": 240,
+        "denied_proposal": 0,
+        "resource_positions": 293,
+        "denied_resource_positions": 22,
+        "duplicate": 1,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.868457726202905,
+        "evaluation_seconds": 0.4563227938488126,
+        "audit_seconds": 4.123823292553425,
+        "certificate_seconds": 0.3523126933723688,
+        "repair_seconds": 2.406379012390971,
+        "denied_repair_seconds": 0.4329824363812804
+      }
+    },
+    "875011": {
+      "counts": {
+        "calls": 324,
+        "empty": 159,
+        "exact": 328,
+        "bill_improved": 328,
+        "scalar_improved": 37,
+        "scalar_positive_calls": 26,
+        "recipes": 1904,
+        "nonempty_recipes": 1904,
+        "applicable": 1904,
+        "denied": 173,
+        "prunable_recipes": 173,
+        "proposal": 328,
+        "denied_proposal": 0,
+        "resource_positions": 151,
+        "denied_resource_positions": 6,
+        "duplicate": 21,
+        "denied_duplicate": 0,
+        "peak_gate": 1404,
+        "denied_peak_gate": 167
+      },
+      "costs": {
+        "construction_seconds": 2.5869628535583615,
+        "evaluation_seconds": 0.5408500963822007,
+        "audit_seconds": 4.005481831729412,
+        "certificate_seconds": 0.29490593168884516,
+        "repair_seconds": 2.2351186256855726,
+        "denied_repair_seconds": 0.1946241306141019
+      }
+    },
+    "875012": {
+      "counts": {
+        "calls": 324,
+        "empty": 172,
+        "exact": 317,
+        "bill_improved": 317,
+        "scalar_improved": 26,
+        "scalar_positive_calls": 17,
+        "recipes": 1887,
+        "nonempty_recipes": 1887,
+        "applicable": 1780,
+        "denied": 317,
+        "prunable_recipes": 317,
+        "peak_gate": 1365,
+        "denied_peak_gate": 317,
+        "resource_positions": 187,
+        "denied_resource_positions": 0,
+        "proposal": 317,
+        "denied_proposal": 0,
+        "duplicate": 18,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.602952159009874,
+        "evaluation_seconds": 0.5191611777991056,
+        "audit_seconds": 3.7477365573868155,
+        "certificate_seconds": 0.2980794729664922,
+        "repair_seconds": 2.2041249480098486,
+        "denied_repair_seconds": 0.38675388041883707
+      }
+    },
+    "875013": {
+      "counts": {
+        "calls": 324,
+        "empty": 195,
+        "exact": 238,
+        "bill_improved": 238,
+        "scalar_improved": 33,
+        "scalar_positive_calls": 21,
+        "recipes": 1917,
+        "nonempty_recipes": 1917,
+        "applicable": 1916,
+        "denied": 258,
+        "prunable_recipes": 258,
+        "peak_gate": 1450,
+        "denied_peak_gate": 250,
+        "proposal": 238,
+        "denied_proposal": 0,
+        "resource_positions": 222,
+        "denied_resource_positions": 8,
+        "duplicate": 7,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.7839576164260507,
+        "evaluation_seconds": 0.4168541757389903,
+        "audit_seconds": 4.040965274907649,
+        "certificate_seconds": 0.30437927413731813,
+        "repair_seconds": 2.3559277234598994,
+        "denied_repair_seconds": 0.3265898022800684
+      }
+    },
+    "875014": {
+      "counts": {
+        "calls": 324,
+        "empty": 162,
+        "exact": 290,
+        "bill_improved": 289,
+        "scalar_improved": 56,
+        "scalar_positive_calls": 33,
+        "recipes": 1903,
+        "nonempty_recipes": 1903,
+        "applicable": 1879,
+        "denied": 246,
+        "prunable_recipes": 246,
+        "proposal": 290,
+        "denied_proposal": 0,
+        "peak_gate": 1558,
+        "denied_peak_gate": 245,
+        "resource_positions": 53,
+        "denied_resource_positions": 1,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 3.1609330493956804,
+        "evaluation_seconds": 0.562435238622129,
+        "audit_seconds": 4.577963015064597,
+        "certificate_seconds": 0.3245443915948272,
+        "repair_seconds": 2.7221538051962852,
+        "denied_repair_seconds": 0.34056070260703564
+      }
+    },
+    "875015": {
+      "counts": {
+        "calls": 324,
+        "empty": 210,
+        "exact": 188,
+        "bill_improved": 188,
+        "scalar_improved": 43,
+        "scalar_positive_calls": 36,
+        "recipes": 1928,
+        "nonempty_recipes": 1928,
+        "applicable": 1879,
+        "denied": 245,
+        "prunable_recipes": 245,
+        "peak_gate": 1388,
+        "denied_peak_gate": 230,
+        "proposal": 188,
+        "denied_proposal": 0,
+        "resource_positions": 344,
+        "denied_resource_positions": 15,
+        "duplicate": 8,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.746944415383041,
+        "evaluation_seconds": 0.38483848702162504,
+        "audit_seconds": 4.064649858511984,
+        "certificate_seconds": 0.3503906223922968,
+        "repair_seconds": 2.322370896115899,
+        "denied_repair_seconds": 0.28976180870085955
+      }
+    },
+    "875016": {
+      "counts": {
+        "calls": 324,
+        "empty": 179,
+        "exact": 259,
+        "bill_improved": 259,
+        "scalar_improved": 27,
+        "scalar_positive_calls": 19,
+        "recipes": 1925,
+        "nonempty_recipes": 1925,
+        "applicable": 1831,
+        "denied": 329,
+        "prunable_recipes": 329,
+        "peak_gate": 1482,
+        "denied_peak_gate": 321,
+        "proposal": 259,
+        "denied_proposal": 0,
+        "resource_positions": 180,
+        "denied_resource_positions": 8,
+        "duplicate": 4,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 2.869040548801422,
+        "evaluation_seconds": 0.4831951344385743,
+        "audit_seconds": 4.09436671435833,
+        "certificate_seconds": 0.34396275971084833,
+        "repair_seconds": 2.4199458863586187,
+        "denied_repair_seconds": 0.4188402434810996
+      }
+    },
+    "885001": {
+      "counts": {
+        "calls": 324,
+        "empty": 195,
+        "exact": 242,
+        "bill_improved": 242,
+        "scalar_improved": 90,
+        "scalar_positive_calls": 51,
+        "recipes": 1912,
+        "nonempty_recipes": 1912,
+        "applicable": 1912,
+        "denied": 310,
+        "prunable_recipes": 310,
+        "peak_gate": 867,
+        "denied_peak_gate": 234,
+        "proposal": 242,
+        "denied_proposal": 0,
+        "resource_positions": 801,
+        "denied_resource_positions": 76,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.633608279749751,
+        "evaluation_seconds": 1.1958831995725632,
+        "audit_seconds": 7.89124561380595,
+        "certificate_seconds": 0.5912901312112808,
+        "repair_seconds": 4.860337663441896,
+        "denied_repair_seconds": 0.9470099415630102
+      }
+    },
+    "885002": {
+      "counts": {
+        "calls": 324,
+        "empty": 196,
+        "exact": 267,
+        "bill_improved": 267,
+        "scalar_improved": 109,
+        "scalar_positive_calls": 53,
+        "recipes": 1881,
+        "nonempty_recipes": 1881,
+        "applicable": 1866,
+        "denied": 384,
+        "prunable_recipes": 384,
+        "peak_gate": 695,
+        "denied_peak_gate": 229,
+        "resource_positions": 917,
+        "denied_resource_positions": 155,
+        "proposal": 267,
+        "denied_proposal": 0,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.170757574029267,
+        "evaluation_seconds": 1.3011505380272865,
+        "audit_seconds": 6.992837401106954,
+        "certificate_seconds": 0.5724999839439988,
+        "repair_seconds": 4.163040393963456,
+        "denied_repair_seconds": 0.933010314591229
+      }
+    },
+    "885003": {
+      "counts": {
+        "calls": 324,
+        "empty": 235,
+        "exact": 188,
+        "bill_improved": 188,
+        "scalar_improved": 98,
+        "scalar_positive_calls": 42,
+        "recipes": 1899,
+        "nonempty_recipes": 1899,
+        "applicable": 1891,
+        "denied": 325,
+        "prunable_recipes": 325,
+        "peak_gate": 791,
+        "denied_peak_gate": 234,
+        "resource_positions": 908,
+        "denied_resource_positions": 91,
+        "proposal": 188,
+        "denied_proposal": 0,
+        "duplicate": 12,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.289814257062972,
+        "evaluation_seconds": 0.97161331679672,
+        "audit_seconds": 7.0906743966042995,
+        "certificate_seconds": 0.5982249053195119,
+        "repair_seconds": 4.451812797226012,
+        "denied_repair_seconds": 0.9895463027060032
+      }
+    },
+    "885004": {
+      "counts": {
+        "calls": 324,
+        "empty": 180,
+        "exact": 258,
+        "bill_improved": 258,
+        "scalar_improved": 96,
+        "scalar_positive_calls": 55,
+        "recipes": 1907,
+        "nonempty_recipes": 1907,
+        "applicable": 1906,
+        "denied": 287,
+        "prunable_recipes": 287,
+        "peak_gate": 831,
+        "denied_peak_gate": 214,
+        "resource_positions": 816,
+        "denied_resource_positions": 73,
+        "proposal": 258,
+        "denied_proposal": 0,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.80733572691679,
+        "evaluation_seconds": 1.4406326794996858,
+        "audit_seconds": 8.462840291671455,
+        "certificate_seconds": 0.6190844671800733,
+        "repair_seconds": 5.063879857771099,
+        "denied_repair_seconds": 0.8729106485843658
+      }
+    },
+    "885005": {
+      "counts": {
+        "calls": 324,
+        "empty": 168,
+        "exact": 329,
+        "bill_improved": 329,
+        "scalar_improved": 111,
+        "scalar_positive_calls": 49,
+        "recipes": 1855,
+        "nonempty_recipes": 1855,
+        "applicable": 1855,
+        "denied": 339,
+        "prunable_recipes": 339,
+        "proposal": 329,
+        "denied_proposal": 0,
+        "peak_gate": 750,
+        "denied_peak_gate": 250,
+        "resource_positions": 772,
+        "denied_resource_positions": 89,
+        "duplicate": 4,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.505436736159027,
+        "evaluation_seconds": 1.6657961625605822,
+        "audit_seconds": 8.08420337550342,
+        "certificate_seconds": 0.5650534983724356,
+        "repair_seconds": 4.6790961641818285,
+        "denied_repair_seconds": 0.9865344353020191
+      }
+    },
+    "885006": {
+      "counts": {
+        "calls": 324,
+        "empty": 166,
+        "exact": 296,
+        "bill_improved": 296,
+        "scalar_improved": 122,
+        "scalar_positive_calls": 62,
+        "recipes": 1898,
+        "nonempty_recipes": 1898,
+        "applicable": 1898,
+        "denied": 303,
+        "prunable_recipes": 303,
+        "proposal": 296,
+        "denied_proposal": 0,
+        "peak_gate": 872,
+        "denied_peak_gate": 249,
+        "resource_positions": 720,
+        "denied_resource_positions": 54,
+        "duplicate": 10,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.71357845608145,
+        "evaluation_seconds": 1.4196570347994566,
+        "audit_seconds": 8.259416819550097,
+        "certificate_seconds": 0.5875164875760674,
+        "repair_seconds": 4.9360919846221805,
+        "denied_repair_seconds": 0.9822509866207838
+      }
+    },
+    "885007": {
+      "counts": {
+        "calls": 324,
+        "empty": 189,
+        "exact": 285,
+        "bill_improved": 285,
+        "scalar_improved": 80,
+        "scalar_positive_calls": 42,
+        "recipes": 1872,
+        "nonempty_recipes": 1872,
+        "applicable": 1869,
+        "denied": 342,
+        "prunable_recipes": 342,
+        "proposal": 285,
+        "denied_proposal": 0,
+        "peak_gate": 998,
+        "denied_peak_gate": 284,
+        "resource_positions": 587,
+        "denied_resource_positions": 58,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 6.272258753888309,
+        "evaluation_seconds": 1.4607141204178333,
+        "audit_seconds": 8.894911363720894,
+        "certificate_seconds": 0.5673083597794175,
+        "repair_seconds": 5.484133565798402,
+        "denied_repair_seconds": 1.1055778991430998
+      }
+    },
+    "885008": {
+      "counts": {
+        "calls": 324,
+        "empty": 202,
+        "exact": 225,
+        "bill_improved": 225,
+        "scalar_improved": 95,
+        "scalar_positive_calls": 53,
+        "recipes": 1911,
+        "nonempty_recipes": 1911,
+        "applicable": 1911,
+        "denied": 338,
+        "prunable_recipes": 338,
+        "resource_positions": 692,
+        "denied_resource_positions": 58,
+        "peak_gate": 991,
+        "denied_peak_gate": 280,
+        "proposal": 225,
+        "denied_proposal": 0,
+        "duplicate": 3,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 6.046000891365111,
+        "evaluation_seconds": 1.127591485157609,
+        "audit_seconds": 8.381433701142669,
+        "certificate_seconds": 0.6237431755289435,
+        "repair_seconds": 5.246826056391001,
+        "denied_repair_seconds": 1.1359262568876147
+      }
+    },
+    "885009": {
+      "counts": {
+        "calls": 324,
+        "empty": 187,
+        "exact": 279,
+        "bill_improved": 279,
+        "scalar_improved": 97,
+        "scalar_positive_calls": 51,
+        "recipes": 1898,
+        "nonempty_recipes": 1898,
+        "applicable": 1894,
+        "denied": 322,
+        "prunable_recipes": 322,
+        "resource_positions": 744,
+        "denied_resource_positions": 92,
+        "peak_gate": 868,
+        "denied_peak_gate": 230,
+        "proposal": 279,
+        "denied_proposal": 0,
+        "duplicate": 7,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.866622230038047,
+        "evaluation_seconds": 1.440000199712813,
+        "audit_seconds": 8.402362313121557,
+        "certificate_seconds": 0.6202240902930498,
+        "repair_seconds": 5.016877386718988,
+        "denied_repair_seconds": 0.9379824316129088
+      }
+    },
+    "885010": {
+      "counts": {
+        "calls": 324,
+        "empty": 158,
+        "exact": 349,
+        "bill_improved": 349,
+        "scalar_improved": 107,
+        "scalar_positive_calls": 52,
+        "recipes": 1867,
+        "nonempty_recipes": 1867,
+        "applicable": 1865,
+        "denied": 279,
+        "prunable_recipes": 279,
+        "resource_positions": 534,
+        "denied_resource_positions": 48,
+        "peak_gate": 983,
+        "denied_peak_gate": 231,
+        "proposal": 349,
+        "denied_proposal": 0,
+        "duplicate": 1,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 6.867998406291008,
+        "evaluation_seconds": 1.8374002827331424,
+        "audit_seconds": 10.216525525785983,
+        "certificate_seconds": 0.6548935547471046,
+        "repair_seconds": 6.034988887608051,
+        "denied_repair_seconds": 1.0259784236550331
+      }
+    },
+    "885011": {
+      "counts": {
+        "calls": 324,
+        "empty": 190,
+        "exact": 263,
+        "bill_improved": 263,
+        "scalar_improved": 106,
+        "scalar_positive_calls": 55,
+        "recipes": 1903,
+        "nonempty_recipes": 1903,
+        "applicable": 1903,
+        "denied": 343,
+        "prunable_recipes": 343,
+        "peak_gate": 815,
+        "denied_peak_gate": 280,
+        "proposal": 263,
+        "denied_proposal": 0,
+        "resource_positions": 822,
+        "denied_resource_positions": 63,
+        "duplicate": 3,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.610397532582283,
+        "evaluation_seconds": 1.36355260014534,
+        "audit_seconds": 8.16065788641572,
+        "certificate_seconds": 0.6129075102508068,
+        "repair_seconds": 4.873109131120145,
+        "denied_repair_seconds": 1.191415760666132
+      }
+    },
+    "885012": {
+      "counts": {
+        "calls": 324,
+        "empty": 184,
+        "exact": 276,
+        "bill_improved": 276,
+        "scalar_improved": 85,
+        "scalar_positive_calls": 47,
+        "recipes": 1891,
+        "nonempty_recipes": 1891,
+        "applicable": 1876,
+        "denied": 343,
+        "prunable_recipes": 343,
+        "peak_gate": 924,
+        "denied_peak_gate": 268,
+        "proposal": 276,
+        "denied_proposal": 0,
+        "resource_positions": 683,
+        "denied_resource_positions": 75,
+        "duplicate": 8,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 6.0306634698063135,
+        "evaluation_seconds": 1.3304877476766706,
+        "audit_seconds": 8.383967760019004,
+        "certificate_seconds": 0.5895407339558005,
+        "repair_seconds": 5.267473703250289,
+        "denied_repair_seconds": 1.100455923937261
+      }
+    },
+    "885013": {
+      "counts": {
+        "calls": 324,
+        "empty": 197,
+        "exact": 223,
+        "bill_improved": 223,
+        "scalar_improved": 86,
+        "scalar_positive_calls": 48,
+        "recipes": 1928,
+        "nonempty_recipes": 1928,
+        "applicable": 1928,
+        "denied": 327,
+        "prunable_recipes": 327,
+        "proposal": 223,
+        "denied_proposal": 0,
+        "peak_gate": 794,
+        "denied_peak_gate": 240,
+        "resource_positions": 909,
+        "denied_resource_positions": 87,
+        "duplicate": 2,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.591409654356539,
+        "evaluation_seconds": 1.1657296046614647,
+        "audit_seconds": 7.727556644938886,
+        "certificate_seconds": 0.6488295271992683,
+        "repair_seconds": 4.6863484578207135,
+        "denied_repair_seconds": 1.0046419333666563
+      }
+    },
+    "885014": {
+      "counts": {
+        "calls": 324,
+        "empty": 185,
+        "exact": 270,
+        "bill_improved": 270,
+        "scalar_improved": 99,
+        "scalar_positive_calls": 48,
+        "recipes": 1901,
+        "nonempty_recipes": 1901,
+        "applicable": 1900,
+        "denied": 336,
+        "prunable_recipes": 336,
+        "proposal": 270,
+        "denied_proposal": 0,
+        "peak_gate": 974,
+        "denied_peak_gate": 280,
+        "resource_positions": 649,
+        "denied_resource_positions": 56,
+        "duplicate": 8,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.9380987929180264,
+        "evaluation_seconds": 1.286721902899444,
+        "audit_seconds": 8.292290658690035,
+        "certificate_seconds": 0.5688950177282095,
+        "repair_seconds": 5.168345184996724,
+        "denied_repair_seconds": 1.0875730691477656
+      }
+    },
+    "885015": {
+      "counts": {
+        "calls": 324,
+        "empty": 209,
+        "exact": 212,
+        "bill_improved": 212,
+        "scalar_improved": 82,
+        "scalar_positive_calls": 49,
+        "recipes": 1915,
+        "nonempty_recipes": 1915,
+        "applicable": 1915,
+        "denied": 349,
+        "prunable_recipes": 349,
+        "peak_gate": 820,
+        "denied_peak_gate": 227,
+        "resource_positions": 876,
+        "denied_resource_positions": 122,
+        "proposal": 212,
+        "denied_proposal": 0,
+        "duplicate": 7,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 5.26640750002116,
+        "evaluation_seconds": 1.0220231106504798,
+        "audit_seconds": 7.377841626293957,
+        "certificate_seconds": 0.6202310705557466,
+        "repair_seconds": 4.493753475137055,
+        "denied_repair_seconds": 0.9371014619246125
+      }
+    },
+    "885016": {
+      "counts": {
+        "calls": 324,
+        "empty": 170,
+        "exact": 303,
+        "bill_improved": 303,
+        "scalar_improved": 120,
+        "scalar_positive_calls": 62,
+        "recipes": 1888,
+        "nonempty_recipes": 1888,
+        "applicable": 1883,
+        "denied": 300,
+        "prunable_recipes": 300,
+        "peak_gate": 758,
+        "denied_peak_gate": 233,
+        "resource_positions": 827,
+        "denied_resource_positions": 67,
+        "proposal": 303,
+        "denied_proposal": 0
+      },
+      "costs": {
+        "construction_seconds": 4.978695496916771,
+        "evaluation_seconds": 1.4448263952508569,
+        "audit_seconds": 7.631357135251164,
+        "certificate_seconds": 0.5719250030815601,
+        "repair_seconds": 4.36107677873224,
+        "denied_repair_seconds": 0.8934541661292315
+      }
+    }
+  },
+  "total": {
+    "counts": {
+      "calls": 10368,
+      "empty": 5852,
+      "exact": 8659,
+      "bill_improved": 8657,
+      "scalar_improved": 2150,
+      "scalar_positive_calls": 1208,
+      "recipes": 60844,
+      "nonempty_recipes": 60844,
+      "applicable": 60258,
+      "denied": 9633,
+      "prunable_recipes": 9633,
+      "peak_gate": 36475,
+      "denied_peak_gate": 8180,
+      "proposal": 8659,
+      "denied_proposal": 0,
+      "resource_positions": 15479,
+      "denied_resource_positions": 1453,
+      "duplicate": 231,
+      "denied_duplicate": 0
+    },
+    "costs": {
+      "construction_seconds": 135.38228620123118,
+      "evaluation_seconds": 29.279563755728304,
+      "audit_seconds": 194.4639922864735,
+      "certificate_seconds": 14.59328080713749,
+      "repair_seconds": 116.02969002723694,
+      "denied_repair_seconds": 21.48372802324593
+    }
+  },
+  "gate": {
+    "mean": 0.1583670532730425,
+    "ci": [
+      0.1485072912581147,
+      0.16760325542250887
+    ],
+    "candidate_gate": true
+  },
+  "descriptive_strata": {
+    "H": {
+      "counts": {
+        "calls": 5184,
+        "empty": 2905,
+        "exact": 4428,
+        "bill_improved": 4426,
+        "scalar_improved": 1052,
+        "scalar_positive_calls": 603,
+        "recipes": 30381,
+        "nonempty_recipes": 30381,
+        "applicable": 30017,
+        "denied": 4641,
+        "prunable_recipes": 4641,
+        "peak_gate": 18176,
+        "denied_peak_gate": 3925,
+        "proposal": 4428,
+        "denied_proposal": 0,
+        "resource_positions": 7656,
+        "denied_resource_positions": 716,
+        "duplicate": 121,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 68.63796324841678,
+        "evaluation_seconds": 14.977104117162526,
+        "audit_seconds": 98.44303331896663,
+        "certificate_seconds": 7.395974479615688,
+        "repair_seconds": 58.808513985946774,
+        "denied_repair_seconds": 10.547915055416524
+      }
+    },
+    "T": {
+      "counts": {
+        "calls": 5184,
+        "empty": 2947,
+        "exact": 4231,
+        "bill_improved": 4231,
+        "scalar_improved": 1098,
+        "scalar_positive_calls": 605,
+        "recipes": 30463,
+        "nonempty_recipes": 30463,
+        "applicable": 30241,
+        "denied": 4992,
+        "prunable_recipes": 4992,
+        "proposal": 4231,
+        "denied_proposal": 0,
+        "peak_gate": 18299,
+        "denied_peak_gate": 4255,
+        "resource_positions": 7823,
+        "denied_resource_positions": 737,
+        "duplicate": 110,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 66.7443229528144,
+        "evaluation_seconds": 14.302459638565779,
+        "audit_seconds": 96.02095896750689,
+        "certificate_seconds": 7.197306327521801,
+        "repair_seconds": 57.221176041290164,
+        "denied_repair_seconds": 10.935812967829406
+      }
+    },
+    "n100": {
+      "counts": {
+        "calls": 5184,
+        "empty": 3011,
+        "exact": 4265,
+        "bill_improved": 4265,
+        "scalar_improved": 1583,
+        "scalar_positive_calls": 819,
+        "recipes": 30326,
+        "nonempty_recipes": 30326,
+        "applicable": 30272,
+        "denied": 5227,
+        "prunable_recipes": 5227,
+        "peak_gate": 13731,
+        "denied_peak_gate": 3963,
+        "proposal": 4265,
+        "denied_proposal": 0,
+        "resource_positions": 12257,
+        "denied_resource_positions": 1264,
+        "duplicate": 73,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 91.58908375818282,
+        "evaluation_seconds": 21.473780380561948,
+        "audit_seconds": 130.25012251362205,
+        "certificate_seconds": 9.612167516723275,
+        "repair_seconds": 78.78719148878008,
+        "denied_repair_seconds": 16.131369955837727
+      }
+    },
+    "n50": {
+      "counts": {
+        "calls": 5184,
+        "empty": 2841,
+        "exact": 4394,
+        "bill_improved": 4392,
+        "scalar_improved": 567,
+        "scalar_positive_calls": 389,
+        "recipes": 30518,
+        "nonempty_recipes": 30518,
+        "applicable": 29986,
+        "denied": 4406,
+        "prunable_recipes": 4406,
+        "peak_gate": 22744,
+        "denied_peak_gate": 4217,
+        "proposal": 4394,
+        "denied_proposal": 0,
+        "resource_positions": 3222,
+        "denied_resource_positions": 189,
+        "duplicate": 158,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 43.79320244304836,
+        "evaluation_seconds": 7.805783375166357,
+        "audit_seconds": 64.21386977285147,
+        "certificate_seconds": 4.981113290414214,
+        "repair_seconds": 37.24249853845686,
+        "denied_repair_seconds": 5.352358067408204
+      }
+    },
+    "p0": {
+      "counts": {
+        "calls": 3456,
+        "empty": 1710,
+        "exact": 3368,
+        "bill_improved": 3368,
+        "scalar_improved": 412,
+        "scalar_positive_calls": 248,
+        "recipes": 20232,
+        "nonempty_recipes": 20232,
+        "applicable": 20096,
+        "denied": 2926,
+        "prunable_recipes": 2926,
+        "peak_gate": 12103,
+        "denied_peak_gate": 2549,
+        "proposal": 3368,
+        "denied_proposal": 0,
+        "resource_positions": 4682,
+        "denied_resource_positions": 377,
+        "duplicate": 79,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 45.842559101991355,
+        "evaluation_seconds": 10.850758113898337,
+        "audit_seconds": 66.81629347242415,
+        "certificate_seconds": 4.816843686625361,
+        "repair_seconds": 39.613410629332066,
+        "denied_repair_seconds": 6.927444355562329
+      }
+    },
+    "p1": {
+      "counts": {
+        "calls": 3456,
+        "empty": 1904,
+        "exact": 3008,
+        "bill_improved": 3008,
+        "scalar_improved": 698,
+        "scalar_positive_calls": 398,
+        "recipes": 20244,
+        "nonempty_recipes": 20244,
+        "applicable": 20038,
+        "denied": 3111,
+        "prunable_recipes": 3111,
+        "proposal": 3008,
+        "denied_proposal": 0,
+        "peak_gate": 12074,
+        "denied_peak_gate": 2654,
+        "duplicate": 88,
+        "denied_duplicate": 0,
+        "resource_positions": 5074,
+        "denied_resource_positions": 457
+      },
+      "costs": {
+        "construction_seconds": 44.92048995196819,
+        "evaluation_seconds": 10.137812505476177,
+        "audit_seconds": 65.51745694316924,
+        "certificate_seconds": 4.867027485743165,
+        "repair_seconds": 38.70687100570649,
+        "denied_repair_seconds": 6.9203723184764385
+      }
+    },
+    "p2": {
+      "counts": {
+        "calls": 3456,
+        "empty": 2238,
+        "exact": 2283,
+        "bill_improved": 2281,
+        "scalar_improved": 1040,
+        "scalar_positive_calls": 562,
+        "recipes": 20368,
+        "nonempty_recipes": 20368,
+        "applicable": 20124,
+        "denied": 3596,
+        "prunable_recipes": 3596,
+        "peak_gate": 12298,
+        "denied_peak_gate": 2977,
+        "proposal": 2283,
+        "denied_proposal": 0,
+        "resource_positions": 5723,
+        "denied_resource_positions": 619,
+        "duplicate": 64,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 44.61923714727163,
+        "evaluation_seconds": 8.29099313635379,
+        "audit_seconds": 62.13024187088013,
+        "certificate_seconds": 4.909409634768963,
+        "repair_seconds": 37.709408392198384,
+        "denied_repair_seconds": 7.635911349207163
+      }
+    },
+    "s0": {
+      "counts": {
+        "calls": 3456,
+        "empty": 1586,
+        "exact": 3751,
+        "bill_improved": 3751,
+        "scalar_improved": 1392,
+        "scalar_positive_calls": 731,
+        "recipes": 20088,
+        "nonempty_recipes": 20088,
+        "applicable": 19973,
+        "denied": 2635,
+        "prunable_recipes": 2635,
+        "peak_gate": 12071,
+        "denied_peak_gate": 2291,
+        "proposal": 3751,
+        "denied_proposal": 0,
+        "resource_positions": 4186,
+        "denied_resource_positions": 344,
+        "duplicate": 80,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 47.409892686642706,
+        "evaluation_seconds": 13.458130109123886,
+        "audit_seconds": 72.407865235582,
+        "certificate_seconds": 4.800928367301822,
+        "repair_seconds": 41.57514020521194,
+        "denied_repair_seconds": 5.67756512761116
+      }
+    },
+    "s1": {
+      "counts": {
+        "calls": 3456,
+        "empty": 2061,
+        "exact": 2651,
+        "bill_improved": 2649,
+        "scalar_improved": 307,
+        "scalar_positive_calls": 187,
+        "recipes": 20329,
+        "nonempty_recipes": 20329,
+        "applicable": 20162,
+        "denied": 3362,
+        "prunable_recipes": 3362,
+        "resource_positions": 5497,
+        "denied_resource_positions": 569,
+        "peak_gate": 12108,
+        "denied_peak_gate": 2793,
+        "proposal": 2651,
+        "denied_proposal": 0,
+        "duplicate": 73,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 44.08869532402605,
+        "evaluation_seconds": 8.723114085383713,
+        "audit_seconds": 62.5434067575261,
+        "certificate_seconds": 4.858492920175195,
+        "repair_seconds": 37.62119334936142,
+        "denied_repair_seconds": 7.62780165951699
+      }
+    },
+    "s2": {
+      "counts": {
+        "calls": 3456,
+        "empty": 2205,
+        "exact": 2257,
+        "bill_improved": 2257,
+        "scalar_improved": 451,
+        "scalar_positive_calls": 290,
+        "recipes": 20427,
+        "nonempty_recipes": 20427,
+        "applicable": 20123,
+        "denied": 3636,
+        "prunable_recipes": 3636,
+        "peak_gate": 12296,
+        "denied_peak_gate": 3096,
+        "resource_positions": 5796,
+        "denied_resource_positions": 540,
+        "proposal": 2257,
+        "denied_proposal": 0,
+        "duplicate": 78,
+        "denied_duplicate": 0
+      },
+      "costs": {
+        "construction_seconds": 43.88369819056243,
+        "evaluation_seconds": 7.0983195612207055,
+        "audit_seconds": 59.51272029336542,
+        "certificate_seconds": 4.933859519660473,
+        "repair_seconds": 36.83335647266358,
+        "denied_repair_seconds": 8.17836123611778
+      }
+    }
+  },
+  "scope": "Offline original A8; no online runtime, quality, or novelty claim."
+}
