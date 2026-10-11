@@ -1,0 +1,15 @@
+{
+  "state": "full_manifest_tar_members_local_files_size_sha256_verified",
+  "files": 58677,
+  "raw_bytes": 16009829318,
+  "archive_bytes": 1082832528,
+  "archive_sha256": "32594d72fbf464c01e3cea0580c856e14e71d204c8dfa1d64e45c178e1a714f5",
+  "manifest_sha256": "dada0e01b709d68036e9d23b1dd1ef970af933c0194fbda49c154bedd0e67d2e",
+  "runs": 4096,
+  "blocks": 256,
+  "initial_populations": 256,
+  "source_commit": "d5374fed12bfe8950175d7e2693af078ad977c2c",
+  "source_hash": "c8ccc1f9c2d101c9ff78c79837838aa3bdf4574e3da8a7282bd5d86c00621e30",
+  "finished": 1791676557.335844,
+  "originals": "retained"
+}

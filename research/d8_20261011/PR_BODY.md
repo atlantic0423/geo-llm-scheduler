@@ -1,0 +1,7 @@
+D8 has completed4096 formal runs and256 paired blocks on64 new base instances. This publishes the prespecified factorial analysis, complete subgroup/interaction/cost tables and a matched initialization diagnostic; scheduling defaults and the frozen D8 runtime source are unchanged. The branch depends on unmerged D8 PR45.
+
+Stable A3 improves normalized HV and IGD+ in the eight-test primary Holm family; SEQ, STATE84 and RPERM are not independently confirmed. Four factors together beat BASE but are not confirmed better than A3. The matched256 initial populations/25,600 independently exact-verified candidates show a small Flow endpoint gap and a much larger Bill endpoint gap; D8 used an H-generated common initialization under H/T, so native-T and random/pure-method controls remain unrun past the user's07:30 cutoff.
+
+Validation:488 local tests/full quality gates (84.75%overall,96.92%core), independent264 cluster/resampling statistics, all8/34/12 Holm scopes and4096 raw-objective HV recomputations;128BASE IGD+ cross-checks. Full58,677-file local recovery is verified by size/SHA, with original interrupted attempts retained outside the scientific matrix. Big raw/all plots/bundles go to the release; Git contains curated reports, tables, tests and portable postprocessing scripts.
+
+Notion D8 experiment3f48878b801981d0838ac41ebae7f088/task3f48878b801981e7953ddffff2cf53a0; initializer experiment3f58878b801981718c14d0a9f4d2b5d7. No historical campaign restart, automatic default promotion or new algorithm experiment is included.

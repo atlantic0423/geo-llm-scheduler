@@ -1,0 +1,8 @@
+{
+  "state": "all_256_initial_front_sizes_HV_IGDplus_endpoints_and_source_credit_sums_independently_reproduced",
+  "populations": 256,
+  "candidates": 25600,
+  "shared_H_constructor": "explicit",
+  "fresh_algorithm_execution": false,
+  "reference_cache_matches_frozen_D8": true
+}

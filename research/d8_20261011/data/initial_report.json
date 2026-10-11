@@ -1,0 +1,179 @@
+{
+  "populations": 256,
+  "individuals": 25600,
+  "independent_bases": 64,
+  "instance_versions": 128,
+  "seeds_per_case": 2,
+  "source_commit": "d5374fed12bfe8950175d7e2693af078ad977c2c",
+  "scope": "Matched unchanged initialization versus evolved BASE; no random/pure-method controls or new stress cases yet",
+  "shared_initialization": "D8 generated each initial population under H and reused identical genes under H/T; these observations do not test native T-price-aware construction",
+  "means": {
+    "unique_objectives": 99.953125,
+    "initial_ND_objectives": 9.70703125,
+    "final_ND_objectives": 65.6484375,
+    "hv_retention_pct": 20.552757176669953,
+    "igd_plus_to_BASE_final": 0.584416699281362,
+    "flow_gap_pct": 0.29348645641480947,
+    "bill_gap_pct": 20.198977939138786,
+    "mean_direction_gap": 0.32841572113252215,
+    "max_direction_gap": 0.6691010017699283,
+    "initial_covers_final": 0.007470953982859165,
+    "final_covers_initial": 1.0
+  },
+  "subgroups": {
+    "50_H": {
+      "unique_objectives": 99.859375,
+      "initial_ND_objectives": 9.390625,
+      "final_ND_objectives": 58.71875,
+      "hv_retention_pct": 4.767620123471737,
+      "igd_plus_to_BASE_final": 0.8906221503558807,
+      "flow_gap_pct": 0.2806333079568141,
+      "bill_gap_pct": 27.156383313825803,
+      "mean_direction_gap": 0.5029472233737802,
+      "max_direction_gap": 1.0195578031460295,
+      "initial_covers_final": 0.002624016680899256,
+      "final_covers_initial": 1.0
+    },
+    "50_T": {
+      "unique_objectives": 99.953125,
+      "initial_ND_objectives": 9.484375,
+      "final_ND_objectives": 57.140625,
+      "hv_retention_pct": 5.565827695933044,
+      "igd_plus_to_BASE_final": 0.8046880162520134,
+      "flow_gap_pct": 0.31437395731352297,
+      "bill_gap_pct": 29.076808848658473,
+      "mean_direction_gap": 0.43366611446207903,
+      "max_direction_gap": 0.8553518441558978,
+      "initial_covers_final": 0.0019123941797541792,
+      "final_covers_initial": 1.0
+    },
+    "100_H": {
+      "unique_objectives": 100.0,
+      "initial_ND_objectives": 9.84375,
+      "final_ND_objectives": 74.0,
+      "hv_retention_pct": 35.15281743879089,
+      "igd_plus_to_BASE_final": 0.3476868981833016,
+      "flow_gap_pct": 0.22914230861976642,
+      "bill_gap_pct": 11.756882416361854,
+      "mean_direction_gap": 0.20198004902854916,
+      "max_direction_gap": 0.4381697636974352,
+      "initial_covers_final": 0.013742638355625506,
+      "final_covers_initial": 1.0
+    },
+    "100_T": {
+      "unique_objectives": 100.0,
+      "initial_ND_objectives": 10.109375,
+      "final_ND_objectives": 72.734375,
+      "hv_retention_pct": 36.724763448484154,
+      "igd_plus_to_BASE_final": 0.29466973233425237,
+      "flow_gap_pct": 0.3497962517691345,
+      "bill_gap_pct": 12.805837177709009,
+      "mean_direction_gap": 0.17506949766568008,
+      "max_direction_gap": 0.36332459608035084,
+      "initial_covers_final": 0.01160476671515772,
+      "final_covers_initial": 1.0
+    }
+  },
+  "ranges": {
+    "unique_objectives": [
+      99.0,
+      100.0
+    ],
+    "initial_ND_objectives": [
+      4.0,
+      16.0
+    ],
+    "final_ND_objectives": [
+      15.0,
+      110.0
+    ],
+    "hv_retention_pct": [
+      0.0,
+      58.6792993596134
+    ],
+    "igd_plus_to_BASE_final": [
+      0.19546207158769596,
+      2.27889243817343
+    ],
+    "flow_gap_pct": [
+      0.0,
+      2.1333333333333426
+    ],
+    "bill_gap_pct": [
+      4.031308281814572,
+      42.93294920575514
+    ],
+    "mean_direction_gap": [
+      0.09475595598749074,
+      1.3737979098914084
+    ],
+    "max_direction_gap": [
+      0.17019272930202933,
+      2.9540756877248096
+    ],
+    "initial_covers_final": [
+      0.0,
+      0.057971014492753624
+    ],
+    "final_covers_initial": [
+      1.0,
+      1.0
+    ]
+  },
+  "all_initial_genotypes_and_exact_evidence_verified": true,
+  "all_construction_source_replays_match": true,
+  "mixed_pool_source_contributions": {
+    "0": {
+      "individuals": 10.0,
+      "ND_candidates": 1.36328125,
+      "unique_ND_split_credit": 1.35546875
+    },
+    "1": {
+      "individuals": 10.0,
+      "ND_candidates": 1.55078125,
+      "unique_ND_split_credit": 1.55078125
+    },
+    "2": {
+      "individuals": 10.0,
+      "ND_candidates": 1.3046875,
+      "unique_ND_split_credit": 1.3046875
+    },
+    "3": {
+      "individuals": 10.0,
+      "ND_candidates": 0.52734375,
+      "unique_ND_split_credit": 0.52734375
+    },
+    "4": {
+      "individuals": 10.0,
+      "ND_candidates": 0.68359375,
+      "unique_ND_split_credit": 0.68359375
+    },
+    "5": {
+      "individuals": 10.0,
+      "ND_candidates": 0.5,
+      "unique_ND_split_credit": 0.5
+    },
+    "6": {
+      "individuals": 10.0,
+      "ND_candidates": 0.93359375,
+      "unique_ND_split_credit": 0.93359375
+    },
+    "7": {
+      "individuals": 10.0,
+      "ND_candidates": 0.4140625,
+      "unique_ND_split_credit": 0.4140625
+    },
+    "8": {
+      "individuals": 10.0,
+      "ND_candidates": 1.26171875,
+      "unique_ND_split_credit": 1.259765625
+    },
+    "9": {
+      "individuals": 10.0,
+      "ND_candidates": 1.18359375,
+      "unique_ND_split_credit": 1.177734375
+    }
+  },
+  "evolutionary_compute_budget_is_additional": true,
+  "figures": 128
+}

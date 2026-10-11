@@ -1,0 +1,12 @@
+{
+  "state": "independent_CSV_cluster_means_20k_bootstrap_100k_signflip_three_Holm_families_and_all_HV_reproduced",
+  "statistics": 264,
+  "bases": 64,
+  "families": [
+    8,
+    34,
+    12
+  ],
+  "HV_runs": 4096,
+  "algorithm_rerun": false
+}
