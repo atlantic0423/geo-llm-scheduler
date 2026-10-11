@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "statistics_independently_reproduced": 20,
+  "holm_family_sizes": [
+    2,
+    18
+  ],
+  "input_sha256": "0fe541a3ccd97854e45b8d9dc621b8c1634d87fd50322b86858574d292e019d0",
+  "FCFS_LOAD_KV_AWARE_identical_gene_order": 718,
+  "FCFS_LOAD_KV_AWARE_identical_gene_sets": 718,
+  "FCFS_LOAD_ENERGY_AWARE_H_identical_gene_order": 360,
+  "total_comparison_blocks": 720,
+  "H_comparison_blocks": 360,
+  "FCFS_LOAD_KV_AWARE_identical_objective_fronts": 720,
+  "interpretation": "Source credits are observational; no removal or quota-change benefit was tested."
+}
