@@ -11,7 +11,7 @@ from __future__ import annotations
 import math
 import random
 from dataclasses import dataclass, field
-from time import perf_counter
+from time import perf_counter, process_time
 from typing import Callable
 
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
@@ -227,6 +227,9 @@ def seed_bank(
     rng: random.Random,
     trials: int,
     progress: Callable[[dict], None] | None = None,
+    *,
+    families: tuple[str, ...] = FAMILIES[:-1],
+    size: int = 20,
 ) -> tuple[dict, dict]:
     """Build 20 distinct seeds per family with a fixed exact tournament budget.
 
@@ -237,15 +240,24 @@ def seed_bank(
     """
     if trials not in (1, 4):
         raise ValueError("Technical calibration may choose only 1 or 4 trials")
+    if (
+        not families
+        or len(set(families)) != len(families)
+        or any(f not in FAMILIES[:-1] for f in families)
+        or size not in (10, 20)
+    ):
+        raise ValueError("Require distinct base families and size 10/20")
     bank: dict[str, list[Candidate]] = {}
     observations = []
     exact_count = 0
     started = perf_counter()
+    cpu_started = process_time()
     verification_seconds = 0.0
+    verification_cpu_seconds = 0.0
     seen = {p.genotype for p in parents}
-    for family in FAMILIES[:-1]:
+    for family in families:
         members = []
-        for slot in range(20):
+        for slot in range(size):
             weight = (0.0, 0.1, 0.25, 0.5)[slot % 4]
             pool: list[Candidate] = []
             for attempt in range(100):
@@ -262,8 +274,10 @@ def seed_bank(
                 schedule = decode(problem, g)
                 result = evaluate(problem, g, schedule)
                 tick = perf_counter()
+                cpu_tick = process_time()
                 repeated = evaluate(problem, g, schedule)
                 verification_seconds += perf_counter() - tick
+                verification_cpu_seconds += process_time() - cpu_tick
                 if not result.feasible or repeated != result:
                     raise AssertionError("New seed failed independent exact verification")
                 if evidence and (
@@ -331,6 +345,8 @@ def seed_bank(
         "elapsed": perf_counter() - started,
         "verification_seconds": verification_seconds,
         "production_seconds": perf_counter() - started - verification_seconds,
+        "production_cpu_seconds": process_time() - cpu_started - verification_cpu_seconds,
+        "verification_cpu_seconds": verification_cpu_seconds,
         "trials_per_slot": trials,
         "observations": observations,
     }
