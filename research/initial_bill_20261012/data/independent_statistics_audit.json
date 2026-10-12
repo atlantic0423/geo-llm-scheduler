@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "statistics_replayed": 64,
+  "holm_family_sizes": [
+    16,
+    16,
+    16,
+    16
+  ],
+  "main_bases": 34,
+  "sensitivity_bases": 30,
+  "bootstrap": 20000,
+  "signflip": 100000,
+  "seed": 2026101203,
+  "descriptive_contrasts_replayed": 43,
+  "report_sha256": "1591cfce81261f76398960cd29da439a441523685c7503f6f697bdb5577793e1",
+  "paired_metrics_sha256": "0f879567d39fe020d50cf27877f4286635d15a06e87614e03b08136fa945ec24",
+  "scope": "Derived statistics only, not a new full exact solver run"
+}

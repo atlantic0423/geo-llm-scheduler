@@ -1,0 +1,26 @@
+[
+  {
+    "host": "b518ece5cd01",
+    "validated_blocks": 56,
+    "pending_blocks": 16,
+    "file_count": 1842,
+    "raw_bytes": 1411776416,
+    "archive_bytes": 98540538,
+    "archive_sha256": "37fecec3d2cc34735cec8af1738824cb195212e33d6f7e2b5781f981ad6538ab",
+    "manifest_sha256": "9f897a9b57d632ab629a688713fe3877d65e339a768f7fffda0fa3794211b04c",
+    "all_tar_and_local_sha_verified": true,
+    "remote_files_unchanged": true
+  },
+  {
+    "host": "878be0fed7b0",
+    "validated_blocks": 72,
+    "pending_blocks": 0,
+    "file_count": 2274,
+    "raw_bytes": 1553537806,
+    "archive_bytes": 106035171,
+    "archive_sha256": "8745fec801a0480fe33fbd2ff8f86d525327165f24a2d21e3cca96f90c826476",
+    "manifest_sha256": "6818186115e86433eded2ce3bad08cdd0fbb4868dbdaf474ef9c3264a249d582",
+    "all_tar_and_local_sha_verified": true,
+    "remote_files_unchanged": true
+  }
+]
