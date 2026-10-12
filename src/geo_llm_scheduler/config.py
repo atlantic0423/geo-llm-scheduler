@@ -50,6 +50,8 @@ class Config:
     trigger_mode: str = "preference"
     fixed_ls_probability: float = 0.5  # test/experimental ablation
     fixed_budget: int = 6
+    macro_generation_budget: int = 0  # Research: 0 preserves native budget-dependent generation
+    macro_diagnostics: bool = False  # Bounded research observer; no algorithm RNG consumption
     static_budgets: tuple[int, ...] = (3, 6, 6, 3, 3, 10, 6, 10)
     enabled_operators: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8)
     polish: bool = True
@@ -83,6 +85,18 @@ class Config:
             raise ValueError("Counts must be positive integers")
         if self.seconds is not None and (not isfinite(self.seconds) or self.seconds <= 0):
             raise ValueError("Wall-clock budget must be finite and positive")
+        if type(self.macro_generation_budget) is not int or self.macro_generation_budget < 0:
+            raise ValueError("Macro generation budget must be a nonnegative integer")
+        if type(self.macro_diagnostics) is not bool:
+            raise ValueError("Macro diagnostics flag must be bool")
+        if self.macro_generation_budget and (
+            self.method != "full"
+            or self.budget_policy != "fixed"
+            or not self.fixed_budget <= self.macro_generation_budget <= 10
+        ):
+            raise ValueError(
+                "Common-pool research requires full/fixed and evaluation <= pool <= 10"
+            )
         if self.exact_evaluation_cap is not None and (
             type(self.exact_evaluation_cap) is not int
             or self.exact_evaluation_cap < self.population
