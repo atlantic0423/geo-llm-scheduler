@@ -389,7 +389,7 @@ def supervise(root: Path, workers: int, reserve_gib: float = 1.5, deadline: floa
                         100 * 1024**3
                         - int(
                             subprocess.check_output(
-                                ["du", "-sb", "/workspace/zhouhanyu"], text=True
+                                ["du", "-sb", str(root.parent.parent)], text=True
                             ).split()[0]
                         )
                         if sys.platform != "win32"
