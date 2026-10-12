@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "independent_statistics": 12,
+  "holm_family_sizes": [
+    6,
+    3,
+    3
+  ],
+  "pair_csv_sha256": "45949730ff083907bb84350bc17c2cd9c13e0983eea12b5f3c12bdfb947803d2",
+  "no_fresh_generation_or_all_member_exact": true
+}
