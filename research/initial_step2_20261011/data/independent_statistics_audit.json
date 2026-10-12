@@ -1,0 +1,83 @@
+{
+  "status": "passed",
+  "statistics_independently_reproduced": 16,
+  "holm_family_sizes": [
+    8,
+    8
+  ],
+  "base_clusters": 36,
+  "observations_per_base": 4,
+  "bootstrap_replicates": 20000,
+  "signflip_replicates": 100000,
+  "stat_seed": 2026101102,
+  "metric_boundary_checks": 7,
+  "paired_metrics_sha256": "ae1f93ea40f52d68586112e474e8d6cf1a0fb593b4aeb2696dc42b6fea45a6c5",
+  "report_sha256": "1535f0a299d173716e19ac4d5b57a3102ae9776e16382733d85e4bb4b572d438",
+  "checked": [
+    [
+      "TIME16-RAW",
+      "hv_diff"
+    ],
+    [
+      "TIME16-RAW",
+      "igd_plus_gain"
+    ],
+    [
+      "TIME64-RAW",
+      "hv_diff"
+    ],
+    [
+      "TIME64-RAW",
+      "igd_plus_gain"
+    ],
+    [
+      "STRUCT16-RAW",
+      "hv_diff"
+    ],
+    [
+      "STRUCT16-RAW",
+      "igd_plus_gain"
+    ],
+    [
+      "STRUCT64-RAW",
+      "hv_diff"
+    ],
+    [
+      "STRUCT64-RAW",
+      "igd_plus_gain"
+    ],
+    [
+      "TIME16-STRUCT16",
+      "hv_diff"
+    ],
+    [
+      "TIME16-STRUCT16",
+      "igd_plus_gain"
+    ],
+    [
+      "TIME64-STRUCT64",
+      "hv_diff"
+    ],
+    [
+      "TIME64-STRUCT64",
+      "igd_plus_gain"
+    ],
+    [
+      "TIME64-TIME16",
+      "hv_diff"
+    ],
+    [
+      "TIME64-TIME16",
+      "igd_plus_gain"
+    ],
+    [
+      "STRUCT64-STRUCT16",
+      "hv_diff"
+    ],
+    [
+      "STRUCT64-STRUCT16",
+      "igd_plus_gain"
+    ]
+  ],
+  "scope": "Statistical/metric audit; no fresh full exact solver reevaluation."
+}

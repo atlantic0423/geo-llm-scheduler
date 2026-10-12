@@ -1,0 +1,26 @@
+[
+  {
+    "weight": 0,
+    "flow_over_raw_best": 6.475106556232889,
+    "bill_over_raw_lowest": 0.5942909066155044,
+    "is_nd": 0.1926470588235294
+  },
+  {
+    "weight": 0.1,
+    "flow_over_raw_best": 5.308072257997052,
+    "bill_over_raw_lowest": 0.5949956993410958,
+    "is_nd": 0.37205882352941183
+  },
+  {
+    "weight": 0.25,
+    "flow_over_raw_best": 4.014163122850119,
+    "bill_over_raw_lowest": 0.6243449671532721,
+    "is_nd": 0.48235294117647054
+  },
+  {
+    "weight": 0.5,
+    "flow_over_raw_best": 1.2991963143171676,
+    "bill_over_raw_lowest": 1.1124435925864766,
+    "is_nd": 0.6117647058823529
+  }
+]

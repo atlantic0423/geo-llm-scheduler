@@ -1,0 +1,64 @@
+{
+  "kind": "local_acceptance_artifacts",
+  "code_commit": "fd4f9161b32db881bf377e5b6835ffd9aa060160",
+  "source_hash": "a54ce42cfc97c329399e5b9538929c0d51be263c853fec29f3affb2c75a1c72f",
+  "formal_p2_run": false,
+  "server_deployed": false,
+  "files": [
+    {
+      "path": "docs/experiments/moead_p2_local_plan.md",
+      "bytes": 5920,
+      "sha256": "24aaafe439262a79eb55feb9b6ef97c410443b04823deddb85eda9cde0352f79"
+    },
+    {
+      "path": "docs/experiments/moead_p2_local_acceptance.md",
+      "bytes": 5542,
+      "sha256": "000e64567b8abdb928e57e737daac1221db8a4f3a3d52290ed203aaf05506577"
+    },
+    {
+      "path": "docs/experiments/moead_p2_local_validation.json",
+      "bytes": 59800,
+      "sha256": "17129f9239dd5f3218d700df0f31e8580bf4a4eb01a76671038cbb88580ca56a"
+    },
+    {
+      "path": "docs/experiments/moead_p2_local_quality.txt",
+      "bytes": 729,
+      "sha256": "c99b925b64273d873de2cd8fc22f00de86e1e260236722a3c027d4cef3d13f30"
+    },
+    {
+      "path": "configs/p2_local/A7B.yaml",
+      "bytes": 1473,
+      "sha256": "153b20875fffde9312ac12ddda9c4a8b475b2cd1626c078b5d48974d495541d3"
+    },
+    {
+      "path": "configs/p2_local/CG.yaml",
+      "bytes": 1479,
+      "sha256": "cab98a8d23726695eacedc33860d691d7f92b67ff759934ae2b81415fc6f212f"
+    },
+    {
+      "path": "configs/p2_local/CT.yaml",
+      "bytes": 1480,
+      "sha256": "0db4d3beaa7ae96272515dd0bf9f1cc20b59356efc80bf3e3bee152444de9929"
+    },
+    {
+      "path": "configs/p2_local/F6.yaml",
+      "bytes": 1474,
+      "sha256": "b50b15f16631619b26119bf057a1839823f526cfb3aa97fa58f9f90b1b82f085"
+    },
+    {
+      "path": "configs/p2_local/RDIR.yaml",
+      "bytes": 1478,
+      "sha256": "6dcc1e7fa79deacb9814396f1e4232a9a76ee96d853eaaee026c9c9086cf9b37"
+    },
+    {
+      "path": "configs/p2_local/README.md",
+      "bytes": 1302,
+      "sha256": "6af2eb2d24f105208885c12399d142cc964e6b0b59d838d4ec33ffbd907d56f2"
+    },
+    {
+      "path": "configs/p2_local/RPERM.yaml",
+      "bytes": 1477,
+      "sha256": "cc77f34fbebe14ba564467ba57c30742fa4dbcfdaafb716ab06450cd1d82674e"
+    }
+  ]
+}

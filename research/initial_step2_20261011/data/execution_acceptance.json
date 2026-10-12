@@ -1,0 +1,53 @@
+{
+  "formal_acceptance": {
+    "state": "accepted",
+    "nodes": [
+      {
+        "node": 0,
+        "host": "b518ece5cd01",
+        "blocks": 72,
+        "populations": 360,
+        "exact_verified": 1033246,
+        "selected_verified": 36000,
+        "wall_seconds": 2361.04523062706,
+        "sum_population_seconds": 39793.926093013986,
+        "max_population_seconds": 1101.1212648729997,
+        "max_rss_gib": 0.07335662841796875,
+        "bytes": 1593849029,
+        "timestamp": 1791730055.1406024
+      },
+      {
+        "node": 1,
+        "host": "878be0fed7b0",
+        "blocks": 72,
+        "populations": 360,
+        "exact_verified": 1034812,
+        "selected_verified": 36000,
+        "wall_seconds": 2400.922881603241,
+        "sum_population_seconds": 39924.456588924964,
+        "max_population_seconds": 1144.5767114400078,
+        "max_rss_gib": 0.08551788330078125,
+        "bytes": 1576659423,
+        "timestamp": 1791730080.5510688
+      }
+    ],
+    "quality_inspected": false
+  },
+  "full_local_validation": {
+    "state": "full_manifest_tar_members_local_files_size_sha256_verified",
+    "files": 6444,
+    "raw_bytes": 3944951158,
+    "archive_bytes": 488041489,
+    "archive_sha256": "309c67b0f6c7ad5fdfe3dfda80436c8a530bf78a145f64e40ec04c07649fc2b7",
+    "manifest_sha256": "478d6054e53723851e7e9b934ef11376b6dddb56fffc49f3cd04733915c4c482",
+    "formal_populations": 720,
+    "formal_blocks": 144,
+    "pilot_populations": 180,
+    "source_commit": "5bb666874a86ae59e38aa2513a1c4f7ed1fa8fcb",
+    "source_hash": "34dd838db2cf62124b967b45ba5049419f6ec96ddab82e6375104d106a1a7f02",
+    "finished": 1791730281.5201192,
+    "originals": "retained"
+  },
+  "no_fresh_full_exact_reevaluation": true,
+  "raw_github_release_published": false
+}

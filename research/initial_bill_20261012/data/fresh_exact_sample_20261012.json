@@ -1,0 +1,585 @@
+{
+  "status": "passed",
+  "fresh_ssgs_exact_replays": 96,
+  "selection": "First completed key by size/tariff/seed, four families, slots0/19; no quality selection",
+  "scope": "96 bank winners only; not all candidates or final populations",
+  "source": "a8a2afd91e2fb42978a4a4be74e29622b4346c90",
+  "checks": [
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405011_H_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "4c20c7a889885401002e50e354a6e9d71a373e55eb79faa35100bbfdbee92ed4"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405012_H_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "2ce5c3c195c80ab5ab3115dec0ccb54b237be5c63c656eb02ad302be72a77077"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405011_T_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "9bceb782df6f82979b715507a127b777a69bff01640be98527ead39d58143c15"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "50_burst_1405012_T_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "807bb84c77c7e608d2baa96d22f1b6acee0dcddf3ce6194ddec76647c0feecfc"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "df1d7c561f52615fba7d5a9cf5d5433b85a449dccf44fca0375b9416f5fd0081"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_H_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "307349d947d1465cec89fde34215f01d8aef0f5057673bc97cb4cd9b1933156e"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "b68d69c75ad4e3e499c8dc9d64e1e1561596c0693845609a969251db69d076e6"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "100_burst_1410011_T_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "d70eeed3a9e8990890264b066de979ad7694b1fd7a3e3a79d726fa09f3e7699e"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "0f05c58a438d679b81a4a36830bf2a4cf97031c97347efd4737d215424cc9dff"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_H_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "9d0ab583c659ce984acd9362b46fa133de2434b299cfc2e996839c54c400e247"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11001",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "a4fd71fe488d19d39a5e6140a0a52010a37f8f161342faded7de3efa4b24b430"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "RESAMPLE",
+      "slot": 0,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "RESAMPLE",
+      "slot": 19,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "TOU",
+      "slot": 0,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "TOU",
+      "slot": 19,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "DEMAND",
+      "slot": 0,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "DEMAND",
+      "slot": 19,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "BILL",
+      "slot": 0,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    },
+    {
+      "key": "200_burst_1420011_T_11002",
+      "family": "BILL",
+      "slot": 19,
+      "file_sha256": "4c7a24ae1d6ac8a3b1707495db5e54486d4e696f5778a1a9200b6279b022f102"
+    }
+  ]
+}

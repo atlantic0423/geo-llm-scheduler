@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "local_full_gates": {
+    "tests": 521,
+    "seconds": 466.85,
+    "coverage_overall_percent": 85.09,
+    "coverage_core_percent": 96.92
+  },
+  "additional_checks": {
+    "D03": "57/57 runs, 41 figure pairs, 134 hashes",
+    "default_replay": "aeb9824d2e671fe76771297ece91af40576124c930721193c18127cbdb814fa7",
+    "wheel_sha256": "5a2da126c6c37cd63db010bef0c473c196ed5d49d8b4e8363457e211a8260983",
+    "source_pinned_cli": "passed on analysis checkout before commit"
+  },
+  "scope": "Analysis changes only; experiment source and default initialization unchanged. CI evidence will be recorded against exact pushed head separately."
+}
