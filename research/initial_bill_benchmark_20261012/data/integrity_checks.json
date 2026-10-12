@@ -1,0 +1,10 @@
+{
+  "stored_archive_replay": 576,
+  "valid_members": 57600,
+  "populations": 576,
+  "independent_new_exact_bound": 28800,
+  "tournament_replay": 7200,
+  "bill_rng_prefix": 144,
+  "hv_crosscheck": 576,
+  "igd_plus_crosscheck": 576
+}

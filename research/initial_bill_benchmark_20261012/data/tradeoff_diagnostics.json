@@ -1,0 +1,15 @@
+{
+  "bill_endpoint_flow_vs_BASE_fastest": {
+    "BASE": 2.3821344002552687,
+    "BILL10": 6.342257962070856,
+    "BILL20": 6.3563256156353525,
+    "DEMAND20": 6.329678252474185
+  },
+  "BILL10_capture_of_BILL20_HV_increment": 0.9323862478794451,
+  "BILL10_production_time_fraction_of_BILL20": 0.5376203420066217,
+  "BILL20_minus_BILL10_HV_descriptive": 0.026428612949408903,
+  "BILL20_minus_BILL10_wall_seconds_descriptive": 62.316349484837914,
+  "total_production_cpu_hours": 14.5792925499175,
+  "wall_cpu_ratio_max": 1.3014325247914766,
+  "exploratory_only": true
+}
