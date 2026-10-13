@@ -21,7 +21,7 @@ from geo_llm_scheduler.rl.controller import Controller, reward
 from geo_llm_scheduler.rl.state import decode, extract
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
 from geo_llm_scheduler.utils.numeric import TOL, identity, less
-from geo_llm_scheduler.utils.rng import RNGManager
+from geo_llm_scheduler.utils.rng import RNGManager, operator_call_rng
 
 
 def improve(
@@ -93,7 +93,7 @@ def improve(
             adaptive.cpu_seconds += budget_seconds
         construction_start = perf_counter()
         generation_budget = config.macro_generation_budget or budget
-        operator_rng = streams.stream(f"A{action}")
+        operator_rng = operator_call_rng(streams.stream(f"A{action}"), config.macro_rng_policy)
         rng_before = operator_rng.getstate() if config.macro_diagnostics else None
         batch = operators[action].propose(problem, current, generation_budget, config, operator_rng)
         construction_seconds = perf_counter() - construction_start

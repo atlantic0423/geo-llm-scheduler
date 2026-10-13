@@ -51,6 +51,7 @@ class Config:
     fixed_ls_probability: float = 0.5  # test/experimental ablation
     fixed_budget: int = 6
     macro_generation_budget: int = 0  # Research: 0 preserves native budget-dependent generation
+    macro_rng_policy: str = "shared"  # Research: shared or per-call child stream
     macro_diagnostics: bool = False  # Bounded research observer; no algorithm RNG consumption
     static_budgets: tuple[int, ...] = (3, 6, 6, 3, 3, 10, 6, 10)
     enabled_operators: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8)
@@ -87,6 +88,12 @@ class Config:
             raise ValueError("Wall-clock budget must be finite and positive")
         if type(self.macro_generation_budget) is not int or self.macro_generation_budget < 0:
             raise ValueError("Macro generation budget must be a nonnegative integer")
+        if self.macro_rng_policy not in ("shared", "call"):
+            raise ValueError("Unknown MacroSearch RNG policy")
+        if self.macro_rng_policy == "call" and (
+            self.method != "full" or self.budget_policy != "fixed"
+        ):
+            raise ValueError("Per-call RNG research requires full/fixed")
         if type(self.macro_diagnostics) is not bool:
             raise ValueError("Macro diagnostics flag must be bool")
         if self.macro_generation_budget and (
