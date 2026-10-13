@@ -1,0 +1,83 @@
+{
+  "collection": {
+    "state": "all_server_tar_and_local_files_verified",
+    "nodes": [
+      {
+        "node": 0,
+        "host": "b518ece5cd01",
+        "files": 3679,
+        "raw_bytes": 164834364,
+        "tar_bytes": 108418035,
+        "tar_sha256": "583a8482e5887fb04f903b40e3c1b871cfbe392085242430c29b3ff354d5c727",
+        "manifest_sha256": "86408c1aa2416bd0af4e0b4b2496b2e497ff68c9ec382055d66b92e307806718"
+      },
+      {
+        "node": 1,
+        "host": "878be0fed7b0",
+        "files": 6829,
+        "raw_bytes": 354401646,
+        "tar_bytes": 222198331,
+        "tar_sha256": "9f8cea2ab3a3bc3c54dea00076742b7d8a4c8c104f8792710e6df02f350df5b6",
+        "manifest_sha256": "30b0e1f11c859a34bc81d2abea38c30f8dea1375ab5d6400d748876824c26b87"
+      }
+    ],
+    "files": 10508,
+    "raw_bytes": 519236010,
+    "time": 1791862119.374588,
+    "server_originals": "retained"
+  },
+  "completion_state": "complete_verified",
+  "formal_counts": [
+    {
+      "host": "b518ece5cd01",
+      "runs": 224,
+      "blocks": 56,
+      "replays": 224,
+      "calls": 5376,
+      "preserved_verified": 0,
+      "source_commit": "9b2ec3dd1fed371abf382192293338cac9ee4a24",
+      "source_hash": "1d9a8f4c726312e95d49e553b587f9f08359a90e85b1cd0bdeac9ced6b1daea9",
+      "exit": {
+        "timestamp": 1791846979.5506246,
+        "failed": false,
+        "completed_blocks": 56,
+        "pending_blocks": 0,
+        "active": [],
+        "state": "complete"
+      },
+      "pipeline": {
+        "state": "complete",
+        "completed_replays": 224,
+        "total": 224,
+        "timestamp": 1791847101.9135025,
+        "active": []
+      }
+    },
+    {
+      "host": "878be0fed7b0",
+      "runs": 416,
+      "blocks": 104,
+      "replays": 416,
+      "calls": 9984,
+      "preserved_verified": 400,
+      "source_commit": "9b2ec3dd1fed371abf382192293338cac9ee4a24",
+      "source_hash": "1d9a8f4c726312e95d49e553b587f9f08359a90e85b1cd0bdeac9ced6b1daea9",
+      "exit": {
+        "timestamp": 1791855146.666878,
+        "failed": false,
+        "completed_blocks": 104,
+        "pending_blocks": 0,
+        "active": [],
+        "state": "complete"
+      },
+      "pipeline": {
+        "state": "complete",
+        "completed_replays": 416,
+        "total": 416,
+        "timestamp": 1791855277.2242699,
+        "active": []
+      }
+    }
+  ],
+  "exact_evidence": "Original worker final exact checks bound to complete artifact hashes; no fresh reevaluation of every final solution during collection."
+}

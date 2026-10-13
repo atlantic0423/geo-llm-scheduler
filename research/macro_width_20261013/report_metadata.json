@@ -1,0 +1,7 @@
+{
+  "source_commit": "9b2ec3dd1fed371abf382192293338cac9ee4a24",
+  "source_hash": "1d9a8f4c726312e95d49e553b587f9f08359a90e85b1cd0bdeac9ced6b1daea9",
+  "figure_pairs": 86,
+  "all_math_delimiters_checked": true,
+  "report_claims": "prespecified six-test results and clearly marked diagnostics"
+}
