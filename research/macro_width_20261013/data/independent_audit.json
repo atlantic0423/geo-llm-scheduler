@@ -1,0 +1,65 @@
+{
+  "state": "verified",
+  "cluster_statistics_crosschecks": 33,
+  "holm_joint_family_size": 6,
+  "native_common_prefix_buckets": 3840,
+  "by_action": {
+    "1": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 480,
+      "difference_rate": 1.0,
+      "different_objective_sets": 480,
+      "set_difference_rate": 1.0
+    },
+    "2": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 480,
+      "difference_rate": 1.0,
+      "different_objective_sets": 479,
+      "set_difference_rate": 0.9979166666666667
+    },
+    "3": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 480,
+      "difference_rate": 1.0,
+      "different_objective_sets": 472,
+      "set_difference_rate": 0.9833333333333333
+    },
+    "4": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 471,
+      "difference_rate": 0.98125,
+      "different_objective_sets": 443,
+      "set_difference_rate": 0.9229166666666667
+    },
+    "5": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 475,
+      "difference_rate": 0.9895833333333334,
+      "different_objective_sets": 463,
+      "set_difference_rate": 0.9645833333333333
+    },
+    "6": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 0,
+      "difference_rate": 0.0,
+      "different_objective_sets": 0,
+      "set_difference_rate": 0.0
+    },
+    "7": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 351,
+      "difference_rate": 0.73125,
+      "different_objective_sets": 350,
+      "set_difference_rate": 0.7291666666666666
+    },
+    "8": {
+      "eligible_buckets": 480,
+      "different_objective_prefixes": 169,
+      "difference_rate": 0.35208333333333336,
+      "different_objective_sets": 169,
+      "set_difference_rate": 0.35208333333333336
+    }
+  },
+  "interpretation": "Objective-prefix differences do not isolate genotype identity, RNG advancement or the action causing final online gain."
+}
