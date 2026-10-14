@@ -1,0 +1,11 @@
+{
+  "statistics_replayed": 42,
+  "families_replayed": [
+    6,
+    4
+  ],
+  "seed": 2026101310,
+  "bootstrap": 20000,
+  "signflips": 100000,
+  "status": "all_replayed_exactly"
+}
