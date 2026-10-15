@@ -8,6 +8,7 @@ use the original SSGS and independently repeated exact evaluator.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 from dataclasses import dataclass, field
@@ -16,6 +17,7 @@ from typing import Callable
 
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.evaluation.exact import evaluate
+from geo_llm_scheduler.experiments.initial_bill_index import ResourceCalendar, TariffIndex
 from geo_llm_scheduler.initialization.generators import generate
 from geo_llm_scheduler.moead.variation import paths
 from geo_llm_scheduler.scheduling.resources import earliest
@@ -54,10 +56,12 @@ class PrefixPower:
     active_tou: float = 0.0
     energy: dict[tuple[int, int], float] = field(default_factory=dict)
     horizon: float = 0.0
+    index: TariffIndex | None = None
 
     def trial(self, additions: dict[int, list[tuple[float, float]]], horizon: float) -> tuple:
         """Score an uncommitted feasible prefix, returning updates for commit."""
         new_unions = {m: merged(self.unions.get(m, []) + items) for m, items in additions.items()}
+        integral = self.index.integral if self.index is not None else tariff_integral
         delta_tou = 0.0
         delta_energy: dict[tuple[int, int], float] = {}
         for m, union in new_unions.items():
@@ -65,20 +69,24 @@ class PrefixPower:
             for sign, items in ((1.0, union), (-1.0, self.unions.get(m, []))):
                 for a, b in items:
                     power = sign * (server.active_kw - server.idle_kw)
-                    delta_tou += power * tariff_integral(self.problem, server.region, a, b) / 3600
+                    delta_tou += power * integral(self.problem, server.region, a, b) / 3600
                     for w in range(int(a // 900), math.ceil(b / 900)):
                         key = (server.region, w)
                         overlap = max(0.0, min(b, (w + 1) * 900) - max(a, w * 900))
                         delta_energy[key] = delta_energy.get(key, 0.0) + power * overlap
-        idle = [
-            sum(s.idle_kw for s in self.problem.instances if s.region == r)
-            for r in range(len(self.problem.regions))
-        ]
+        idle = (
+            self.index.idle
+            if self.index is not None
+            else [
+                sum(s.idle_kw for s in self.problem.instances if s.region == r)
+                for r in range(len(self.problem.regions))
+            ]
+        )
         tou = (
             self.active_tou
             + delta_tou
             + math.fsum(
-                power * tariff_integral(self.problem, r, 0.0, horizon) / 3600
+                power * integral(self.problem, r, 0.0, horizon) / 3600
                 for r, power in enumerate(idle)
             )
         )
@@ -106,7 +114,12 @@ class PrefixPower:
 
 
 def guided_genotype(
-    problem: ProblemInstance, family: str, rng: random.Random, flow_weight: float
+    problem: ProblemInstance,
+    family: str,
+    rng: random.Random,
+    flow_weight: float,
+    *,
+    accelerated: bool = False,
 ) -> tuple[Genotype, dict]:
     """Build an MS/OS seed by randomized, resource-feasible prefix path choice.
 
@@ -142,20 +155,40 @@ def guided_genotype(
             )
         )
     os = tuple(j for j in order for _ in (0, 1))
-    power = PrefixPower(problem)
+    power = PrefixPower(problem, index=TariffIndex(problem) if accelerated else None)
+    calendar = ResourceCalendar(problem) if accelerated else None
     scored = 0
     for job in order:
         p_op, d_op = 2 * job, 2 * job + 1
         rows = []
+        p_cache: dict[int, float] = {}
         for p, d in paths(problem, job):
             ms[p_op], ms[d_op] = p, d
             g = Genotype(tuple(ms), os)
-            p_start = earliest(problem, g, Schedule(tuple(starts)), p_op, problem.jobs[job].release)
+            if calendar is None:
+                p_start = earliest(
+                    problem, g, Schedule(tuple(starts)), p_op, problem.jobs[job].release
+                )
+            else:
+                if p not in p_cache:
+                    p_cache[p] = calendar.earliest(p, p_op, problem.jobs[job].release)
+                p_start = p_cache[p]
             starts[p_op] = p_start
             d_est = (
                 p_start + problem.jobs[job].prefill.duration + (p != d) * problem.jobs[job].kv_delay
             )
-            d_start = earliest(problem, g, Schedule(tuple(starts)), d_op, d_est)
+            d_start = (
+                earliest(problem, g, Schedule(tuple(starts)), d_op, d_est)
+                if calendar is None
+                else calendar.earliest(
+                    d,
+                    d_op,
+                    d_est,
+                    (p_op, p_start, p_start + problem.jobs[job].prefill.duration)
+                    if p == d
+                    else None,
+                )
+            )
             starts[p_op] = -1.0
             d_end = d_start + problem.jobs[job].decode.duration
             additions: dict[int, list[tuple[float, float]]] = {}
@@ -189,6 +222,9 @@ def guided_genotype(
         ms[p_op], ms[d_op] = selected[2], selected[3]
         starts[p_op], starts[d_op] = selected[4], selected[5]
         power.commit(selected[6])
+        if calendar is not None:
+            calendar.commit(selected[2], p_op, selected[4])
+            calendar.commit(selected[3], d_op, selected[5])
         scored += len(rows)
     genotype = Genotype(tuple(ms), os)
     if decode(problem, genotype).starts != tuple(starts):
@@ -230,6 +266,7 @@ def seed_bank(
     *,
     families: tuple[str, ...] = FAMILIES[:-1],
     size: int = 20,
+    accelerated: bool = False,
 ) -> tuple[dict, dict]:
     """Build 20 distinct seeds per family with a fixed exact tournament budget.
 
@@ -238,8 +275,8 @@ def seed_bank(
     bounded exhaustion is a recorded failure. Each evaluated trial and every bank
     winner receive independent exact verification; all counts/costs are retained.
     """
-    if trials not in (1, 4):
-        raise ValueError("Technical calibration may choose only 1 or 4 trials")
+    if trials not in ((1, 2, 4) if accelerated else (1, 4)):
+        raise ValueError("Reference allows 1/4; accelerated research allows 1/2/4 trials")
     if (
         not families
         or len(set(families)) != len(families)
@@ -267,7 +304,9 @@ def seed_bank(
                     g = generate(problem, 7, rng, 0.1)
                     evidence: dict = {}
                 else:
-                    g, evidence = guided_genotype(problem, family, rng, weight)
+                    g, evidence = guided_genotype(
+                        problem, family, rng, weight, accelerated=accelerated
+                    )
                 if g in seen:
                     continue
                 seen.add(g)
@@ -348,6 +387,7 @@ def seed_bank(
         "production_cpu_seconds": process_time() - cpu_started - verification_cpu_seconds,
         "verification_cpu_seconds": verification_cpu_seconds,
         "trials_per_slot": trials,
+        "rng_state_sha256": hashlib.sha256(repr(rng.getstate()).encode()).hexdigest(),
         "observations": observations,
     }
 

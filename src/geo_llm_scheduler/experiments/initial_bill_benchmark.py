@@ -63,6 +63,9 @@ def benchmark_population(
     method: str,
     bank_seed: int,
     progress: Callable[[dict], None] | None = None,
+    *,
+    accelerated: bool = False,
+    trials: int = 4,
 ) -> tuple[list[Candidate], list[Candidate], dict]:
     """Build one arm from scratch and independently verify all its final members.
 
@@ -88,7 +91,14 @@ def benchmark_population(
     else:
         family, share = method[:-2], int(method[-2:])
         bank, stats = seed_bank(
-            problem, parents, random.Random(bank_seed), 4, progress, families=(family,), size=share
+            problem,
+            parents,
+            random.Random(bank_seed),
+            trials,
+            progress,
+            families=(family,),
+            size=share,
+            accelerated=accelerated,
         )
         bank_wall, bank_cpu = stats["production_seconds"], stats["production_cpu_seconds"]
         new = bank[family]
