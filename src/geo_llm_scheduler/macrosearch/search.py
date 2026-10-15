@@ -6,7 +6,7 @@ from typing import Callable, Protocol
 from geo_llm_scheduler.domain.models import Candidate, Genotype, Schedule
 from geo_llm_scheduler.moead.core import NormalizationContext
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
-from geo_llm_scheduler.utils.numeric import TOL, identity
+from geo_llm_scheduler.utils.numeric import TOL, identity, less, schedule_identity
 
 
 class Evaluator(Protocol):
@@ -60,6 +60,7 @@ def execute(
     sequential: bool = False,
     *,
     structural_observer: Callable[[Genotype], None] | None = None,
+    aid: bool = False,
 ) -> MacroSearchResult:
     """Evaluate unique complete proposals then compare all using a temporary ideal."""
     seen = set()
@@ -96,7 +97,29 @@ def execute(
         return evaluator.evaluate(proposal.genotype, proposal.schedule, origin)
 
     audit: dict[str, float | int | bool | None] | None = None
-    if sequential:
+    if aid and sequential:
+        raise ValueError("AID and historical sequential search are different policies")
+    if aid:
+        for proposal in unique:
+            candidate = evaluate_proposal(proposal)
+            candidates.append(candidate)
+            prefix = NormalizationContext(
+                (
+                    min(context.ideal[0], evaluator.ideal[0]),
+                    min(context.ideal[1], evaluator.ideal[1]),
+                ),
+                context.maximum,
+            )
+            if (
+                candidate.evaluation.feasible
+                and schedule_identity(candidate) != schedule_identity(incumbent)
+                and not less(
+                    prefix.scalar(incumbent, weight), prefix.scalar(candidate, weight), TOL.scalar
+                )
+            ):
+                break
+        audit = {"aid": True, "available": len(unique), "evaluated": len(candidates)}
+    elif sequential:
 
         def score(items: list[Candidate]) -> float:
             ideal = (

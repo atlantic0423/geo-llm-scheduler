@@ -42,6 +42,23 @@ def improve(
     operator_overrides: dict[int, Operator] | None = None,
 ) -> tuple[Candidate, list[dict]]:
     """Run L_RL decisions; each batch restarts from that step's frozen incumbent."""
+    if config.auxiliary_arm:
+        from geo_llm_scheduler.engine.auxiliary import improve_auxiliary
+
+        return improve_auxiliary(
+            child,
+            index,
+            stagnant_count,
+            progress,
+            weights,
+            maximum,
+            gateway,
+            controller,
+            config,
+            streams,
+            observer=observer,
+            operator_overrides=operator_overrides,
+        )
     problem = gateway.problem
     current = child
     records = []

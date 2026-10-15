@@ -26,6 +26,8 @@ TUPLE_FIELDS = (
     "budgets",
     "static_budgets",
     "enabled_operators",
+    "auxiliary_cutoffs",
+    "auxiliary_random_probabilities",
 )
 
 

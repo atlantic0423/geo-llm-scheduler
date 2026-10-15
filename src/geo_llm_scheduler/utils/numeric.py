@@ -43,3 +43,8 @@ def identity(candidate: Candidate) -> tuple:
         candidate.genotype.os,
         tuple(round(t / TOL.time) for t in candidate.schedule.starts),
     )
+
+
+def schedule_identity(candidate: Candidate) -> tuple:
+    """Identify a physical schedule independently of equivalent OS representations."""
+    return candidate.genotype.ms, tuple(round(t / TOL.time) for t in candidate.schedule.starts)

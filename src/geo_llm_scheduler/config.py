@@ -53,6 +53,10 @@ class Config:
     macro_generation_budget: int = 0  # Research: 0 preserves native budget-dependent generation
     macro_rng_policy: str = "shared"  # Research: shared or per-call child stream
     macro_diagnostics: bool = False  # Bounded research observer; no algorithm RNG consumption
+    auxiliary_arm: str = ""  # Explicit research-only trajectory controller; empty is legacy
+    auxiliary_cutoffs: tuple[float, float] = (0.05, 0.20)
+    auxiliary_random_probabilities: tuple[float, ...] = (0.4, 0.3, 0.3)
+    auxiliary_random_aid: bool = False
     static_budgets: tuple[int, ...] = (3, 6, 6, 3, 3, 10, 6, 10)
     enabled_operators: tuple[int, ...] = (1, 2, 3, 4, 5, 6, 7, 8)
     polish: bool = True
@@ -65,6 +69,33 @@ class Config:
     output: str = "outputs"
 
     def __post_init__(self) -> None:
+        if type(self.auxiliary_random_aid) is not bool or (
+            self.auxiliary_random_aid and self.auxiliary_arm != "R0"
+        ):
+            raise ValueError("Matched random AID requires R0")
+        if self.auxiliary_arm:
+            from geo_llm_scheduler.macrosearch.trajectory_budget import ARM_SPECS
+
+            if self.auxiliary_arm not in ARM_SPECS or (
+                self.method != "full"
+                or self.budget_policy != "fixed"
+                or self.macro_generation_budget
+                or self.macro_rng_policy != "shared"
+                or self.polish_mode != "trajectory"
+            ):
+                raise ValueError("Auxiliary research requires a known arm and full/native/shared")
+        if (
+            len(self.auxiliary_cutoffs) != 2
+            or any(not isfinite(v) or not 0 <= v <= 1 for v in self.auxiliary_cutoffs)
+            or self.auxiliary_cutoffs[0] > self.auxiliary_cutoffs[1]
+        ):
+            raise ValueError("Auxiliary distance cutoffs must be ordered in [0,1]")
+        if (
+            len(self.auxiliary_random_probabilities) != 3
+            or any(not isfinite(p) or p < 0 for p in self.auxiliary_random_probabilities)
+            or abs(sum(self.auxiliary_random_probabilities) - 1) > 1e-9
+        ):
+            raise ValueError("Auxiliary budget probabilities must sum to one")
         positive_counts = (
             self.population,
             self.neighborhood,
@@ -231,6 +262,8 @@ def load_config(path: str | Path) -> Config:
         "budgets",
         "static_budgets",
         "enabled_operators",
+        "auxiliary_cutoffs",
+        "auxiliary_random_probabilities",
     ):
         if key in data:
             data[key] = tuple(data[key])
