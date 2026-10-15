@@ -4,6 +4,19 @@ import hashlib
 import random
 
 
+def operator_call_rng(parent: random.Random, policy: str) -> random.Random:
+    """Keep native RNG untouched, or consume exactly one parent seed per call.
+
+    Child draws are isolated from subsequent operator calls. Equal parent
+    consumption does not imply equal candidate sets or equal search trajectories.
+    """
+    if policy == "shared":
+        return parent
+    if policy == "call":
+        return random.Random(parent.getrandbits(128))
+    raise ValueError("Unknown MacroSearch RNG policy")
+
+
 class RNGManager:
     """Derive and retain explicit named streams from a run's master seed."""
 

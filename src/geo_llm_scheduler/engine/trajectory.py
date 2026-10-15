@@ -2,10 +2,11 @@
 
 from dataclasses import replace
 from time import perf_counter
+from typing import Callable
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.diagnostics.severity import severities
-from geo_llm_scheduler.domain.models import Candidate
+from geo_llm_scheduler.domain.models import Candidate, Genotype
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.macrosearch.adaptive import AdaptiveBudget
 from geo_llm_scheduler.macrosearch.budget import choose_budget
@@ -20,7 +21,7 @@ from geo_llm_scheduler.rl.controller import Controller, reward
 from geo_llm_scheduler.rl.state import decode, extract
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
 from geo_llm_scheduler.utils.numeric import TOL, identity, less
-from geo_llm_scheduler.utils.rng import RNGManager
+from geo_llm_scheduler.utils.rng import RNGManager, operator_call_rng
 
 
 def improve(
@@ -36,13 +37,37 @@ def improve(
     streams: RNGManager,
     population: list[Candidate] | None = None,
     adaptive: AdaptiveBudget | None = None,
+    *,
+    observer: Callable[[str, dict], None] | None = None,
+    operator_overrides: dict[int, Operator] | None = None,
 ) -> tuple[Candidate, list[dict]]:
     """Run L_RL decisions; each batch restarts from that step's frozen incumbent."""
+    if config.auxiliary_arm:
+        from geo_llm_scheduler.engine.auxiliary import improve_auxiliary
+
+        return improve_auxiliary(
+            child,
+            index,
+            stagnant_count,
+            progress,
+            weights,
+            maximum,
+            gateway,
+            controller,
+            config,
+            streams,
+            observer=observer,
+            operator_overrides=operator_overrides,
+        )
     problem = gateway.problem
     current = child
     records = []
     operators: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 7)}
     operators.update({7: ActivePack(), 8: PeakCoalition()})
+    if operator_overrides is not None:
+        if set(operator_overrides) - {8}:
+            raise ValueError("Research overrides are limited to A8")
+        operators.update(operator_overrides)
     values = severities(problem, current)
     for step in range(config.rl_steps):
         start = perf_counter()
@@ -84,15 +109,49 @@ def improve(
         if adaptive is not None and config.budget_policy == "coverage_v2":
             adaptive.cpu_seconds += budget_seconds
         construction_start = perf_counter()
-        batch = operators[action].propose(
-            problem, current, budget, config, streams.stream(f"A{action}")
-        )
+        generation_budget = config.macro_generation_budget or budget
+        operator_rng = operator_call_rng(streams.stream(f"A{action}"), config.macro_rng_policy)
+        rng_before = operator_rng.getstate() if config.macro_diagnostics else None
+        batch = operators[action].propose(problem, current, generation_budget, config, operator_rng)
         construction_seconds = perf_counter() - construction_start
         gateway.seconds[f"construction:A{action}"] += construction_seconds
         gateway.counts[f"construction_attempts:A{action}"] += batch.attempts
         gateway.counts[f"proposals:A{action}"] += len(batch.proposals)
         insertions = gateway.archive.insertions
         archive_before = {identity(candidate) for candidate in gateway.archive.members}
+        if config.macro_diagnostics and observer is not None:
+            observer(
+                "macro_before",
+                {
+                    "source": current,
+                    "batch": batch,
+                    "action": action,
+                    "state": state,
+                    "progress": progress,
+                    "context": context,
+                    "weight": weights[index],
+                    "budget": budget,
+                    "generation_budget": generation_budget,
+                    "construction_seconds": construction_seconds,
+                    "operator_rng_before": rng_before,
+                    "operator_rng_after": operator_rng.getstate(),
+                },
+            )
+
+        def observe_target(target: Genotype) -> None:
+            if observer is not None:
+                observer(
+                    "structure",
+                    {
+                        "source": current,
+                        "target": target,
+                        "path": f"A{action}",
+                        "step": step,
+                        "context": context,
+                        "weight": weights[index],
+                    },
+                )
+
         result = execute(
             batch,
             current,
@@ -102,7 +161,10 @@ def improve(
             gateway,
             f"A{action}",
             sequential=config.budget_policy == "sequential",
+            structural_observer=observe_target if observer is not None else None,
         )
+        if config.macro_diagnostics and observer is not None:
+            observer("macro_after", {"result": result, "action": action})
         archive_after = {identity(candidate) for candidate in gateway.archive.members}
         before = result.context.scalar(current, weights[index])
         prior = current
@@ -131,7 +193,7 @@ def improve(
         # Each short trajectory ends an episode; keep the run-level Q table.
         # Polish is outside the episode and never contributes bootstrap/reward.
         controller.update(state, action, signal, next_state, terminal=step == config.rl_steps - 1)
-        preference_label, condition_label, progress_label = decode(state)
+        preference_label, condition_label, progress_label = decode(state, config.rl_state_policy)
         records.append(
             {
                 "step": step,
