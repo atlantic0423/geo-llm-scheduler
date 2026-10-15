@@ -267,6 +267,8 @@ def seed_bank(
     families: tuple[str, ...] = FAMILIES[:-1],
     size: int = 20,
     accelerated: bool = False,
+    evaluator: Callable[..., Candidate] | None = None,
+    verify_trials: bool = True,
 ) -> tuple[dict, dict]:
     """Build 20 distinct seeds per family with a fixed exact tournament budget.
 
@@ -310,13 +312,20 @@ def seed_bank(
                 if g in seen:
                     continue
                 seen.add(g)
-                schedule = decode(problem, g)
-                result = evaluate(problem, g, schedule)
-                tick = perf_counter()
-                cpu_tick = process_time()
-                repeated = evaluate(problem, g, schedule)
-                verification_seconds += perf_counter() - tick
-                verification_cpu_seconds += process_time() - cpu_tick
+                if evaluator is None:
+                    schedule = decode(problem, g)
+                    result = evaluate(problem, g, schedule)
+                    candidate = Candidate(g, schedule, result, f"bill_seed_{family}")
+                else:
+                    candidate = evaluator(g, origin=f"bill_seed_{family}")
+                    schedule, result = candidate.schedule, candidate.evaluation
+                repeated = result
+                if verify_trials:
+                    tick = perf_counter()
+                    cpu_tick = process_time()
+                    repeated = evaluate(problem, g, schedule)
+                    verification_seconds += perf_counter() - tick
+                    verification_cpu_seconds += process_time() - cpu_tick
                 if not result.feasible or repeated != result:
                     raise AssertionError("New seed failed independent exact verification")
                 if evidence and (
@@ -328,7 +337,6 @@ def seed_bank(
                     )
                 ):
                     raise AssertionError("Incremental prefix power disagrees with full exact")
-                candidate = Candidate(g, schedule, result, f"bill_seed_{family}")
                 pool.append(candidate)
                 exact_count += 1
                 observations.append(
@@ -380,7 +388,7 @@ def seed_bank(
     # Shared construction costs are reported once, not charged once per reused arm.
     return bank, {
         "exact": exact_count,
-        "independent_exact_verified": exact_count,
+        "independent_exact_verified": exact_count if verify_trials else 0,
         "elapsed": perf_counter() - started,
         "verification_seconds": verification_seconds,
         "production_seconds": perf_counter() - started - verification_seconds,

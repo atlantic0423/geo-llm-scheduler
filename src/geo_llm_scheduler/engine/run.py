@@ -52,12 +52,17 @@ def run(
     retain_trace: bool = True,
     observer: Callable[[str, dict], None] | None = None,
     operator_overrides: dict[int, Operator] | None = None,
+    initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
     ``retain_trace=False`` omits historical snapshots without trimming the archive.
     Observer work is included in the engine wall-clock budget.
+    A custom initializer runs inside that same clock and owns gateway dispatch;
+    it is mutually exclusive with precomputed genotype input.
     """
+    if initial is not None and initializer is not None:
+        raise ValueError("Choose initial genotypes or a charged initializer")
     validate_problem(problem)
     begin = perf_counter()
     observer_seconds = 0.0
@@ -82,14 +87,18 @@ def run(
         else None
     )
     initialization_start = perf_counter()
-    population = [
-        gateway.evaluate(g, origin="initialization")
-        for g in (
-            initial
-            if initial is not None
-            else initial_genotypes(problem, config, streams.stream("initialization"))
-        )
-    ]
+    population = (
+        initializer(gateway, streams)
+        if initializer is not None
+        else [
+            gateway.evaluate(g, origin="initialization")
+            for g in (
+                initial
+                if initial is not None
+                else initial_genotypes(problem, config, streams.stream("initialization"))
+            )
+        ]
+    )
     if len(population) != config.population:
         raise ValueError("Frozen initialization size does not match population")
     gateway.seconds["initialization"] += perf_counter() - initialization_start

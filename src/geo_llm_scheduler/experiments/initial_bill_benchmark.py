@@ -19,7 +19,12 @@ METHODS = ("BASE", "BILL10", "BILL20", "DEMAND20")
 ORDERS = ((0, 1, 3, 2), (1, 2, 0, 3), (2, 3, 1, 0), (3, 0, 2, 1))
 
 
-def traced_original(problem: ProblemInstance, config: Config) -> list[Candidate]:
+def traced_original(
+    problem: ProblemInstance,
+    config: Config,
+    *,
+    evaluator: Callable[..., Candidate] | None = None,
+) -> list[Candidate]:
     """Reproduce the unchanged initializer, retaining exact construction labels.
 
     This is a production path: no repeated evaluation or generation is hidden
@@ -49,6 +54,12 @@ def traced_original(problem: ProblemInstance, config: Config) -> list[Candidate]
         raise ValueError("Original unique population unavailable")
     result = []
     for g in genes:
+        if evaluator is not None:
+            candidate = evaluator(g, origin=f"initial_mode_{accepted[g]}")
+            if not candidate.evaluation.feasible:
+                raise AssertionError("Original initializer infeasible")
+            result.append(candidate)
+            continue
         schedule = decode(problem, g)
         ev = evaluate(problem, g, schedule)
         if not ev.feasible:
