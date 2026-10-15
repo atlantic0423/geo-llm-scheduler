@@ -1,6 +1,6 @@
 # 初始化速度与构造强度实验复现
 
-本批只比较初始化，P100、原十来源各9加BILL10；没有进化或默认算法晋级。正式矩阵为32全新base、每base两个seed、四臂，共256run/64块。pilot四base/16run、原200输入golden对照及8个单构造profile单列，不纳入正式质量统计。
+本批只比较初始化，P100、原十来源各9加BILL10；没有进化或默认算法晋级。正式矩阵为32全新base、每base两个seed、四臂，共256run/64块。pilot四base/16run、原200输入golden对照、8个单构造profile、1个整次FAST4 profile及4次微型恢复夹具单列，不纳入正式质量统计。
 
 ## 运行源与环境
 
@@ -39,6 +39,10 @@ python scripts/run_initial_bill_speed.py validate --root /path/to/new/formal
 
 prepare生成同32输入与64spec，记录实际新host。run最多24个不同物理核，每child4GiB地址空间，合计96GiB，低于用户200GB预算；这不等于聚合200GB cgroup。主机可用内存和磁盘门、每run两小时技术保护、排他锁保持。暂停写stop.request后安全完成当前臂，不自动删除暂停请求。续跑相同run命令，先复验完整run；中断attempt进入quarantine，真实算法失败保留并停止新派发，不自动重试。原pilot全部16run上的再次run调用已验证零重算、run产物SHA零变化。
 
+续跑前还必须确认原supervisor及同campaign worker全部退出。flock只排斥持锁父进程，不能单独排除父进程异常退出后的孤儿worker；不得在仍有原worker时运行新的supervisor。本批完整结果跳过检查不等于破坏性停机故障注入，实际恢复仍需核对PID/command、host、source/hash、暂停请求及资源。
+
+另有不计入正式统计的6任务恢复夹具：预置一个无complete的partial目录，原入口将其完整移入quarantine、运行四臂并通过严格配对；再次运行时全部run文件SHA零变化。该夹具使用独立CPU40和独立root，只有输入准备/CPU选择做技术适配，算法实现未改；原partial字节、四个P100及验收JSON均随raw包保留。这验证了未完成目录处理和完成跳过，没有主动中断正式worker。
+
 ## 耗时解释边界
 
 生产时钟分别记录原P100、BILL bank及选择；独立trial重复exact和最终100成员SSGS/exact复验单列audit。当前生产代码每trial在引导函数末尾做一次SSGS回放，进入seed_bank又decode一次，这两次都已计入生产，不是被审计时钟隐藏。可复用结果是后续工程建议，未改变本批冻结代码。
@@ -46,3 +50,8 @@ prepare生成同32输入与64spec，记录实际新host。run最多24个不同�
 原runner没有单独插入最终JSON导出计时；summary的completed字段在导出前写入，不能将其当完整worker退出时间。报告不编造导出秒数。所有实测初始化表同时提供生产和独立审计；总工程吞吐另由真实supervisor起止观察。
 
 profiles内fast0/fast1表示加速布尔开关，不对应正式FAST1单trial臂。8个带插桩单次引导分别为200任务、12/24实例、权重0/.5及两后端；四对candidate/starts/exact/evidence/RNG hash严格一致。cProfile累计时间有嵌套，不能相加；其带插桩秒数不替代正式未插桩benchmark，也不外推为其他状态的固定占比。
+
+
+整次whole200_fast4 profile仅作调用路径诊断：同原200输入、完整P100/Archive严格一致；300.992秒含cProfile开销，不能替代正式未插桩生产均值。280次decode的四类caller分别保存，供复核重复40次SSGS与最终独立审计边界。
+
+完整raw本地流式验真、分析六文件逐SHA重放，以及从CSV独立复算四主/两成本统计和Holm的运维脚本与回执随Release的operations_evidence.zip保留。descriptive_base_diagnostics.csv是后续描述性分析，不增加主检验或改变预注册口径。
