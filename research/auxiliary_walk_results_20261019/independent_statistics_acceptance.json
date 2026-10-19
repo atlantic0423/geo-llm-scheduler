@@ -1,0 +1,12 @@
+{
+  "statistics": 46,
+  "families": [
+    34,
+    6,
+    6
+  ],
+  "status": "passed",
+  "seed": 2026101603,
+  "bootstrap": 20000,
+  "signflips": 100000
+}

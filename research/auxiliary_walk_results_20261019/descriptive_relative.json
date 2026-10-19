@@ -1,0 +1,98 @@
+[
+  {
+    "stage": "screen",
+    "treatment": "W1",
+    "control": "S0",
+    "paired_relative_hv_pct": 0.5544697689781444,
+    "paired_bill_end_improvement_pct": 1.4023658807184256,
+    "paired_flow_end_improvement_pct": -0.030448909786651435
+  },
+  {
+    "stage": "screen",
+    "treatment": "D2",
+    "control": "W1",
+    "paired_relative_hv_pct": 0.6004310256193978,
+    "paired_bill_end_improvement_pct": 0.4790050918391384,
+    "paired_flow_end_improvement_pct": 0.017276684122816827
+  },
+  {
+    "stage": "screen",
+    "treatment": "D2",
+    "control": "R0",
+    "paired_relative_hv_pct": 0.39300789254534657,
+    "paired_bill_end_improvement_pct": 0.3278908309484968,
+    "paired_flow_end_improvement_pct": 0.016128150081394788
+  },
+  {
+    "stage": "screen",
+    "treatment": "D2",
+    "control": "S0",
+    "paired_relative_hv_pct": 1.1365327875115638,
+    "paired_bill_end_improvement_pct": 1.914192928460898,
+    "paired_flow_end_improvement_pct": -0.012968234794973749
+  },
+  {
+    "stage": "confirm",
+    "treatment": "W1",
+    "control": "S0",
+    "paired_relative_hv_pct": 1.1381544249058622,
+    "paired_bill_end_improvement_pct": 1.5416045713955928,
+    "paired_flow_end_improvement_pct": 0.030056722698930605
+  },
+  {
+    "stage": "confirm",
+    "treatment": "D2",
+    "control": "W1",
+    "paired_relative_hv_pct": 0.07376644678579022,
+    "paired_bill_end_improvement_pct": 0.7319714858869257,
+    "paired_flow_end_improvement_pct": -0.02423142520407172
+  },
+  {
+    "stage": "confirm",
+    "treatment": "D2",
+    "control": "R0",
+    "paired_relative_hv_pct": 0.5008391272206543,
+    "paired_bill_end_improvement_pct": 0.5667411511312499,
+    "paired_flow_end_improvement_pct": -0.013895980505230221
+  },
+  {
+    "stage": "confirm",
+    "treatment": "D2",
+    "control": "S0",
+    "paired_relative_hv_pct": 1.1754165534164969,
+    "paired_bill_end_improvement_pct": 2.328805951689059,
+    "paired_flow_end_improvement_pct": 0.005989174278707848
+  },
+  {
+    "stage": "long",
+    "treatment": "W1",
+    "control": "S0",
+    "paired_relative_hv_pct": 1.2634135645572584,
+    "paired_bill_end_improvement_pct": 2.280028121433483,
+    "paired_flow_end_improvement_pct": 0.02072595096447652
+  },
+  {
+    "stage": "long",
+    "treatment": "D2",
+    "control": "W1",
+    "paired_relative_hv_pct": 0.30827019935517896,
+    "paired_bill_end_improvement_pct": -0.0436356799277811,
+    "paired_flow_end_improvement_pct": 0.012930713684260048
+  },
+  {
+    "stage": "long",
+    "treatment": "D2",
+    "control": "R0",
+    "paired_relative_hv_pct": 0.2008432473134943,
+    "paired_bill_end_improvement_pct": -0.659273972456599,
+    "paired_flow_end_improvement_pct": 0.01501888500943932
+  },
+  {
+    "stage": "long",
+    "treatment": "D2",
+    "control": "S0",
+    "paired_relative_hv_pct": 1.5694202397496049,
+    "paired_bill_end_improvement_pct": 2.2753378980617174,
+    "paired_flow_end_improvement_pct": 0.033747761823822164
+  }
+]

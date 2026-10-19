@@ -1,0 +1,690 @@
+{
+  "status": "postprocessing exploratory family; not an additional preregistered confirmation",
+  "seed": 2026101901,
+  "statistics": [
+    {
+      "stage": "screen",
+      "treatment": "W0",
+      "control": "S0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.005591931948899389,
+      "ci95": [
+        -0.00406959005166456,
+        0.014249417862911352
+      ],
+      "p": 0.26703732962670373,
+      "positive": 50,
+      "negative": 30,
+      "tied": 0,
+      "paired_standardized": 0.13022063682034762,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W0",
+      "control": "S0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": 0.00045583466710088724,
+      "ci95": [
+        -0.005572715261742919,
+        0.005940623880243719
+      ],
+      "p": 0.8828011719882801,
+      "positive": 44,
+      "negative": 36,
+      "tied": 0,
+      "paired_standardized": 0.017095203642460775,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "S1",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -8.340225212363772e-05,
+      "ci95": [
+        -0.007171129270584448,
+        0.006843321907697989
+      ],
+      "p": 0.982290177098229,
+      "positive": 43,
+      "negative": 37,
+      "tied": 0,
+      "paired_standardized": -0.0025462427135100013,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "S1",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.002899523825214741,
+      "ci95": [
+        -0.007090817360665441,
+        0.0009712347080602146
+      ],
+      "p": 0.18623813761862382,
+      "positive": 38,
+      "negative": 42,
+      "tied": 0,
+      "paired_standardized": -0.15219328881332028,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "W0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.0018295598585558541,
+      "ci95": [
+        -0.008601254453135362,
+        0.004180996988528778
+      ],
+      "p": 0.6154838451615484,
+      "positive": 38,
+      "negative": 42,
+      "tied": 0,
+      "paired_standardized": -0.062118145078789364,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "W0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0011252535098397578,
+      "ci95": [
+        -0.004814677344945329,
+        0.0022316679462754696
+      ],
+      "p": 0.5802641973580264,
+      "positive": 38,
+      "negative": 42,
+      "tied": 0,
+      "paired_standardized": -0.06759400740549373,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "S1",
+      "control": "S0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.0038457743424671733,
+      "ci95": [
+        -0.002032309027216046,
+        0.010096940198400767
+      ],
+      "p": 0.24936750632493676,
+      "positive": 45,
+      "negative": 35,
+      "tied": 0,
+      "paired_standardized": 0.13448478039327968,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "S1",
+      "control": "S0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": 0.0022301049824758707,
+      "ci95": [
+        -0.0010748868645690266,
+        0.006152162594612713
+      ],
+      "p": 0.26608733912660876,
+      "positive": 51,
+      "negative": 29,
+      "tied": 0,
+      "paired_standardized": 0.13219338605451758,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.0037623720903435355,
+      "ci95": [
+        -0.002885297585011052,
+        0.00981407149838285
+      ],
+      "p": 0.2687573124268757,
+      "positive": 49,
+      "negative": 31,
+      "tied": 0,
+      "paired_standardized": 0.12758740546813233,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0006694188427388706,
+      "ci95": [
+        -0.004953966986652378,
+        0.003071682560829526
+      ],
+      "p": 0.7696823031769683,
+      "positive": 46,
+      "negative": 34,
+      "tied": 0,
+      "paired_standardized": -0.035931847026942694,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "F1",
+      "control": "W1",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.011555169761952902,
+      "ci95": [
+        -0.016530244429849968,
+        -0.006637794174168981
+      ],
+      "p": 2.999970000299997e-05,
+      "positive": 23,
+      "negative": 57,
+      "tied": 0,
+      "paired_standardized": -0.467590673931247,
+      "p_holm_exploratory_38": 0.0011099889001109989
+    },
+    {
+      "stage": "screen",
+      "treatment": "F1",
+      "control": "W1",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.011241397771791357,
+      "ci95": [
+        -0.014222712362448651,
+        -0.008374102199003917
+      ],
+      "p": 9.99990000099999e-06,
+      "positive": 16,
+      "negative": 64,
+      "tied": 0,
+      "paired_standardized": -0.7285653462530711,
+      "p_holm_exploratory_38": 0.00037999620003799963
+    },
+    {
+      "stage": "screen",
+      "treatment": "F2",
+      "control": "W1",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.0035590782271681097,
+      "ci95": [
+        -0.001133943480528816,
+        0.008359260939244807
+      ],
+      "p": 0.15014849851501486,
+      "positive": 47,
+      "negative": 33,
+      "tied": 0,
+      "paired_standardized": 0.16353029399549734,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "F2",
+      "control": "W1",
+      "metric": "igd",
+      "parents": 80,
+      "mean": 0.005752081743415184,
+      "ci95": [
+        0.0032001339009833877,
+        0.008320224948784868
+      ],
+      "p": 3.999960000399996e-05,
+      "positive": 55,
+      "negative": 25,
+      "tied": 0,
+      "paired_standardized": 0.4756767224439842,
+      "p_holm_exploratory_38": 0.0013999860001399987
+    },
+    {
+      "stage": "screen",
+      "treatment": "D1",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.0027194306276908968,
+      "ci95": [
+        -0.009948611341783998,
+        0.004296533086094282
+      ],
+      "p": 0.4717552824471755,
+      "positive": 37,
+      "negative": 43,
+      "tied": 0,
+      "paired_standardized": -0.08229287244980404,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D1",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0025293925399828983,
+      "ci95": [
+        -0.007259876503135598,
+        0.0018365530231145726
+      ],
+      "p": 0.3085569144308557,
+      "positive": 39,
+      "negative": 41,
+      "tied": 0,
+      "paired_standardized": -0.11906583805496448,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D3",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.0006338762130222393,
+      "ci95": [
+        -0.006847025145725995,
+        0.0059747499865847875
+      ],
+      "p": 0.8514514854851452,
+      "positive": 36,
+      "negative": 44,
+      "tied": 0,
+      "paired_standardized": -0.021501838076397498,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D3",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.00055515326162284,
+      "ci95": [
+        -0.003721355041894715,
+        0.0027263385150335957
+      ],
+      "p": 0.7440925590744093,
+      "positive": 38,
+      "negative": 42,
+      "tied": 0,
+      "paired_standardized": -0.03678022437638537,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D4",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -9.747901092512224e-05,
+      "ci95": [
+        -0.006663752391383397,
+        0.006870342354439631
+      ],
+      "p": 0.978890211097889,
+      "positive": 35,
+      "negative": 45,
+      "tied": 0,
+      "paired_standardized": -0.003136879682606263,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D4",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0009338142851244329,
+      "ci95": [
+        -0.004420597498155146,
+        0.0024898307385563213
+      ],
+      "p": 0.6092839071609284,
+      "positive": 32,
+      "negative": 48,
+      "tied": 0,
+      "paired_standardized": -0.05844198701861744,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D5",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.0038944249151860997,
+      "ci95": [
+        -0.009024151950656478,
+        0.0014372782902713206
+      ],
+      "p": 0.15371846281537185,
+      "positive": 33,
+      "negative": 47,
+      "tied": 0,
+      "paired_standardized": -0.16185928192861135,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D5",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0025550906310601914,
+      "ci95": [
+        -0.005546648878911604,
+        0.0002267993305510606
+      ],
+      "p": 0.09223907760922391,
+      "positive": 36,
+      "negative": 44,
+      "tied": 0,
+      "paired_standardized": -0.1899828938401505,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D6",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.005340057666727077,
+      "ci95": [
+        -0.011678842098810118,
+        0.000537970801213968
+      ],
+      "p": 0.10680893191068089,
+      "positive": 37,
+      "negative": 43,
+      "tied": 0,
+      "paired_standardized": -0.18285886639190682,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "D6",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.00246801171533675,
+      "ci95": [
+        -0.006023419808906522,
+        0.0005657786175535599
+      ],
+      "p": 0.17433825661743382,
+      "positive": 36,
+      "negative": 44,
+      "tied": 0,
+      "paired_standardized": -0.1560087944530375,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "C0",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.002469319926557244,
+      "ci95": [
+        -0.009004782079183784,
+        0.0039219196979406006
+      ],
+      "p": 0.47132528674713253,
+      "positive": 27,
+      "negative": 53,
+      "tied": 0,
+      "paired_standardized": -0.08251516802574989,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "C0",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": 0.0001824415430343905,
+      "ci95": [
+        -0.0038012773396887455,
+        0.00419332356162565
+      ],
+      "p": 0.9317206827931721,
+      "positive": 37,
+      "negative": 43,
+      "tied": 0,
+      "paired_standardized": 0.009822574351986135,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "L0",
+      "control": "W1",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.0007922729475570691,
+      "ci95": [
+        -0.004592354920830824,
+        0.00645433197259176
+      ],
+      "p": 0.7867221327786722,
+      "positive": 40,
+      "negative": 40,
+      "tied": 0,
+      "paired_standardized": 0.03055400610995576,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "L0",
+      "control": "W1",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.003459337660237166,
+      "ci95": [
+        -0.006809554930946105,
+        -0.00014425582918812998
+      ],
+      "p": 0.06381936180638194,
+      "positive": 31,
+      "negative": 49,
+      "tied": 0,
+      "paired_standardized": -0.20978220397729522,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "screen",
+      "treatment": "L1",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.008763529453066892,
+      "ci95": [
+        -0.015475126975100482,
+        -0.0018917802812910027
+      ],
+      "p": 0.016659833401665984,
+      "positive": 30,
+      "negative": 50,
+      "tied": 0,
+      "paired_standardized": -0.2706162031855567,
+      "p_holm_exploratory_38": 0.4664753352466475
+    },
+    {
+      "stage": "screen",
+      "treatment": "L1",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.007230753037207509,
+      "ci95": [
+        -0.0111236064179781,
+        -0.0033831880183204767
+      ],
+      "p": 0.0008599914000859991,
+      "positive": 26,
+      "negative": 54,
+      "tied": 0,
+      "paired_standardized": -0.37830291179474246,
+      "p_holm_exploratory_38": 0.02837971620283797
+    },
+    {
+      "stage": "screen",
+      "treatment": "A1",
+      "control": "D2",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.009364071249219324,
+      "ci95": [
+        -0.017068365766042388,
+        -0.0024285175827283155
+      ],
+      "p": 0.009179908200917991,
+      "positive": 28,
+      "negative": 52,
+      "tied": 0,
+      "paired_standardized": -0.2782329898047133,
+      "p_holm_exploratory_38": 0.27539724602753973
+    },
+    {
+      "stage": "screen",
+      "treatment": "A1",
+      "control": "D2",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.0078102486661183745,
+      "ci95": [
+        -0.012710510978205275,
+        -0.003908916846823911
+      ],
+      "p": 2.999970000299997e-05,
+      "positive": 18,
+      "negative": 62,
+      "tied": 0,
+      "paired_standardized": -0.37610450939956797,
+      "p_holm_exploratory_38": 0.0011099889001109989
+    },
+    {
+      "stage": "screen",
+      "treatment": "A1",
+      "control": "A0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": -0.012391570160713416,
+      "ci95": [
+        -0.020172416344994525,
+        -0.005110512882165252
+      ],
+      "p": 0.0012299877001229987,
+      "positive": 27,
+      "negative": 53,
+      "tied": 0,
+      "paired_standardized": -0.3380936892273744,
+      "p_holm_exploratory_38": 0.03935960640393596
+    },
+    {
+      "stage": "screen",
+      "treatment": "A1",
+      "control": "A0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": -0.008682702248733144,
+      "ci95": [
+        -0.013882440531888056,
+        -0.004013432112587062
+      ],
+      "p": 0.00015999840001599985,
+      "positive": 26,
+      "negative": 54,
+      "tied": 0,
+      "paired_standardized": -0.36636628930240406,
+      "p_holm_exploratory_38": 0.005439945600543995
+    },
+    {
+      "stage": "confirm",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "hv",
+      "parents": 160,
+      "mean": 0.00946682479767132,
+      "ci95": [
+        0.003217516353555968,
+        0.01550685986251631
+      ],
+      "p": 0.0030599694003059967,
+      "positive": 108,
+      "negative": 52,
+      "tied": 0,
+      "paired_standardized": 0.23065701033033872,
+      "p_holm_exploratory_38": 0.0948590514094859
+    },
+    {
+      "stage": "confirm",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "igd",
+      "parents": 160,
+      "mean": 0.003637021956343636,
+      "ci95": [
+        0.00011135988321693693,
+        0.006924568456224891
+      ],
+      "p": 0.043049569504304955,
+      "positive": 101,
+      "negative": 59,
+      "tied": 0,
+      "paired_standardized": 0.1598122106658007,
+      "p_holm_exploratory_38": 1.0
+    },
+    {
+      "stage": "long",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "hv",
+      "parents": 80,
+      "mean": 0.010348158619294057,
+      "ci95": [
+        0.002561532395988573,
+        0.018774647192800777
+      ],
+      "p": 0.011969880301196988,
+      "positive": 53,
+      "negative": 27,
+      "tied": 0,
+      "paired_standardized": 0.278218471044467,
+      "p_holm_exploratory_38": 0.34712652873471267
+    },
+    {
+      "stage": "long",
+      "treatment": "W1",
+      "control": "S0",
+      "metric": "igd",
+      "parents": 80,
+      "mean": 0.004715020202910983,
+      "ci95": [
+        9.088615159607572e-05,
+        0.009999187526053076
+      ],
+      "p": 0.07419925800741993,
+      "positive": 43,
+      "negative": 37,
+      "tied": 0,
+      "paired_standardized": 0.2026017629862248,
+      "p_holm_exploratory_38": 1.0
+    }
+  ]
+}
