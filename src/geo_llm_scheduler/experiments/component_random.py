@@ -18,6 +18,7 @@ from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.engine.run import RunResult, run
 from geo_llm_scheduler.experiments.classic_baselines import run_classic
+from geo_llm_scheduler.experiments.comparison13 import arm_config as historical_config
 from geo_llm_scheduler.experiments.comparison13 import initialization_factory
 from geo_llm_scheduler.experiments.initial_bill_benchmark import traced_original
 from geo_llm_scheduler.experiments.nsga2 import run_nsga2
@@ -27,6 +28,16 @@ from geo_llm_scheduler.operators.right_shift import PolishStats, polish
 from geo_llm_scheduler.utils.rng import RNGManager
 
 EXTERNAL_ARMS = ("EXT_MOEAD", "EXT_NSGAII", "EXT_RK_MOPSO", "EXT_SPEA2", "EXT_EPS_IBEA")
+FULL_VARIANTS = {
+    "FULL_CURRENT_I4": "M11_I4",
+    "FULL_CURRENT_I2": "M11_I2",
+    "FULL_CURRENT_I1": "M11_I1",
+    "FULL_M00_I4": "M00_I4",
+    "FULL_M10_I4": "M10_I4",
+    "FULL_M01_I4": "M01_I4",
+    "FULL_DS_I4": "DS_I4",
+    "FULL_DC_I4": "DC_I4",
+}
 ARMS = (
     *EXTERNAL_ARMS,
     "MIXED_MOEAD",
@@ -43,6 +54,7 @@ ARMS = (
     "POOL_Q_COVERAGE_L5",
     "FULL_CURRENT_I4",
     "FULL_STRICT_NO_POLISH_I4",
+    *(name for name in FULL_VARIANTS if name != "FULL_CURRENT_I4"),
 )
 BUDGETS = {20: 300, 50: 600, 100: 1200, 200: 2400}
 STUDY_SEED = 16101
@@ -54,8 +66,14 @@ def initializer_policy(arm: str) -> str:
         raise ValueError("Unknown component-study arm")
     if arm in EXTERNAL_ARMS:
         return "random"
+    if arm == "FULL_CURRENT_I2":
+        return "bill2"
+    if arm == "FULL_CURRENT_I1":
+        return "bill1"
     return (
-        "bill4" if arm in ("BILL_MOEAD", "FULL_CURRENT_I4", "FULL_STRICT_NO_POLISH_I4") else "mixed"
+        "bill4"
+        if arm in FULL_VARIANTS or arm in ("BILL_MOEAD", "FULL_STRICT_NO_POLISH_I4")
+        else "mixed"
     )
 
 
@@ -67,6 +85,8 @@ def arm_config(arm: str, seed: int, seconds: float) -> Config:
     that continuous per-variable polynomial mutation is identical to .2.
     """
     initializer_policy(arm)
+    if arm in FULL_VARIANTS:
+        return historical_config(FULL_VARIANTS[arm], seed, seconds)
     plain = arm in (*EXTERNAL_ARMS, "MIXED_MOEAD", "BILL_MOEAD")
     cfg = Config(
         seed=seed,
@@ -128,8 +148,10 @@ def charged_initializer(
     genotype equality only. Feasibility or objective results never rank samples.
     """
     policy = initializer_policy(arm)
-    if policy == "bill4":
-        original = initialization_factory(problem, config, 4, config.seed + 100000, evidence)
+    if policy.startswith("bill"):
+        original = initialization_factory(
+            problem, config, int(policy[-1]), config.seed + 100000, evidence
+        )
 
         def bill(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
             members = original(gateway, streams)
@@ -242,7 +264,7 @@ def run_arm(
 
 
 def study_specs(seed: int = STUDY_SEED, *, reserve: bool = False) -> list[dict]:
-    """Reuse twenty old parents, or four separate reserve parents, by identity.
+    """Reuse sixteen old parents, or four separate reserve parents, by identity.
 
     This is a development panel, not a fresh holdout. Every four consecutive
     inputs rotate 20/50/100/200 jobs. Variants are paired within parent; they
@@ -255,7 +277,6 @@ def study_specs(seed: int = STUDY_SEED, *, reserve: bool = False) -> list[dict]:
             (20, 5, 12, "arrival"),
             (30, 3, 6, "arrival"),
             (40, 3, 24, "arrival"),
-            (100, 3, 12, "kv"),
             (110, 2, 12, "kv"),
         )
     )
@@ -278,17 +299,18 @@ def study_specs(seed: int = STUDY_SEED, *, reserve: bool = False) -> list[dict]:
 
 
 def balanced_order(index: int) -> list[str]:
-    """Return an even-treatment Williams row; a partial prefix is not full balance."""
+    """Return an odd-treatment Williams row; a prefix is not full balance."""
     count = len(ARMS)
     row = [0] + [j // 2 + 1 if j % 2 == 0 else count - 1 - j // 2 for j in range(count - 1)]
-    return [ARMS[(j + index) % count] for j in row]
+    order = [ARMS[(j + index % count) % count] for j in row]
+    return order if index % (2 * count) < count else order[::-1]
 
 
 def planning_summary(workers: int = 48, overhead_seconds: float = 60.0) -> dict:
     """Calculate a deterministic slot model, not a measured runtime guarantee.
 
     This plans run-level dispatch on one host. Sequentially executing an entire
-    26-arm 200-job block on one slot would exceed the requested overnight window.
+    33-arm 200-job block on one slot would exceed the requested overnight window.
     No experiment is dispatched and no historic result is counted as a new run.
     """
     if type(workers) is not int or workers < 1:

@@ -23,7 +23,7 @@ from geo_llm_scheduler.utils.rng import RNGManager
 
 
 def test_roster_and_initialization_are_explicit_and_no_handicap_parameters():
-    assert len(study.ARMS) == len(set(study.ARMS)) == 26
+    assert len(study.ARMS) == len(set(study.ARMS)) == 33
     for arm in study.ARMS:
         cfg = study.arm_config(arm, 19, 300)
         assert cfg.population == 100 and cfg.neighborhood == 20
@@ -63,6 +63,13 @@ def test_all_eight_single_operators_and_hierarchical_controls_are_isolated():
     assert asdict(study.arm_config("FULL_CURRENT_I4", 1, 300)) == asdict(
         old_config("M11_I4", 1, 300)
     )
+    for arm, previous in study.FULL_VARIANTS.items():
+        assert asdict(study.arm_config(arm, 16101, 2400)) == asdict(
+            old_config(previous, 16101, 2400)
+        )
+        assert study.initializer_policy(arm) == (
+            "bill2" if previous == "M11_I2" else "bill1" if previous == "M11_I1" else "bill4"
+        )
 
 
 def test_external_random_initializer_is_identical_price_blind_and_not_ours(monkeypatch):
@@ -103,7 +110,12 @@ def test_random_initializer_fails_at_explicit_draw_limit_without_heuristic_fallb
 
 def test_mixed_and_bill_are_separate_and_charge_all_unselected_candidates():
     problem = case_problem(12, 3, 12, 20, "arrival", 0)
-    for arm, exact in (("MIXED_MOEAD", 100), ("BILL_MOEAD", 140)):
+    for arm, exact in (
+        ("MIXED_MOEAD", 100),
+        ("BILL_MOEAD", 140),
+        ("FULL_CURRENT_I2", 120),
+        ("FULL_CURRENT_I1", 110),
+    ):
         cfg = study.arm_config(arm, 33, 300)
         gateway = EvaluationGateway(problem, Archive())
         evidence = {}
@@ -117,7 +129,7 @@ def test_mixed_and_bill_are_separate_and_charge_all_unselected_candidates():
             assert evidence["random_draw_attempts"] is None
         else:
             assert sum(c.origin == "bill_seed_BILL" for c in members) == 10
-            assert evidence["trials"] == 4
+            assert evidence["trials"] == (exact - 100) // 10
 
 
 @pytest.mark.parametrize("arm", study.EXTERNAL_ARMS)
@@ -177,9 +189,9 @@ def test_omitted_research_callback_retains_default_trace_counts_q_and_rng():
 
 def test_matrix_has_independent_parents_not_independent_variants_and_model_is_not_launch():
     specs = study.study_specs()
-    assert len(specs) == len({s["old_key"] for s in specs}) == 40
-    assert len({s["base_seed"] for s in specs}) == 20
-    assert [s["n"] for s in specs] == [20, 50, 100, 200] * 10
+    assert len(specs) == len({s["old_key"] for s in specs}) == 32
+    assert len({s["base_seed"] for s in specs}) == 16
+    assert [s["n"] for s in specs] == [20, 50, 100, 200] * 8
     assert not {s["base_seed"] for s in specs} & {
         s["base_seed"] for s in study.study_specs(reserve=True)
     }
@@ -189,8 +201,8 @@ def test_matrix_has_independent_parents_not_independent_variants_and_model_is_no
             (1, 16101),
         }
     plan = study.planning_summary()
-    assert plan["status"] == "planning_only_not_dispatched" and plan["runs"] == 1040
-    assert plan["production_solver_hours"] == 325
+    assert plan["status"] == "planning_only_not_dispatched" and plan["runs"] == 1056
+    assert plan["production_solver_hours"] == 330
     assert plan["modeled_completion_hours"] > plan["ideal_lower_bound_hours"]
     assert plan["memory_cap_bytes"] == 500_000_000_000
     for workers, overhead in ((0, 30), (48, -1), (48, float("nan"))):
@@ -198,13 +210,13 @@ def test_matrix_has_independent_parents_not_independent_variants_and_model_is_no
             study.planning_summary(workers, overhead)
 
 
-def test_even_williams_templates_balance_positions_and_directed_predecessors():
-    rows = [study.balanced_order(i) for i in range(len(study.ARMS))]
+def test_odd_williams_templates_balance_positions_and_directed_predecessors():
+    rows = [study.balanced_order(i) for i in range(2 * len(study.ARMS))]
     assert all(set(row) == set(study.ARMS) for row in rows)
     for i in range(len(study.ARMS)):
-        assert Counter(row[i] for row in rows) == dict.fromkeys(study.ARMS, 1)
+        assert Counter(row[i] for row in rows) == dict.fromkeys(study.ARMS, 2)
     adjacent = Counter((a, b) for row in rows for a, b in zip(row, row[1:]))
-    assert len(adjacent) == 26 * 25 and set(adjacent.values()) == {1}
+    assert len(adjacent) == 33 * 32 and set(adjacent.values()) == {2}
 
 
 def test_runner_copies_bound_old_input_and_seals_matrix_preflight_and_queue(tmp_path, monkeypatch):
@@ -246,6 +258,8 @@ def test_runner_copies_bound_old_input_and_seals_matrix_preflight_and_queue(tmp_
         "random": 100,
         "mixed": 100,
         "bill4": 140,
+        "bill2": 120,
+        "bill1": 110,
     }
     (root / "inputs/original.json").write_text("{}")
     with pytest.raises(AssertionError):
@@ -270,6 +284,6 @@ def test_plan_queue_model_reproduces_exact_runner_order(tmp_path, monkeypatch):
             json.dumps(dict(s, key=key, order=study.balanced_order(i)))
         )
     queue = module.queue(tmp_path, {"blocks": keys})
-    assert len(queue) == len(set(queue)) == 1040
-    assert [specs[keys.index(k)]["n"] for k, a in queue] == [20, 50, 100, 200] * 260
+    assert len(queue) == len(set(queue)) == 1056
+    assert [specs[keys.index(k)]["n"] for k, a in queue] == [20, 50, 100, 200] * 264
     assert all({a for k, a in queue if k == key} == set(study.ARMS) for key in keys)

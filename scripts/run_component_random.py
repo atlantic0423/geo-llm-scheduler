@@ -162,7 +162,7 @@ def validate_inputs(root: Path) -> dict:
 
 
 def preflight(root: Path, key: str) -> dict:
-    """Fresh independent decode/exact audit of all three initialization policies."""
+    """Fresh independent decode/exact audit of all five initialization policies."""
     manifest = json.loads((root / "manifest.json").read_text())
     assert manifest["source"] == source_hash()
     spec_path = root / "specs" / (key + ".json")
@@ -171,7 +171,7 @@ def preflight(root: Path, key: str) -> dict:
     assert sha(root / spec["input"]) == spec["input_sha256"]
     problem = load_instance(root / spec["input"])
     policies = {}
-    for arm in ("EXT_MOEAD", "MIXED_MOEAD", "BILL_MOEAD"):
+    for arm in ("EXT_MOEAD", "MIXED_MOEAD", "BILL_MOEAD", "FULL_CURRENT_I2", "FULL_CURRENT_I1"):
         cfg = arm_config(arm, spec["seed"], spec["seconds"])
         captured: list = []
         gateway = EvaluationGateway(problem, Archive())
@@ -183,11 +183,9 @@ def preflight(root: Path, key: str) -> dict:
             assert decode(problem, candidate.genotype) == candidate.schedule
             assert evaluate(problem, candidate.genotype, candidate.schedule) == candidate.evaluation
             assert candidate.evaluation.feasible
-        assert (
-            len(captured)
-            == gateway.counts["exact"]
-            == (140 if initializer_policy(arm) == "bill4" else 100)
-        )
+        policy = initializer_policy(arm)
+        expected_count = 100 + 10 * int(policy[-1]) if policy.startswith("bill") else 100
+        assert len(captured) == gateway.counts["exact"] == expected_count
         policies[initializer_policy(arm)] = dict(
             evidence=evidence, fresh_exact_verified=len(captured)
         )
