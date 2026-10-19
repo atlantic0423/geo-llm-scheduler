@@ -2,7 +2,7 @@
 
 静态问题及其子对象、Genotype、Schedule、EvaluationResult、Candidate 使用 frozen dataclass 和 tuple。ProblemInstance 共享；MS 在代码写作 Genotype.ms，按 P/D 交替展开，是 assignment 唯一权威。Schedule.starts 只存开始时刻，completion 从固定 duration 推导，避免重复可变状态。
 
-structural proposal 只携带 genotype；EvaluationGateway 必须 SSGS rebuild。timing proposal 携带原 genotype、新 Schedule、selected；MacroSearch 检查 genotype 不变及未选 timing 冻结。第一版不持久缓存资源事件，每次由 MS/timing 重建，无独立 assignment cache。
+structural proposal 只携带 genotype；EvaluationGateway 必须 SSGS rebuild。timing proposal 携带原 genotype、新 Schedule、selected；MacroSearch 检查 genotype 不变及未选 timing 冻结。资源事件只在当前 decode/earliest 调用内由 MS/timing 建立机器索引，调用结束即丢弃，不跨 structural/timing 变化复用，无独立 assignment 权威。迁移负载缓存只属于一次算子调用，保留 operation 编号的浮点累加顺序；不得用总量减加代替原顺序重算。Archive 可以为当前存活的不可变成员缓存原 identity，成员移除后同步丢弃，并保持原 dominance、列表顺序与计数。
 
 accepted A7/A8/Polish 全量刷新 diagnostics：冻结所有 timing，逐操作移除自身，查询当前 EST 后最早可行开始。不调用 SSGS，不传播移动。公式见 specifications/state_severity.md。
 
