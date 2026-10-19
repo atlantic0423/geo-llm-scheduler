@@ -150,7 +150,9 @@ def improve(
             gateway.counts["polish_exact"] += stats.exact
             gateway.counts["polish_accepted"] += stats.accepted
             gateway.seconds["polish"] += perf_counter() - polish_start
-        values = severities(problem, current)
+        # Severities depend only on this immutable candidate and problem, not
+        # on the updated ideal/Archive. Rejected moves preserve the object.
+        values = severities(problem, current) if current is not prior else state_values
         next_state = extract(index, values, stagnant_count, config)
         # Each short trajectory ends an episode; keep the run-level Q table.
         # Polish is outside the episode and never contributes bootstrap/reward.

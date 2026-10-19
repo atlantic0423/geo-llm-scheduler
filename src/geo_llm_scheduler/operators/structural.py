@@ -5,9 +5,10 @@ import random
 from collections.abc import Iterator
 
 from geo_llm_scheduler.config import Config
-from geo_llm_scheduler.diagnostics.workload import imbalance, machine_loads, region_loads
+from geo_llm_scheduler.diagnostics.workload import machine_loads
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.moead.variation import paths
+from geo_llm_scheduler.operators._assignment_loads import AssignmentWorkloads
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
 from geo_llm_scheduler.scheduling.resources import est_for
 from geo_llm_scheduler.utils.numeric import EPS_RATIO, TOL
@@ -148,6 +149,7 @@ class StructuralOperator:
         g = x.genotype
         wait = x.schedule.resource_wait
         loads = machine_loads(p, g)
+        workloads = AssignmentWorkloads(p, g) if self.action in (2, 3) else None
         ranked: list[tuple[tuple[float, ...], Genotype]] = []
         resource = min(
             1,
@@ -187,8 +189,8 @@ class StructuralOperator:
                 ms = list(g.ms)
                 ms[2 * i : 2 * i + 2] = a, b
                 new = Genotype(tuple(ms), g.os)
-                newloads = machine_loads(p, new)
-                pathload = max(newloads[a], newloads[b])
+                assert workloads is not None
+                pathload = workloads.path_load(i, a, b)
                 newkv = job.kv_delay * (a != b)
                 key: tuple[float, ...]
                 if self.action == 2:
@@ -205,7 +207,14 @@ class StructuralOperator:
                         )
                     )
                 else:
-                    key = (imbalance(region_loads(p, new)), pathload, newkv, i, a, b)
+                    key = (
+                        workloads.region_imbalance(i, p.instances[a].region),
+                        pathload,
+                        newkv,
+                        i,
+                        a,
+                        b,
+                    )
                     if tariff is not None:
                         rank = relocation_tou_rank(
                             tariff[2 * i, a] - tariff[2 * i, g.ms[2 * i]],
