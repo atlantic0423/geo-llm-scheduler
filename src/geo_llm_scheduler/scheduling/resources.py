@@ -1,5 +1,7 @@
 """Exact half-open resource intervals shared by decoding and timing moves."""
 
+from bisect import insort
+
 from geo_llm_scheduler.domain.models import Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.utils.numeric import TOL, less
 
@@ -29,9 +31,20 @@ def fits(
 ) -> bool:
     """Check a proposed interval against frozen operations, excluding itself."""
     machine = genotype.ms[operation]
+    others = intervals(problem, genotype, schedule, machine, excluded | {operation})
+    return _fits_intervals(problem, machine, operation, start, others)
+
+
+def _fits_intervals(
+    problem: ProblemInstance,
+    machine: int,
+    operation: int,
+    start: float,
+    others: list[tuple[int, float, float]],
+) -> bool:
+    """Check a frozen interval list in the reference operation summation order."""
     p = problem.profile(operation)
     end = start + p.duration
-    others = intervals(problem, genotype, schedule, machine, excluded | {operation})
     points = sorted({start, end} | {t for _, a, b in others for t in (a, b) if start < t < end})
     for a, b in zip(points, points[1:]):
         if b <= a:
@@ -49,15 +62,51 @@ def earliest(
 ) -> float:
     """Find earliest feasible interval using completion events, never time steps."""
     machine = genotype.ms[operation]
-    events = {est} | {
-        b
-        for _, _, b in intervals(problem, genotype, schedule, machine, frozenset({operation}))
-        if b >= est
-    }
+    others = intervals(problem, genotype, schedule, machine, frozenset({operation}))
+    return _earliest_intervals(problem, machine, operation, est, others)
+
+
+def _earliest_intervals(
+    problem: ProblemInstance,
+    machine: int,
+    operation: int,
+    est: float,
+    others: list[tuple[int, float, float]],
+) -> float:
+    """Reuse the same frozen intervals across the unchanged completion events."""
+    events = {est} | {b for _, _, b in others if b >= est}
     for t in sorted(events):
-        if fits(problem, genotype, schedule, operation, t):
+        if _fits_intervals(problem, machine, operation, t, others):
             return t
     raise ValueError("Operation cannot fit on assigned instance")
+
+
+class ResourceCalendar:
+    """Index scheduled prefix operations by machine in operation-index order."""
+
+    def __init__(self, problem: ProblemInstance) -> None:
+        self.problem = problem
+        self.items: list[list[tuple[int, float, float]]] = [[] for _ in problem.instances]
+
+    def commit(self, machine: int, operation: int, start: float) -> None:
+        """Insert one newly scheduled operation without regrouping resource sums."""
+        insort(
+            self.items[machine],
+            (operation, start, start + self.problem.profile(operation).duration),
+        )
+
+    def earliest(
+        self,
+        machine: int,
+        operation: int,
+        est: float,
+        temporary: tuple[int, float, float] | None = None,
+    ) -> float:
+        """Return the reference event, including an optional uncommitted Prefill."""
+        others = [item for item in self.items[machine] if item[0] != operation]
+        if temporary is not None and temporary[0] != operation:
+            insort(others, temporary)
+        return _earliest_intervals(self.problem, machine, operation, est, others)
 
 
 def est_for(
