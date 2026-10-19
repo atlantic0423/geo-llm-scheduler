@@ -53,6 +53,7 @@ def run(
     observer: Callable[[str, dict], None] | None = None,
     operator_overrides: dict[int, Operator] | None = None,
     initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
+    trajectory_override: Callable[..., tuple[Candidate, list[dict]]] | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -60,6 +61,8 @@ def run(
     Observer work is included in the engine wall-clock budget.
     A custom initializer runs inside that same clock and owns gateway dispatch;
     it is mutually exclusive with precomputed genotype input.
+    ``trajectory_override`` is an explicit research seam for Polish-only studies;
+    omitted callbacks preserve the original trajectory and RNG behavior.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -201,7 +204,7 @@ def run(
                         progress = min(1.0, gateway.counts["exact"] / config.exact_evaluation_cap)
                     before_search = child
                     try:
-                        child, steps = improve(
+                        child, steps = (trajectory_override or improve)(
                             child,
                             i,
                             stagnation[i],
