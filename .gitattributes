@@ -1,2 +1,4 @@
 # Preserve the exact bytes of generated evidence for its SHA256 manifest.
 docs/reports/e15_interim_20261001/** -text
+research/performance_20261019/frozen/*.py -text
+research/performance_20261019/data/** -text
