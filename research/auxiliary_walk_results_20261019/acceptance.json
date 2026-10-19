@@ -1,0 +1,24 @@
+{
+  "status": "accepted",
+  "runs": 9600,
+  "parents": 320,
+  "inputs": 640,
+  "files": 48000,
+  "bytes": 5150807401,
+  "source": {
+    "head": "867c95e866b13fa3459451eb54713292b112ee03",
+    "dirty": false,
+    "canonical": "9a56d536978a9f6b5b62fa31f4b9b49c084725ac7030c36596b6a47b545317ba"
+  },
+  "plan_sha256": "0e243e3dd4e22641e4fea2f76c7db19d8df711d5272247b6a83bded517a9fc05",
+  "worker_independent_final_exact_bound_by_sha": 5903619,
+  "fresh_all_solutions_exact_this_pass": false,
+  "completion_epoch": 1792293208.33402,
+  "stage_completions": {
+    "screen": 1792171572.1272006,
+    "confirm": 1792232584.8032749,
+    "long": 1792293199.5622628
+  },
+  "max_overshoot": 186.0090017609764,
+  "max_rss_gib": 0.5421371459960938
+}
