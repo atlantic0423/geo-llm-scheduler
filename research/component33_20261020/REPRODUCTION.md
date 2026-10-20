@@ -1,10 +1,10 @@
 # 33组完整结果复现
 
-运行源commit b148c4addd207fe30a6b2a43d953a04afc35d3a1，canonical 37f3153178bb7d3238750ec1ac85ebe7871c18a317eb5f2dc8025a25497dfaba。分析源以本目录所在PR准确head与独立analysis.bundle为准；默认算法未改。
+运行源commit b148c4addd207fe30a6b2a43d953a04afc35d3a1，canonical 37f3153178bb7d3238750ec1ac85ebe7871c18a317eb5f2dc8025a25497dfaba。分析源以本目录所在PR准确head与独立analysis_v2.bundle为准；默认算法未改。Release中的RESULTS_ANALYSIS_v2.md、REPRODUCTION_v2.md和COMPONENT33_ANALYSIS_AND_FIGURES_v2.zip为最终文档。v1资产保留审计；v2仅修正既有五组研究衔接，不改本轮指标或统计。
 
-1. 从 [Release](https://github.com/atlantic0423/geo-llm-scheduler/releases/tag/component33-analysis-20261020-b148c4a) 下载全部文件，按ASSETS_MANIFEST.json核验大小，并按SHA256SUMS核验SHA256。COMPONENT33_FORMAL_RAW.tar.gz是独立完整包，不是分卷。RAW_MANIFEST.json逐项列出完整formal文件，先核对manifest自身hash和recovery_receipt.json。
+1. 从 [Release](https://github.com/atlantic0423/geo-llm-scheduler/releases/tag/component33-analysis-20261020-b148c4a) 下载全部文件，按ASSETS_MANIFEST_v2.json核验大小，并按SHA256SUMS_v2核验SHA256。COMPONENT33_FORMAL_RAW.tar.gz是独立完整包，不是分卷。RAW_MANIFEST.json逐项列出完整formal文件，先核对manifest自身hash和recovery_receipt.json。
 2. 将tar安全解压到一个新结果目录的raw子目录；成员名必须在RAW_MANIFEST中，不接受绝对路径、目录逃逸、重复或链接。逐项验证文件大小/SHA。LOCAL_RAW_ACCEPTANCE.json记录原始全量验真结果。附带运维脚本可作示例，修改本地路径后使用；不包含凭据。
-3. 原source.bundle和analysis.bundle是完整Git bundle，分别git clone到新目录并git fsck --full。运行源用于核对冻结算法；分析源在运行源上只增加分析/报告/测试，不改变src或冻结runner。安装分析源的开发依赖；另安装NumPy与Matplotlib（版本见ENVIRONMENT.json），显式设置PYTHONPATH到分析源src。
+3. 原source.bundle和analysis_v2.bundle是完整Git bundle，分别git clone到新目录并git fsck --full。运行源用于核对冻结算法；分析源在运行源上只增加分析/报告/测试，不改变src或冻结runner。安装分析源的开发依赖；另安装NumPy与Matplotlib（版本见ENVIRONMENT.json），显式设置PYTHONPATH到分析源src。
 4. 在分析checkout运行：python scripts/analyze_component33_results.py RESULTS RESULTS/analysis。RESULTS须包含raw/formal、execution_acceptance.json和LOCAL_RAW_ACCEPTANCE.json。没有匹配的1056次/16父和本地验真回执会拒绝分析。仅重算指标/统计，不启动solver。
 5. 运行：python research/component33_20261020/build_report.py RESULTS research/component33_20261020。生成8套PNG/PDF、summary_statistics.json和完整统计附录；报告中的人工解释保留，附录重建。报告内容和数字对应本批冻结数据。
 6. 运行附带component33_verify_20261020.py并修正本地路径，独立从CSV重算70项bootstrap/sign-flip/Holm，同时运行原validator。原validator原本要求实际原host；离线副本仅替换其hostname读取为已核验的原host标签，输入/source/配置/产物SHA等检查不放宽，不冒充在原主机重新运行。
