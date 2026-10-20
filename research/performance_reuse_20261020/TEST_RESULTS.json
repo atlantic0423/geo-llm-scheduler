@@ -118,9 +118,11 @@
     "complete_output_digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953",
     "runtime_source_unchanged": true,
     "file": "benchmark_fullscale.json",
-    "sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+    "sha256": "2ed6031e2d8d0a1bc4b8248b2cf55f1422bcc5c3c77f8ad8faf23191b6483a74",
     "reference_wall_median": 510.071177100006,
     "optimized_wall_median": 225.30059870000696,
-    "wall_reduction": 0.5582957657381338
+    "wall_reduction": 0.5582957657381338,
+    "raw_local_sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+    "versioned_format": "UTF-8/LF; data values unchanged from original CRLF measurement"
   }
 }

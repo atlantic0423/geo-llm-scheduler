@@ -194,5 +194,21 @@
     "tests/test_reuse_equivalence.py": "52fff9e446c6dab9b6589eb8e709cedfbe0ea2579d12601dbd84c0eab789cb63",
     "tests/test_reuse_variant_equivalence.py": "d17303107de66c420f527ec87d72134e98ad2f59f85edc8e4ad0bee3e2a71bfa"
   },
-  "benchmark_execution_location": "local Windows / Python 3.13.5; no access to experiment servers. GitHub Actions separately validates on Linux."
+  "benchmark_execution_location": "local Windows / Python 3.13.5; no access to experiment servers. GitHub Actions separately validates on Linux.",
+  "benchmark_json_artifacts": {
+    "benchmark_modules.json": {
+      "raw_local_sha256": "13207262015f0700cc86eb1fc1673e7e70ad7fc7ad3b07e7bf01dab1d5c8b23d",
+      "raw_local_bytes": 57207,
+      "versioned_sha256_utf8_lf": "68bfc0695503a7a91b57eca62a15f591406926f763a1dab71f092bae6f0007cc",
+      "versioned_bytes": 55527,
+      "all_parsed_fields_equal": true
+    },
+    "benchmark_fullscale.json": {
+      "raw_local_sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+      "raw_local_bytes": 1973,
+      "versioned_sha256_utf8_lf": "2ed6031e2d8d0a1bc4b8248b2cf55f1422bcc5c3c77f8ad8faf23191b6483a74",
+      "versioned_bytes": 1912,
+      "all_parsed_fields_equal": true
+    }
+  }
 }

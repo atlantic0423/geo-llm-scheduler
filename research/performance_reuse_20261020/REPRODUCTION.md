@@ -54,6 +54,8 @@ REFERENCE.json及frozen保存原始15个Git blob；SOURCE_PROVENANCE.json保存�
 
 data/SOURCE_PROVENANCE.json和data/TEST_RESULTS.json是原快照携带的历史记录，分别保存全部源码内容指纹与原730项门禁（328.76秒）；根目录同名文件是本轮独立检出的补充验真（601.00秒及后收集13专项）。两次运行不能合并成独立测试样本；metadata的换行规范化不修改JSON字段值，frozen原Git blob仍严格保持原字节。
 
+两份benchmark结果在Git中统一为UTF-8/LF，跨平台检出保留相同字节；原Windows测时JSON仍在本地outputs保留。SOURCE_PROVENANCE.json分别记录原始文件SHA和版本化LF文件SHA，并核对解析后的全部字段一致；不要把原始CRLF文件的SHA直接用于校验Git中的LF文件。完整结果摘要比较是在运行时对结果数据计算，与报告文件换行无关。
+
 ## 历史执行记录
 
 首轮全量门禁收集的是早期版本，随后源码继续更新，使E15微型续跑测试按预期报告 Source changed；722通过/1失败/1平台跳过，原日志和失败JSON保存在本地outputs。停止源码修改后该项单独通过；最终必须以冻结版本完整重跑为准，不能以单项复验代替整套验收。
