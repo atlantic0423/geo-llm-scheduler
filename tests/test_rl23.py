@@ -224,8 +224,9 @@ def test_charged_bill4_wrapper_records_same_initial_fingerprints(arm):
 
 
 def test_campaign_original_input_binding_and_queue(tmp_path, monkeypatch):
-    from geo_llm_scheduler.experiments.comparison13 import case_problem
     from test_polish_policy_campaign import historical_fixture
+
+    from geo_llm_scheduler.experiments.comparison13 import case_problem
 
     spec = importlib.util.spec_from_file_location(
         "rl23_runner", Path(__file__).parents[1] / "scripts/run_rl23.py"
