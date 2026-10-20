@@ -1,0 +1,34 @@
+{
+  "python": "3.13.5",
+  "local_gates": {
+    "passed": 730,
+    "platform_skipped": 1,
+    "pytest_seconds": 328.76,
+    "overall_coverage_percent": 86.43,
+    "core_coverage_percent": 97.43,
+    "start_source": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+    "end_source": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+    "source_unchanged": true,
+    "returncode": 0,
+    "seconds": 334.1220491999993
+  },
+  "targeted_differential_tests": 57,
+  "pre_compatibility_gates": {
+    "passed": 729,
+    "platform_skipped": 1,
+    "pytest_seconds": 428.02,
+    "overall_coverage_percent": 86.43,
+    "core_coverage_percent": 97.43,
+    "start_source": "3361d1547c909b7682edcd0a4feb40393d6c3bf6b95e30dba3f518d1b55adfc7",
+    "end_source": "3361d1547c909b7682edcd0a4feb40393d6c3bf6b95e30dba3f518d1b55adfc7",
+    "source_unchanged": true,
+    "returncode": 0,
+    "seconds": 434.18740390002495
+  },
+  "initial_gate_failure": {
+    "passed": 722,
+    "failed": 1,
+    "skipped": 1,
+    "reason": "Source changed during the first E15 mini-repair check; source updates overlapped the initial test suite. Source-frozen complete suite passed."
+  }
+}

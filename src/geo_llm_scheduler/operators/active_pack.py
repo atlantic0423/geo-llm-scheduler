@@ -15,21 +15,31 @@ Move = tuple[int, float, float, float]
 def rank_crowding(moves: list[Move]) -> tuple[dict[int, int], dict[int, float]]:
     """Nondominated layers for gain maximization and Flow-delta minimization."""
     remaining = set(range(len(moves)))
+    dominators = [0] * len(moves)
+    dominated: list[list[int]] = [[] for _ in moves]
+    # The original peeling recomputed the same pairwise relation on every
+    # layer. Build it once; sorted fronts retain the original crowding ties.
+    for i in range(len(moves)):
+        for j in range(i + 1, len(moves)):
+            if (
+                moves[i][2] >= moves[j][2]
+                and moves[i][3] <= moves[j][3]
+                and (moves[i][2] > moves[j][2] or moves[i][3] < moves[j][3])
+            ):
+                dominated[i].append(j)
+                dominators[j] += 1
+            elif (
+                moves[j][2] >= moves[i][2]
+                and moves[j][3] <= moves[i][3]
+                and (moves[j][2] > moves[i][2] or moves[j][3] < moves[i][3])
+            ):
+                dominated[j].append(i)
+                dominators[i] += 1
     ranks: dict[int, int] = {}
     crowd: dict[int, float] = {}
     layer = 0
     while remaining:
-        front = [
-            i
-            for i in sorted(remaining)
-            if not any(
-                moves[j][2] >= moves[i][2]
-                and moves[j][3] <= moves[i][3]
-                and (moves[j][2] > moves[i][2] or moves[j][3] < moves[i][3])
-                for j in remaining
-                if i != j
-            )
-        ]
+        front = [i for i in sorted(remaining) if dominators[i] == 0]
         for i in front:
             ranks[i] = layer
             crowd[i] = 0.0
@@ -47,6 +57,9 @@ def rank_crowding(moves: list[Move]) -> tuple[dict[int, int], dict[int, float]]:
                             moves[order[k + 1]][dim] - moves[order[k - 1]][dim]
                         ) / span
         remaining.difference_update(front)
+        for i in front:
+            for j in dominated[i]:
+                dominators[j] -= 1
         layer += 1
     return ranks, crowd
 
@@ -75,8 +88,11 @@ def select_packing_moves(
     all_moves = packing_moves(problem, incumbent.genotype, incumbent.schedule)
     proxy = PackingBillProxy(problem, incumbent) if representative_policy == "bill_proxy" else None
     representatives = []
+    by_operation: dict[int, list[Move]] = {}
+    for item in all_moves:
+        by_operation.setdefault(item[0], []).append(item)
     for o in range(problem.operation_count):
-        available = [m for m in all_moves if m[0] == o]
+        available = by_operation.get(o, [])
         if not available:
             continue
         old = incumbent.schedule.starts[o]
@@ -100,8 +116,11 @@ def select_packing_moves(
         return ranks[i], -crowd[i], tie[i]
 
     primary = []
+    by_representative: dict[int, list[int]] = {}
+    for i, item in enumerate(representatives):
+        by_representative.setdefault(item[0], []).append(i)
     for o in range(problem.operation_count):
-        indices = [i for i, m in enumerate(representatives) if m[0] == o]
+        indices = by_representative.get(o, [])
         if indices:
             primary.append(min(indices, key=key))
     pool = sorted(primary, key=key)[: 2 * budget]

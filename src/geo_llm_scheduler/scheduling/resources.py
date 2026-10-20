@@ -6,6 +6,72 @@ from geo_llm_scheduler.domain.models import Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.utils.numeric import TOL, less
 
 
+class ResourceView:
+    """Invocation-local index of one immutable MS/timing pair, in operation order.
+
+    No state is attached to the problem or Schedule. A different genotype or
+    timing requires a new view, even when an operation remains on its server.
+    """
+
+    def __init__(self, problem: ProblemInstance, genotype: Genotype, schedule: Schedule) -> None:
+        self.problem, self.genotype, self.schedule = problem, genotype, schedule
+        items: list[list[tuple[int, float, float]]] = [[] for _ in problem.instances]
+        for o, start in enumerate(schedule.starts):
+            if start >= 0:
+                items[genotype.ms[o]].append((o, start, start + problem.profile(o).duration))
+        self.items = tuple(tuple(bucket) for bucket in items)
+        self._events: dict[int, tuple[float, ...]] = {}
+        self._activity: dict[int, tuple[tuple[float, ...], tuple[float, ...]]] = {}
+
+    def events(self, machine: int) -> tuple[float, ...]:
+        """Reuse every original boundary, including boundaries hidden by overlap."""
+        if machine not in self._events:
+            self._events[machine] = tuple(
+                sorted({t for _, a, b in self.items[machine] for t in (a, b)})
+            )
+        return self._events[machine]
+
+    def activity_bounds(self, machine: int) -> tuple[tuple[float, ...], tuple[float, ...]]:
+        """Index half-open activity membership without merging integral segments."""
+        if machine not in self._activity:
+            items = self.items[machine]
+            self._activity[machine] = (
+                tuple(sorted(a for _, a, b in items if a < b)),
+                tuple(sorted(b for _, a, b in items if a < b)),
+            )
+        return self._activity[machine]
+
+    def intervals(
+        self, machine: int, excluded: frozenset[int] = frozenset()
+    ) -> list[tuple[int, float, float]]:
+        """Return a fresh list with the reference order and exclusions."""
+        return [item for item in self.items[machine] if item[0] not in excluded]
+
+    def fits(self, operation: int, start: float, excluded: frozenset[int] = frozenset()) -> bool:
+        """Check frozen competitors without regrouping floating-point sums."""
+        machine = self.genotype.ms[operation]
+        others = self.intervals(machine, excluded | {operation})
+        return _fits_intervals(self.problem, machine, operation, start, others)
+
+    def earliest(self, operation: int, est: float) -> float:
+        """Search all original completion events against the same frozen profile."""
+        machine = self.genotype.ms[operation]
+        return _earliest_intervals(
+            self.problem, machine, operation, est, self.intervals(machine, frozenset({operation}))
+        )
+
+    def check_binding(
+        self, problem: ProblemInstance, genotype: Genotype, schedule: Schedule
+    ) -> None:
+        """Reject accidental reuse across any changed immutable input."""
+        if (
+            self.problem is not problem
+            or self.genotype is not genotype
+            or self.schedule is not schedule
+        ):
+            raise ValueError("ResourceView belongs to a different MS/timing pair")
+
+
 def intervals(
     problem: ProblemInstance,
     genotype: Genotype,

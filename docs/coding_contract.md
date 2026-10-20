@@ -18,4 +18,12 @@ utils/numeric.py 集中定义相对及时间/Compute/VRAM/功率/费用绝对容
 
 exact 为可行性和目标真值；代理只排序/构造。当前未启用增量评价。
 
+## 2026-10-20：语义保持的调用内复用
+
+ResourceView 只索引传入的同一份不可变 ProblemInstance、Genotype 和 Schedule，按 operation 编号保留机器区间；可在一次完整评价、packing/severity、Polish 或诊断刷新内部共享，调用结束后不保存到全局或 ProblemInstance。显式传入的 view 必须通过三者对象绑定检查；输入或 timing 改变即新建，不能沿用旧日历。
+
+完整评价仍检查每一道操作，计算全部地区的功率、分时电费和固定窗口需量。功率积分保留包括被重叠覆盖的全部原始边界和机器求和顺序；电价索引仅跳过严格零贡献的区间，不重排非零费用累加，不使用近似或总额减加。每个完整候选仍独立经过 gateway、exact 计数和 Archive 尝试。
+
+变异交换位置使用与原列表逐索引一致的惰性序列，保持 random.choice、候选对数量和随机流不变。A7 仅预计算同一批 moves 的支配关系，不改变层、crowding、代表、并列顺序或随机抽样。Q、触发、预算、接受/替换和初始化配额保持；原始 b148c4a 代码保存在 research/performance_reuse_20261020/frozen，必须通过差分和固定工作量 benchmark 后才标记工程完成。
+
 Coverage-aware 的 warm-up 与方向密度只使用按 Flow/费用容差去重后的 objective-space representatives；External Archive 本身继续保留不同 phenotype。Archive insertion 是历史成功插入事件，和最终保留贡献分开记录。

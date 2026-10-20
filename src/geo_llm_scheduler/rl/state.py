@@ -1,6 +1,7 @@
 """Fixed 3 x 7 x 2 state encoding and inverse-weight reference directions."""
 
 import math
+from functools import lru_cache
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.utils.numeric import EPS_DIRECTION
@@ -68,13 +69,24 @@ def extract(index: int, values: tuple[float, ...], stagnant_count: int, config: 
 
 def direction(weight: tuple[float, float]) -> tuple[float, float]:
     """Unit reciprocal Tchebycheff ray with endpoint zero-weight protection."""
-    a, b = (1 / max(w, EPS_DIRECTION) for w in weight)
+    return _direction(weight, EPS_DIRECTION)
+
+
+def _direction(weight: tuple[float, float], epsilon: float) -> tuple[float, float]:
+    a, b = (1 / max(w, epsilon) for w in weight)
     length = math.hypot(a, b)
     return a / length, b / length
 
 
+@lru_cache(maxsize=16)
+def _reference_rays(
+    weights: tuple[tuple[float, float], ...], epsilon: float
+) -> tuple[tuple[float, float], ...]:
+    """Bounded cache of immutable numeric constants, never population state."""
+    return tuple(_direction(weight, epsilon) for weight in weights)
+
+
 def associate(vector: tuple[float, float], weights: tuple[tuple[float, float], ...]) -> int:
     """Closest angular direction; index deterministically resolves exact ties."""
-    return max(
-        range(len(weights)), key=lambda j: sum(a * b for a, b in zip(vector, direction(weights[j])))
-    )
+    rays = _reference_rays(weights, EPS_DIRECTION)
+    return max(range(len(weights)), key=lambda j: sum(a * b for a, b in zip(vector, rays[j])))

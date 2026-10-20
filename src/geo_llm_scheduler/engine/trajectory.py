@@ -20,7 +20,7 @@ from geo_llm_scheduler.operators.structural import StructuralOperator
 from geo_llm_scheduler.rl.controller import Controller, reward
 from geo_llm_scheduler.rl.state import decode, extract
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
-from geo_llm_scheduler.utils.numeric import TOL, identity, less
+from geo_llm_scheduler.utils.numeric import TOL, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 
@@ -100,7 +100,7 @@ def improve(
         gateway.counts[f"construction_attempts:A{action}"] += batch.attempts
         gateway.counts[f"proposals:A{action}"] += len(batch.proposals)
         insertions = gateway.archive.insertions
-        archive_before = {identity(candidate) for candidate in gateway.archive.members}
+        archive_before = gateway.archive.identity_keys()
 
         def observe_target(target: Genotype) -> None:
             if observer is not None:
@@ -127,7 +127,7 @@ def improve(
             sequential=config.budget_policy == "sequential",
             structural_observer=observe_target if observer is not None else None,
         )
-        archive_after = {identity(candidate) for candidate in gateway.archive.members}
+        archive_after = gateway.archive.identity_keys()
         before = result.context.scalar(current, weights[index])
         prior = current
         if result.best is not None and less(

@@ -23,6 +23,22 @@ class Archive:
         self.peak_size = 0
         self._identities: dict[int, tuple[Candidate, tuple]] = {}
 
+    def identity_keys(self) -> set[tuple]:
+        """Snapshot current phenotype keys, reusing only live immutable members.
+
+        Reconcile public-list replacements, appends, removals and clear before
+        returning. The returned set is detached from the archive's storage.
+        """
+        self._reconcile_identities()
+        return {entry[1] for entry in self._identities.values()}
+
+    def _reconcile_identities(self) -> None:
+        identities = {}
+        for member in self.members:
+            cached = self._identities.get(id(member))
+            identities[id(member)] = cached if cached is not None else (member, identity(member))
+        self._identities = identities
+
     def consider(self, candidate: Candidate) -> bool:
         """Attempt insertion for every complete feasible exact candidate."""
         if not candidate.evaluation.feasible:
@@ -32,11 +48,8 @@ class Archive:
         # Members are immutable, but the public member list can be replaced or
         # edited by diagnostics. Reconcile it on every attempt and keep only
         # live members, with strong references preventing Python id reuse.
-        identities = {}
-        for member in self.members:
-            cached = self._identities.get(id(member))
-            identities[id(member)] = cached if cached is not None else (member, identity(member))
-        self._identities = identities
+        self._reconcile_identities()
+        identities = self._identities
         if any(identities[id(c)][1] == key or dominates(c, candidate) for c in self.members):
             return False
         self.members = [c for c in self.members if not dominates(candidate, c)]
