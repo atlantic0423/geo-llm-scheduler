@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.macrosearch.search import Evaluator
-from geo_llm_scheduler.scheduling.resources import intervals
+from geo_llm_scheduler.scheduling.resources import ResourceView
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
 from geo_llm_scheduler.scheduling.timing import legal_bounds, move
 from geo_llm_scheduler.utils.numeric import TOL, close, identity, less
@@ -30,6 +30,7 @@ def polish(
     g = incumbent.genotype
     stats = stats if stats is not None else PolishStats()
     options = []
+    resources = ResourceView(problem, g, incumbent.schedule)
     for o in range(0, problem.operation_count, 2):
         old = incumbent.schedule.starts[o]
         _, upper = legal_bounds(problem, g, incumbent.schedule, o)
@@ -37,9 +38,7 @@ def polish(
             continue
         duration = problem.profile(o).duration
         region = problem.instances[g.ms[o]].region
-        events = {
-            t for _, a, b in intervals(problem, g, incumbent.schedule, g.ms[o]) for t in (a, b)
-        }
+        events = set(resources.events(g.ms[o]))
         events |= {
             t
             for tariff in problem.regions[region].tariffs
@@ -52,7 +51,7 @@ def polish(
             if not less(old, t, TOL.time) or less(upper, t, TOL.time):
                 continue
             stats.candidates += 1
-            schedule = move(problem, g, incumbent.schedule, o, t)
+            schedule = move(problem, g, incumbent.schedule, o, t, resources=resources)
             if schedule is None:
                 continue
             candidate = evaluator.evaluate(g, schedule, "polish")

@@ -59,7 +59,15 @@ def validate_genotype(problem: ProblemInstance, genotype: Genotype) -> None:
     if len(genotype.ms) != 2 * n or Counter(genotype.os) != Counter({i: 2 for i in range(n)}):
         raise ValueError("MS/OS dimensions or occurrences invalid")
     for o, m in enumerate(genotype.ms):
-        if m not in problem.eligible(o):
+        # Membership in eligible(o) needs only the assigned server. Rebuilding
+        # the full eligible-server tuple per operation repeats O(N*M) work.
+        p = problem.profile(o)
+        if not (
+            0 <= m < len(problem.instances)
+            and o % 2 in problem.instances[m].phases
+            and p.compute <= 1
+            and p.vram <= problem.instances[m].vram
+        ):
             raise ValueError("Ineligible assignment")
     for i in range(n):
         if (
