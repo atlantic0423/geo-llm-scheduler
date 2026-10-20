@@ -76,7 +76,51 @@
       "bytes": 95,
       "sha256": "5fa93ebd24ac879704a2d288651a8e38b3bf2e69097f165cba5b7605cde406c4",
       "included_in_git": false
+    },
+    {
+      "path": "outputs/reuse_fullscale_p100_bill.log",
+      "bytes": 1269,
+      "sha256": "b5916d80b61f3eb06e8dbc710d71823d57e74778b99a8ceb6e89fdc72f636b4d",
+      "included_in_git": false
     }
   ],
-  "history": "Earlier source-change failure and interrupted profiling remain in local outputs/resume_history; not treated as successful completed measurements."
+  "history": "Earlier source-change failure and interrupted profiling remain in local outputs/resume_history; not treated as successful completed measurements.",
+  "pre_supplement_ci": {
+    "head": "5c6d77218a002cf90d60350902b165ae9e445afa",
+    "run_id": 39371659068,
+    "jobs": [
+      {
+        "python": "3.11",
+        "job_id": 118460666304,
+        "passed": 744,
+        "pytest_seconds": 341.12,
+        "overall_coverage_percent": 86.34,
+        "core_coverage_percent": 97.61,
+        "all_steps": "success"
+      },
+      {
+        "python": "3.13",
+        "job_id": 118460666407,
+        "passed": 744,
+        "pytest_seconds": 184.21,
+        "overall_coverage_percent": 86.32,
+        "core_coverage_percent": 97.61,
+        "all_steps": "success"
+      }
+    ],
+    "runtime_source_hash_same_as_benchmark": true,
+    "later_documentation_and_measurement_commit_requires_own_head_ci": true
+  },
+  "supplemental_fullscale": {
+    "status": "complete",
+    "pairs": 3,
+    "all_six_output_digests_equal": true,
+    "complete_output_digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953",
+    "runtime_source_unchanged": true,
+    "file": "benchmark_fullscale.json",
+    "sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+    "reference_wall_median": 510.071177100006,
+    "optimized_wall_median": 225.30059870000696,
+    "wall_reduction": 0.5582957657381338
+  }
 }

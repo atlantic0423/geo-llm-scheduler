@@ -6,6 +6,8 @@
 
 原候选实现来自 research/performance-reuse-20261020 的稳定未提交快照；续办、补充验收和交付在独立分支 research/performance-reuse-finish-20261020，不修改原工作树。候选 src 的 canonical_source_hash 为 e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9，按 UTF-8 换行归一化，与 Windows/Linux 路径无关。复现前先核对该 hash 与当前 src 相符；代码提交标识见 Git 历史和 Notion09。
 
+该研究分支继承b148c4a之前的未合并研究历史；本批工程增量用 `git diff b148c4addd207fe30a6b2a43d953a04afc35d3a1...HEAD` 审阅。PR以main触发项目既有CI，不能把其全部历史差异都算成本批优化，也不自动合并该研究历史。
+
 ## 安装与质量检查
 
 在本工作树根目录安装开发依赖，确保所有子进程的 PYTHONPATH 指向本工作树的 src，避免加载另一工作树的 editable 安装。
@@ -49,6 +51,8 @@ python scripts/benchmark_reuse_fullscale.py --output outputs/reuse-fullscale --s
 ## 验真文件
 
 REFERENCE.json及frozen保存原始15个Git blob；SOURCE_PROVENANCE.json保存参考核对和14份不变核心策略文件。benchmark_modules.json是原工作树已完成、按相同src及测时脚本hash核对后复用的38项/114对计时；benchmark_fullscale.json是续办时新测的大规模完整运行，不能将前者称为重新测量。TEST_RESULTS.json记录本地完整门禁、后收集的13专项、辅助检查及原始日志SHA；全部原始日志与中断历史留在本地outputs。
+
+data/SOURCE_PROVENANCE.json和data/TEST_RESULTS.json是原快照携带的历史记录，分别保存全部源码内容指纹与原730项门禁（328.76秒）；根目录同名文件是本轮独立检出的补充验真（601.00秒及后收集13专项）。两次运行不能合并成独立测试样本；metadata的换行规范化不修改JSON字段值，frozen原Git blob仍严格保持原字节。
 
 ## 历史执行记录
 

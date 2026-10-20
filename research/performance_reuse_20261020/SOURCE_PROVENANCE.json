@@ -180,12 +180,19 @@
       "unchanged": true
     }
   ],
-  "execution_location": "local Windows, Python 3.13.5; no server access",
   "historical_measurement": {
     "file": "benchmark_modules.json",
     "workloads": 38,
     "paired_repeats": 114,
     "reused_after_source_and_harness_hash_check": true,
     "all_paired_digests_equal": true
-  }
+  },
+  "verification_and_benchmark_scripts_utf8_lf_sha256": {
+    "scripts/benchmark_reuse_fullscale.py": "66ffd287c5b3851770210eeab5c616f11f09f63fd0a884f51e09bfc39cfc3fc3",
+    "scripts/benchmark_reuse_performance.py": "6b2205108d9430bbbab1766cda65c07fda071d44ccf0b9b52dbdd66237aebf05",
+    "research/performance_reuse_20261020/reference_runtime.py": "21c9e64701227fe9d13ef712a643619c57b9ce3363cc2bd1c36e025b29de582b",
+    "tests/test_reuse_equivalence.py": "52fff9e446c6dab9b6589eb8e709cedfbe0ea2579d12601dbd84c0eab789cb63",
+    "tests/test_reuse_variant_equivalence.py": "d17303107de66c420f527ec87d72134e98ad2f59f85edc8e4ad0bee3e2a71bfa"
+  },
+  "benchmark_execution_location": "local Windows / Python 3.13.5; no access to experiment servers. GitHub Actions separately validates on Linux."
 }
