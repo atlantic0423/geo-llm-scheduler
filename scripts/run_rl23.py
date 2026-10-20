@@ -219,7 +219,9 @@ def preflight(root: Path, key: str) -> dict:
         gateway = EvaluationGateway(problem, Archive())
         gateway.candidate_sink = captured.append
         evidence: dict = {}
-        members = charged_initializer(problem, cfg, arm, evidence)(gateway, RNGManager(cfg.seed))
+        members = charged_initializer(problem, cfg, "BILL_MOEAD", evidence)(
+            gateway, RNGManager(cfg.seed)
+        )
         assert len(members) == len({c.genotype for c in members}) == 100
         for candidate in captured:
             assert decode(problem, candidate.genotype) == candidate.schedule

@@ -223,7 +223,8 @@ def test_charged_bill4_wrapper_records_same_initial_fingerprints(arm):
     assert len(evidence["initial_population_sha256"]) == 64
 
 
-def test_campaign_original_input_binding_and_queue(tmp_path):
+def test_campaign_original_input_binding_and_queue(tmp_path, monkeypatch):
+    from geo_llm_scheduler.experiments.comparison13 import case_problem
     from test_polish_policy_campaign import historical_fixture
 
     spec = importlib.util.spec_from_file_location(
@@ -241,6 +242,13 @@ def test_campaign_original_input_binding_and_queue(tmp_path):
         s = json.loads((root / "specs" / (key + ".json")).read_text())
         assert s["n"] == (20, 50, 100, 200)[i % 4] and set(s["order"]) == set(ARMS)
     runner.validate_inputs(root)
+    # The provenance fixture contains sentinel bytes; exercise the real initializer
+    # at this seam so a study-arm name cannot leak into the historical factory.
+    problem = case_problem(20, 3, 6, 202610160020, "arrival", 0)
+    monkeypatch.setattr(runner, "load_instance", lambda path: problem)
+    check = runner.preflight(root, manifest["blocks"][0])
+    assert check["policies"]["bill4"]["fresh_exact_verified"] == 140
+    assert check["source"] == manifest["source"]
     (root / "inputs/b0_v0.json").write_text("mutated")
     with pytest.raises(AssertionError):
         runner.validate_inputs(root)
