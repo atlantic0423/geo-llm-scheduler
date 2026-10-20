@@ -116,7 +116,10 @@ class Config:
             raise ValueError("Unknown experimental A7 representative policy")
         if self.method != "full" and (
             self.offspring_policy != "variation"
-            or self.replacement_policy != "birth"
+            or (
+                self.replacement_policy != "birth"
+                and not (self.method == "plain" and self.replacement_policy == "permuted")
+            )
             or self.a7_representative_policy != "compression"
         ):
             raise ValueError("P2 experimental mechanisms require method=full")
