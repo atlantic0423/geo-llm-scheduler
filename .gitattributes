@@ -3,4 +3,4 @@ docs/reports/e15_interim_20261001/** -text
 research/performance_20261019/frozen/*.py -text
 research/performance_20261019/data/** -text
 research/performance_reuse_20261020/frozen/*.py -text
-research/performance_reuse_20261020/data/** -text
+research/performance_reuse_20261020/data/*.json text eol=lf
