@@ -1,7 +1,7 @@
 """Budgeted same-incumbent exact search with order-independent batch comparison."""
 
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Callable, Protocol
 
 from geo_llm_scheduler.domain.models import Candidate, Genotype, Schedule
 from geo_llm_scheduler.moead.core import NormalizationContext
@@ -58,6 +58,8 @@ def execute(
     evaluator: Evaluator,
     origin: str,
     sequential: bool = False,
+    *,
+    structural_observer: Callable[[Genotype], None] | None = None,
 ) -> MacroSearchResult:
     """Evaluate unique complete proposals then compare all using a temporary ideal."""
     seen = set()
@@ -87,6 +89,12 @@ def execute(
             ):
                 raise ValueError("Timing proposal changed frozen operation")
         unique.append(proposal)
+
+    def evaluate_proposal(proposal: Proposal) -> Candidate:
+        if proposal.schedule is None and structural_observer is not None:
+            structural_observer(proposal.genotype)
+        return evaluator.evaluate(proposal.genotype, proposal.schedule, origin)
+
     audit: dict[str, float | int | bool | None] | None = None
     if sequential:
 
@@ -103,7 +111,7 @@ def execute(
 
         # Frozen unique proposal order ensures Fixed6 uses the same first six moves.
         for proposal in unique[:3]:
-            candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+            candidates.append(evaluate_proposal(proposal))
         evaluated3 = len(candidates)
         best3 = score(candidates)
         current3 = NormalizationContext(
@@ -113,14 +121,14 @@ def execute(
         to6 = best3 < current3 - TOL.scalar and len(unique) > 3
         if to6:
             for proposal in unique[3:6]:
-                candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+                candidates.append(evaluate_proposal(proposal))
         evaluated6 = len(candidates)
         best3_shared = score(candidates[:evaluated3])
         best6 = score(candidates)
         to10 = to6 and best6 < best3_shared - TOL.scalar and len(unique) > 6
         if to10:
             for proposal in unique[6:10]:
-                candidates.append(evaluator.evaluate(proposal.genotype, proposal.schedule, origin))
+                candidates.append(evaluate_proposal(proposal))
         best10 = score(candidates)
         denom = current3 + 1e-12
         audit = {
@@ -136,7 +144,7 @@ def execute(
             "final_B_eff": len(candidates),
         }
     else:
-        candidates = [evaluator.evaluate(p.genotype, p.schedule, origin) for p in unique]
+        candidates = [evaluate_proposal(p) for p in unique]
     shared = NormalizationContext(
         (min(context.ideal[0], evaluator.ideal[0]), min(context.ideal[1], evaluator.ideal[1])),
         context.maximum,
