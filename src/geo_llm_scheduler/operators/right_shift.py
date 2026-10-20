@@ -3,7 +3,7 @@
 import math
 from dataclasses import dataclass, replace
 
-from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
+from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.macrosearch.search import Evaluator
 from geo_llm_scheduler.scheduling.resources import ResourceView
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
@@ -20,6 +20,38 @@ class PolishStats:
     accepted: int = 0
 
 
+def right_shift_times(
+    problem: ProblemInstance,
+    genotype: Genotype,
+    schedule: Schedule,
+    operation: int,
+    resources: ResourceView,
+) -> tuple[float, ...]:
+    """Return the original finite critical Prefill starts in unchanged sorted order."""
+    resources.check_binding(problem, genotype, schedule)
+    if operation % 2:
+        raise ValueError("Right-shift Polish moves Prefill only")
+    old = schedule.starts[operation]
+    _, upper = legal_bounds(problem, genotype, schedule, operation)
+    if not less(old, upper, TOL.time):
+        return ()
+    duration = problem.profile(operation).duration
+    region = problem.instances[genotype.ms[operation]].region
+    events = set(resources.events(genotype.ms[operation]))
+    events |= {
+        t
+        for tariff in problem.regions[region].tariffs
+        for t in (tariff.start, tariff.end)
+        if old - duration <= t <= upper + duration
+    }
+    events |= {float(b * 900) for b in range(math.ceil((upper + duration) / 900) + 1)}
+    return tuple(
+        t
+        for t in sorted({upper} | events | {e - duration for e in events})
+        if less(old, t, TOL.time) and not less(upper, t, TOL.time)
+    )
+
+
 def polish(
     problem: ProblemInstance,
     incumbent: Candidate,
@@ -33,23 +65,7 @@ def polish(
     resources = ResourceView(problem, g, incumbent.schedule)
     for o in range(0, problem.operation_count, 2):
         old = incumbent.schedule.starts[o]
-        _, upper = legal_bounds(problem, g, incumbent.schedule, o)
-        if not less(old, upper, TOL.time):
-            continue
-        duration = problem.profile(o).duration
-        region = problem.instances[g.ms[o]].region
-        events = set(resources.events(g.ms[o]))
-        events |= {
-            t
-            for tariff in problem.regions[region].tariffs
-            for t in (tariff.start, tariff.end)
-            if old - duration <= t <= upper + duration
-        }
-        events |= {float(b * 900) for b in range(math.ceil((upper + duration) / 900) + 1)}
-        times = sorted({upper} | events | {e - duration for e in events})
-        for t in times:
-            if not less(old, t, TOL.time) or less(upper, t, TOL.time):
-                continue
+        for t in right_shift_times(problem, g, incumbent.schedule, o, resources):
             stats.candidates += 1
             schedule = move(problem, g, incumbent.schedule, o, t, resources=resources)
             if schedule is None:

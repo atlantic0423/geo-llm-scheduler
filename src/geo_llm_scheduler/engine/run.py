@@ -54,6 +54,8 @@ def run(
     operator_overrides: dict[int, Operator] | None = None,
     initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
     trajectory_override: Callable[..., tuple[Candidate, list[dict]]] | None = None,
+    offspring_transform: Callable[[Candidate, bool, EvaluationGateway, RNGManager], Candidate]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -63,6 +65,8 @@ def run(
     it is mutually exclusive with precomputed genotype input.
     ``trajectory_override`` is an explicit research seam for Polish-only studies;
     omitted callbacks preserve the original trajectory and RNG behavior.
+    ``offspring_transform`` is an optional charged post-trajectory research seam
+    for both selected and unselected offspring; it runs before replacement.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -188,6 +192,7 @@ def run(
             previous = population[i]
             steps: list[dict] = []
             hit = False
+            before_search = child
             if config.method == "full":
                 gateway.counts["trigger_attempts"] += 1
                 hit = triggered(
@@ -202,7 +207,6 @@ def run(
                         progress = min(1.0, (perf_counter() - begin) / config.seconds)
                     elif config.exact_evaluation_cap is not None:
                         progress = min(1.0, gateway.counts["exact"] / config.exact_evaluation_cap)
-                    before_search = child
                     try:
                         child, steps = (trajectory_override or improve)(
                             child,
@@ -222,13 +226,19 @@ def run(
                         )
                     except EvaluationCapReached:
                         return finish("exact_evaluation_cap")
-                    final_context = NormalizationContext(gateway.ideal, maximum(population))
-                    if less(
-                        final_context.scalar(child, lambdas[i]),
-                        final_context.scalar(before_search, lambdas[i]),
-                        TOL.scalar,
-                    ):
-                        gateway.counts["trigger_successes"] += 1
+            if offspring_transform is not None:
+                try:
+                    child = offspring_transform(child, hit, gateway, streams)
+                except EvaluationCapReached:
+                    return finish("exact_evaluation_cap")
+            if hit:
+                final_context = NormalizationContext(gateway.ideal, maximum(population))
+                if less(
+                    final_context.scalar(child, lambdas[i]),
+                    final_context.scalar(before_search, lambdas[i]),
+                    TOL.scalar,
+                ):
+                    gateway.counts["trigger_successes"] += 1
             context = NormalizationContext(gateway.ideal, maximum(population))
             replacement_order = replacement_neighborhood(
                 config.replacement_policy, i, child, neighbors, lambdas, context, streams
