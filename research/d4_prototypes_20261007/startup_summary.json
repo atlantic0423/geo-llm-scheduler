@@ -1,0 +1,67 @@
+{
+  "runtime_source": "46bcb3385b39969b82b46b2b46fe13136d1badad",
+  "pilot_audit_counts": [
+    {
+      "role": "guard",
+      "fresh_full_exact_evaluations": 17569,
+      "independent_certificate_integrations": 10180,
+      "total_exact_and_certificate_checks": 27749,
+      "zero_observed_mismatch": true,
+      "note": "Source field exact_audits and initial pilot_summary fresh_exact_audits count both fresh full exact evaluations and independent certificate event integrations; use these separated counts."
+    },
+    {
+      "role": "positions",
+      "fresh_full_exact_evaluations": 29247,
+      "independent_certificate_integrations": 0,
+      "total_exact_and_certificate_checks": 29247,
+      "zero_observed_mismatch": true,
+      "note": "Source field exact_audits and initial pilot_summary fresh_exact_audits count both fresh full exact evaluations and independent certificate event integrations; use these separated counts."
+    }
+  ],
+  "pilot_validation": {
+    "files": 926,
+    "bytes": 246485812,
+    "archive_sha256": "772931fff4d184b0ab160923b7b73ad7424d9e2a1bb8fe49c205ad56440e86f1",
+    "state": "validated",
+    "commit": "46bcb3385b39969b82b46b2b46fe13136d1badad",
+    "time": 1791344411.4592092
+  },
+  "local_validation": {
+    "tests": 360,
+    "new_tests": 29,
+    "gate": "scripts/validate_all.py passed",
+    "coverage_overall": 84.57,
+    "coverage_core": 96.7,
+    "replay": "aeb9824d2e671fe76771297ece91af40576124c930721193c18127cbdb814fa7",
+    "source_commit": "46bcb3385b39969b82b46b2b46fe13136d1badad",
+    "old_math_delimiters": 0,
+    "initial_validation_failure": "Source modified during earlier test; hash guard rejected. Final fixed checkout full gate passed."
+  },
+  "eta_calibration": [
+    {
+      "role": "guard",
+      "workers": 2,
+      "mean_job50_seconds": 39.808480739593506,
+      "mean_job100_seconds": 79.02459335327148,
+      "same_mix_192_job_projection_hours": 1.5844409879048664,
+      "eta_range_hours": [
+        1.5,
+        2.5
+      ],
+      "limitations": "Only 4 calibration keys. Shared CPU/D3 overlap. Raw recovery/publication/statistical analysis excluded."
+    },
+    {
+      "role": "positions",
+      "workers": 4,
+      "mean_job50_seconds": 41.62450695037842,
+      "mean_job100_seconds": 79.19369566440582,
+      "same_mix_192_job_projection_hours": 0.8054546840985616,
+      "eta_range_hours": [
+        0.8333333333333334,
+        1.3333333333333333
+      ],
+      "limitations": "Only 4 calibration keys. Shared CPU/D3 overlap. Raw recovery/publication/statistical analysis excluded."
+    }
+  ],
+  "execution": "Formal running; quality/novelty/online benefit unverified"
+}
