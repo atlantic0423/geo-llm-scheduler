@@ -1,0 +1,22 @@
+{
+  "frozen_protocol": "3ff8878b801981c9a181cb3628ba8c7b",
+  "source_commit": "27198e88ae0f670f29c9f15caa2fe4af3bb196c6",
+  "formal_runs": 1472,
+  "arms": 23,
+  "blocks": 64,
+  "independent_parents": 16,
+  "within_parent": "average two price variants and two seeds; four sizes equally weighted",
+  "reference": "per original input, exact nondominated union of all 23 arms and both seeds; ideal/nadir normalization; HV reference1.1",
+  "bootstrap": 20000,
+  "signflip": 100000,
+  "root_seed": 2026102101,
+  "primary_family": "arms7..22 vs arm5 STRICT_TWO_FOCUS, HV and IGD+, joint32 Holm",
+  "polish_family": "six pairs among arms3,4,5,6, HV and IGD+, joint12 Holm",
+  "plain_family": "arms3..6 vs arm2 BILL_PERMUTED, HV and IGD+, joint8 Holm",
+  "combined_family": "arm23 vs arm7 and arm13, HV and IGD+, joint4 Holm",
+  "descriptive_only": "other comparisons, each size, P100, initial Archive, anytime, coverage, operator/state/prefix returns, CPU/order sensitivity",
+  "exact_pvalue_audit": "enumerate65536 sign patterns as an audit; retain frozen100k MonteCarlo values for Holm",
+  "no_exclusions": true,
+  "no_algorithm_changes_or_new_runs": true,
+  "no_quality_inspection_before_full_local_recovery": true
+}

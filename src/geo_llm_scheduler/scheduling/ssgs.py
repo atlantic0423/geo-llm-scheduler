@@ -2,7 +2,7 @@
 
 from geo_llm_scheduler.domain.models import Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.io.validation import validate_genotype
-from geo_llm_scheduler.scheduling.resources import earliest, est_for
+from geo_llm_scheduler.scheduling.resources import ResourceCalendar, ResourceView, est_for
 
 
 def decode(problem: ProblemInstance, genotype: Genotype) -> Schedule:
@@ -11,12 +11,15 @@ def decode(problem: ProblemInstance, genotype: Genotype) -> Schedule:
     starts = [-1.0] * problem.operation_count
     waits = [0.0] * problem.operation_count
     seen = [0] * len(problem.jobs)
+    calendar = ResourceCalendar(problem)
     for job in genotype.os:
         o = 2 * job + seen[job]
         seen[job] += 1
         partial = Schedule(tuple(starts))
         est = est_for(problem, genotype, partial, o)
-        starts[o] = earliest(problem, genotype, partial, o, est)
+        machine = genotype.ms[o]
+        starts[o] = calendar.earliest(machine, o, est)
+        calendar.commit(machine, o, starts[o])
         waits[o] = starts[o] - est
     return Schedule(tuple(starts), tuple(waits), (0.0,) * problem.operation_count)
 
@@ -26,9 +29,10 @@ def refresh_diagnostics(
 ) -> Schedule:
     """Fully recompute frozen-profile resource/intentional waits without decoding."""
     resource, intentional = [], []
+    resources = ResourceView(problem, genotype, schedule)
     for o, start in enumerate(schedule.starts):
         est = est_for(problem, genotype, schedule, o)
-        minimum = earliest(problem, genotype, schedule, o, est)
+        minimum = resources.earliest(o, est)
         resource.append(max(0.0, minimum - est))
         intentional.append(max(0.0, start - minimum))
     return Schedule(schedule.starts, tuple(resource), tuple(intentional))
