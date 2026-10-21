@@ -1,0 +1,16 @@
+{
+  "criterion": "posthoc initialization >3x within23-arm block median; all runs retained",
+  "count": 1,
+  "flags": [
+    {
+      "key": "r0_n20_R2M12_kv_v1_s26101",
+      "arm": "STRICT_NO_POLISH",
+      "cpu": "36",
+      "ratio": 6.0112617018140435,
+      "initialization": 31.173396184982266
+    }
+  ],
+  "max_overshoot": 54.96887326598517,
+  "max_init": 483.2926426999911,
+  "max_audit": 67.73876839401782
+}
