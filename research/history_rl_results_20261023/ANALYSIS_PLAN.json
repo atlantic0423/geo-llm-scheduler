@@ -1,0 +1,21 @@
+{
+  "frozen_protocol": "4028878b801981a99a9fdf3d619f4262",
+  "source_commit": "1ec42415d0fc86f479c81ebb6e4b0601e63ece7f",
+  "formal_runs": 768,
+  "arms": 12,
+  "blocks": 64,
+  "independent_parents": 16,
+  "within_parent": "average both original variants and both seeds16301/26301; four sizes equally weighted",
+  "reference": "per input: exact nondominated union of all12 arms and both seeds; ideal/nadir from this union, HV reference1.1; empirical not true Pareto",
+  "bootstrap": 20000,
+  "signflip": 100000,
+  "root_seed": 2026102301,
+  "comparison_seed": "root_seed + first4 SHA256(contrast+metric) bytes big-endian",
+  "primary_family": "10 protocol contrasts x HV/IGD+ joint20 Holm",
+  "plain_family": "11 nonordinary arms vs BILL_PERMUTED x HV/IGD+ joint22 Holm",
+  "descriptive_only": "four sizes, P100, initial/anytime, endpoints/midrange, conditional actions/history/transitions/depth/prefixes/cost",
+  "exact_pvalue_audit": "enumerate65536 patterns; original100k MonteCarlo retained for Holm",
+  "no_exclusions": true,
+  "no_algorithm_changes_or_new_runs": true,
+  "all_raw_recovered_and_sha_verified_before_quality_scoring": true
+}

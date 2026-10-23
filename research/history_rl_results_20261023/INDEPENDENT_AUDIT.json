@@ -1,0 +1,72 @@
+{
+  "accepted": true,
+  "run_rows": 768,
+  "parent_rows": 192,
+  "statistics_independently_replayed": 42,
+  "full_sign_patterns": 65536,
+  "holm_families": 2,
+  "raw_front_bindings_sample": 32,
+  "outputs": [
+    {
+      "name": "action_metrics.csv",
+      "size": 1758744,
+      "sha256": "4703e614e4c525003a681ab6a82a50c207e31090787af32e1b8abfdeb5a18c14"
+    },
+    {
+      "name": "anytime_metrics.csv",
+      "size": 793340,
+      "sha256": "4ab393636c8186cf2b130bf7831c381937695aef06bf49615261fbc6c4781e25"
+    },
+    {
+      "name": "arm_summary.csv",
+      "size": 72367,
+      "sha256": "31eb1fc3f46cbf78cad2bdac5e8f749e5fbc033a49ae45889e6c3a32d5bfbd73"
+    },
+    {
+      "name": "depth_metrics.csv",
+      "size": 875788,
+      "sha256": "f5913c2faa374044196699cd5f0d8d287227e42d75c3d1a69f6e7f972715a0a5"
+    },
+    {
+      "name": "normalized_fronts.json",
+      "size": 5889667,
+      "sha256": "a85d8799b9e8a807064ee4fdfd2cbe9a35bd5892a963f72e71f920a73be2a2b6"
+    },
+    {
+      "name": "parent_contrasts.csv",
+      "size": 56525,
+      "sha256": "b51abc07ee34da3d7608e608dfa73a2f621a44613e460f653e286841ecca0f88"
+    },
+    {
+      "name": "parent_metrics.csv",
+      "size": 225025,
+      "sha256": "3a95318f2440ed6c1f4518fbf317b8b2df98e19ed2ac5c0e18cb56d2b956a9df"
+    },
+    {
+      "name": "prefix_metrics.csv",
+      "size": 359468,
+      "sha256": "f9d4fb564222df6076e7165efcfe3fe9c72a12112f7743bd811f86c0a2a2aa8c"
+    },
+    {
+      "name": "references.json",
+      "size": 161367,
+      "sha256": "dcc6077f8ddc193335943c05bbc529905bfd1b0360f5f4b7adf4f0db8b8b2de4"
+    },
+    {
+      "name": "run_metrics.csv",
+      "size": 921112,
+      "sha256": "733bb6e5eebdc6b48ba232c3790247a48c55654fe9064b811ee633eeeac5a927"
+    },
+    {
+      "name": "statistics.json",
+      "size": 32445,
+      "sha256": "f172530851cbfe9c563c29fb74294ffa91e7ed7d9c11e2a5706e535231bae621"
+    },
+    {
+      "name": "transition_metrics.csv",
+      "size": 13177603,
+      "sha256": "c36f35a49e3c695ba9db841b093047e463dae0a6ef5c30c66e325df88ce56d16"
+    }
+  ],
+  "fresh_full_exact_rerun": false
+}
