@@ -7,6 +7,7 @@ from typing import Callable
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.evaluation.exact import evaluate
+from geo_llm_scheduler.evaluation.prefill import PrefillEvaluationContext
 from geo_llm_scheduler.scheduling.ssgs import decode
 
 
@@ -27,11 +28,20 @@ class EvaluationGateway:
         self.candidate_sink: Callable[[Candidate], None] | None = None
 
     def evaluate(
-        self, genotype: Genotype, schedule: Schedule | None = None, origin: str = "structural"
+        self,
+        genotype: Genotype,
+        schedule: Schedule | None = None,
+        origin: str = "structural",
+        *,
+        prefill_context: PrefillEvaluationContext | None = None,
     ) -> Candidate:
         """Rebuild structural proposals; directly evaluate retained timing proposals."""
         if self.exact_cap is not None and self.counts["exact"] >= self.exact_cap:
             raise EvaluationCapReached("Exact evaluation cap reached")
+        if prefill_context is not None and (
+            prefill_context.problem is not self.problem or schedule is None
+        ):
+            raise ValueError("Prefill exact reuse requires this gateway's input and timing")
         if schedule is None:
             start = time.perf_counter()
             schedule = decode(self.problem, genotype)
@@ -40,12 +50,18 @@ class EvaluationGateway:
             self.seconds["ssgs:" + origin] += duration
             self.counts["ssgs"] += 1
         start = time.perf_counter()
-        result = evaluate(self.problem, genotype, schedule)
+        result = (
+            evaluate(self.problem, genotype, schedule)
+            if prefill_context is None
+            else prefill_context.evaluate(genotype, schedule)
+        )
         duration = time.perf_counter() - start
         self.seconds["exact"] += duration
         self.seconds["exact:" + origin] += duration
         self.counts["exact"] += 1
         self.counts["exact:" + origin] += 1
+        if prefill_context is not None:
+            self.counts["prefill_exact_reuse"] += 1
         candidate = Candidate(genotype, schedule, result, origin)
         if result.feasible:
             self.counts["feasible"] += 1
