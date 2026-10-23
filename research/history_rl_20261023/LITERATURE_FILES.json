@@ -1,0 +1,32 @@
+[
+  {
+    "file": "A Q-learning based memetic algorithm for flexible flow shop scheduling with active waiting and job switching.pdf",
+    "size": 9100309,
+    "sha256": "edd9b16dfde5cdd20cbf0530274c2a47d2ba0b9b11a843369fa6b339bc44be8c"
+  },
+  {
+    "file": "A Q-learning-based multi-objective hyper-heuristic algorithm for energy-efficient integrated distributed hybrid flow-shop scheduling with preventive maintenance,.pdf",
+    "size": 16876645,
+    "sha256": "3f92bb3de10ffc6c47cd0569e83299b5fbd590d39efbc7125d9c24bba98c08b3"
+  },
+  {
+    "file": "A Q-learning-driven genetic algorithm for the distributed hybrid flow shop group scheduling problem with delivery time windows.pdf",
+    "size": 5758236,
+    "sha256": "05d932b4ec67cdd598a458e40dd82baa1e965af56a9647e3355c6b220c9d99cc"
+  },
+  {
+    "file": "A trajectory-based algorithm enhanced by Q-learning and cloud integration for hybrid flexible flowshop scheduling problem with sequence-dependent setup times.pdf",
+    "size": 6840345,
+    "sha256": "be5b698db4c88aff6eb86ea7f48bdf999aff54949e4020335981137c6bcdd7e5"
+  },
+  {
+    "file": "Multi-agent reinforcement learning-aided evolutionary algorithm for a many-objective distributed hybrid flow shop scheduling problem.pdf",
+    "size": 4034446,
+    "sha256": "e8c94a732e17d27f44c614e23cf62a49fb2d835e474a62351496700c9fabf386"
+  },
+  {
+    "file": "2023_COR_Li_QVNS_NSGAII.pdf",
+    "size": 5991413,
+    "sha256": "81e94060367960a8ba0944a44fb69ece3057b5a449c2ede3d14ad21a7d4edd04"
+  }
+]
