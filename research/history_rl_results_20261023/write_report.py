@@ -47,6 +47,8 @@ def report(data: Path, output: Path, destination: Path) -> None:
         "",
         f"正式12组×原32输入×两seed16301/26301，共768次/64同host块；原16开发父，四规模20/50/100/200各4父。单run总墙钟300/600/1200/2400秒，初始化、状态、构造、exact、日志与后处理均计入生产预算，最终独立exact审计/导出另列。15:36:20开始，18:27:39结束，总2小时51分19秒。完整{acceptance['files']}文件/{acceptance['raw_bytes']}原始字节已回收，tar {acceptance['archive_size']}字节，SHA256 `{acceptance['archive_sha256']}`。",
         "",
+        "归档标签更正：首次回收清单顶层arms标签沿用旧脚本误写23，冻结矩阵及实际运行/验收一直为12组。已保留原件并提供SERVER_VALIDATION_AND_MANIFEST_v2.json和更正哈希清单；文件列表/原始结果/全部哈希及统计均不变。",
+        "",
         "原validator复核全部768次的九项产物size/SHA、输入/spec/配置/source/seed/host/初始化指纹、Q维度和预算均通过。原worker668168个最终存储成员独立exact证据由完整哈希绑定，本次没有fresh重算所有最终解。全部768步日志流的计数与终止完整性通过，全部Q表逐步更新回放一致；512个历史组run另核对START、上一动作/结果/奖励、next_state、二元信用及terminal零bootstrap。STOP2可核对连续未接受和终止标签，但日志没有每步完整Archive快照，未冒称仅凭日志独立复算了全部新目标点停止条件。",
         "",
         "统一使用本批每个输入所有12组与两seed的经验非支配union，按其ideal/nadir归一化，HV参考点1.1；这是经验包络，不是真实Pareto前沿。768个完整HV以不同方向积分交叉验证；每个IGD+在最多16个参考点上与独立标量实现交叉验证，完整指标采用分块NumPy计算。没有把抽样IGD+复核说成全参考点双实现复核。",

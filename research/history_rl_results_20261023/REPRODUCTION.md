@@ -6,6 +6,8 @@
 
 分析源码可从本独立分支或本Release的 `ANALYSIS_BUNDLE_MANIFEST.json` 绑定的分析bundle恢复。两个Git bundle各自独立，运行bundle只导出HEAD，使用 `git clone --no-checkout` 后按清单checkout指定commit，再 `git fsck --full`。分析版本标识、准确head的PR/CI与最终发布资产回执在Notion09记录；不得用分析源码canonical替代原运行封印。
 
+回收清单版本注意：首次 `SERVER_VALIDATION_AND_MANIFEST.json` 的顶层arms标签误继承旧脚本为23，真实冻结矩阵与验收始终为12组。原件保留，以 `SERVER_VALIDATION_AND_MANIFEST_v2.json` 的12组标签为准；files数组、原始结果与全部size/SHA完全一致，统计不变。`MANIFEST_METADATA_CORRECTION.json`绑定两个版本和正式tar，未覆盖已发布资产。
+
 准备Python3.11以上，安装本项目dev依赖，将 `PYTHONPATH` 明确指向恢复分析版本的 `src`。原始资料目录记为DATA，其下保留 `LOCAL_RECOVERY_ACCEPTANCE.json`、`SERVER_VALIDATION_AND_MANIFEST.json` 和 `raw/formal/`；输出目录记为OUT。在仓库根执行：
 
 ```powershell
