@@ -56,6 +56,7 @@ def run(
     trajectory_override: Callable[..., tuple[Candidate, list[dict]]] | None = None,
     offspring_transform: Callable[[Candidate, bool, EvaluationGateway, RNGManager], Candidate]
     | None = None,
+    safe_boundary_deadline: bool = False,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -67,6 +68,8 @@ def run(
     omitted callbacks preserve the original trajectory and RNG behavior.
     ``offspring_transform`` is an optional charged post-trajectory research seam
     for both selected and unselected offspring; it runs before replacement.
+    ``safe_boundary_deadline`` rechecks after a potentially blocking observer;
+    only explicit online-policy callers opt in, preserving historical controls.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -163,6 +166,12 @@ def run(
                 return finish("exact_evaluation_cap")
             streams.stream("variation")
             observe("before_offspring", {"generation": generation, "subproblem": i})
+            if (
+                safe_boundary_deadline
+                and config.seconds is not None
+                and perf_counter() - begin >= config.seconds
+            ):
+                return finish("time_budget")
 
             def observe_structure(event: str, values: dict) -> None:
                 nonlocal observer_seconds
