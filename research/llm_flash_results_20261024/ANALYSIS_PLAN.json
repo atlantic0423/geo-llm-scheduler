@@ -1,0 +1,20 @@
+{
+  "source_commit": "89f14655b27b6a5c4a49f6668705a5e090787089",
+  "source_hash": "1bcd40e2471ac685584038559e7f19ff17b059f72e293491a23d64ab3855071b",
+  "run_count": 192,
+  "blocks": 64,
+  "independent_parents": 16,
+  "arms": ["BILL_MOEAD", "MAIN_Q", "LLM_FLASH"],
+  "seeds": [16401,26401],
+  "normalization": "Per original parent and variant, unique nondominated union of final Archives of all three arms and both seeds; empirical ideal and range, degenerate range1; HV reference(1.1,1.1), exclude points outside reference. Same definition as previous project analyses; union is not true Pareto.",
+  "primary": "LLM_FLASH-MAIN_Q and LLM_FLASH-BILL_MOEAD, each HV and IGD+; improvement positive; one Holm family of four.",
+  "independent_unit": "Mean over two variants and both seeds per original parent; 4 parents per size,16 overall.",
+  "bootstrap": 20000,
+  "sign_flip_monte_carlo": 100000,
+  "exact_sign_flip_audit": 65536,
+  "root_seed": 2026102401,
+  "per_contrast_rng": "root_seed plus first4 SHA256 bytes of contrast+metric, big-endian",
+  "exploratory": "Per-size, endpoint, actual-point Flow windows, anytime, action/focus, cost, policy and failures are descriptive; no posthoc superiority or causal attribution to a single module.",
+  "data_status": "Original32 input development panel,16 reused parents; not held-out generalization.",
+  "raw_unchanged": true
+}
