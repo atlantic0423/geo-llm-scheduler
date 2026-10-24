@@ -1,0 +1,53 @@
+{
+  "runtime_commit": "3a1342cef98dae4b09cd370f40417a119efb4703",
+  "canonical_source_hash": "592cf56992cfd0079f7dd9f3e581efdf01215af4cbe5f6d66ccba443cdd9e2d9",
+  "formal_runs": 1024,
+  "blocks": 256,
+  "bases": 64,
+  "arms": [
+    "LEGACY",
+    "REFERENCE",
+    "W",
+    "GW"
+  ],
+  "jobs": [
+    50,
+    100
+  ],
+  "base_ranges": {
+    "50": [
+      1105001,
+      1105032
+    ],
+    "100": [
+      1115001,
+      1115032
+    ]
+  },
+  "tariffs": [
+    "H",
+    "T"
+  ],
+  "algorithm_seeds": [
+    1101,
+    2202
+  ],
+  "seconds": {
+    "50": 1200,
+    "100": 2400
+  },
+  "worker_cap_per_node": 24,
+  "nominal_worker_hours": 512,
+  "formal_manifest_hashes": [
+    "7012531cb1bae1c100a2d91a018a4d218b0fad891c6bec9feac7b8cb962c36d0",
+    "05144edbecdf476af620a446149645e7e7e930ee4f15d070cdd4730410b8a1b8"
+  ],
+  "analysis_seed": 2026100806,
+  "primary_family": [
+    "W-REFERENCE:HV",
+    "W-REFERENCE:IGD+",
+    "W-LEGACY:HV",
+    "W-LEGACY:IGD+"
+  ],
+  "not_main_upgrade": true
+}
