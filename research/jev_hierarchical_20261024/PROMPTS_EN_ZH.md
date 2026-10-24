@@ -1,6 +1,6 @@
 # Jev 实际提示词：英文发送，中文仅供阅读
 
-版本：jev_hierarchical_v2_per_step；由 scripts/export_jev_prompts.py 从实际代码常量生成。
+版本：jev_hierarchical_v3_compact；由 scripts/export_jev_prompts.py 从实际代码常量生成。
 英文模板已做确定性注入接口测试；不是英文优于中文的效果证据或实网验证。
 
 ## 完整执行顺序
@@ -20,93 +20,60 @@
 
 英文（实际发送）：
 
-> You advise a static, offline, deterministic geo-distributed LLM
-> Prefill-Decode scheduling search. All jobs, releases, durations and resource demands are known.
-> Each job has nonpreemptive Prefill P followed by nonpreemptive Decode D. P and D MUST use the
-> same geographic Region, but may use different serving instances inside it. Decode starts after
-> Prefill completion plus the input-defined KV delay when instances differ. Instances are atomic;
-> concurrency must satisfy cumulative Compute share at most one and effective VRAM/KV capacity in GB.
-> Do not change durations, capacities, releases, preemption, Region legality or other jobs.
-> 
-> Both objectives MINIMIZE: total Flow (sum of each Decode completion time minus its release),
-> and electricity Bill (TOU energy cost plus fixed-window Demand charge). All time is global seconds;
-> power kW, energy kWh,
-> TOU CNY/kWh, Demand CNY/kW, Bill CNY. Instances use idle/active power from zero until, but excluding,
-> the last Decode completion; activity
-> is a UNION of operation intervals, not their sum. This batch contributes zero after T_end.
-> Demand uses ALL fixed non-overlapping 900-second windows anchored at zero, dividing even the partial tail by 900 seconds;
-> ALL tied original peaks and newly created peaks must be checked by the program.
-> 
-> MOEA/D searches MS instance assignments, OS operation order and feasible timings. Flow,
-> Balanced and Electricity are objective-preference groups, NOT geographic Regions. These group
-> labels contextualize the current fine weight; each LS step asks for a FRESH action distribution
-> for its CURRENT incumbent and subproblem. No cached distribution is reused across steps.
-> Actual local acceptance uses the current fine weight.
-> Strict fine-direction agreement and zero quality tolerance control entry to local search.
-> The program alone performs SSGS decoding, resource/precedence checks, exact billing, normalized
-> Tchebycheff acceptance, Pareto Archive updates and neighbor-own-weight replacement.
-> Population and historical Archive are different. Every complete feasible exact candidate has
-> an independent Archive opportunity, even if locally rejected. No future union, IGD+ or oracle
-> is available. Exposure, workload, packing and marginal-removal features are explicitly proxies,
-> not known counterfactual objective improvements. Unobserved history is null, not failure.
-> 
-> One LS step is one chosen action plus MacroSearch and local acceptance. At most FIVE LS steps
-> are allowed. Within a step at most SIX distinct complete candidates receive exact evaluation,
-> ALL independently generated from the SAME frozen incumbent, never a chain. Structural changes
-> rebuild timing by SSGS. Timing-only moves freeze unselected operations. Polish follows the
-> trajectory outside action selection/stopping. Initialization, feature construction, queueing,
-> HTTP, parsing, candidate generation and search all consume the same production wall time.
-> 
-> A1 reassigns one P or D instance inside its Region, keeping OS.
-> A2 reassigns one job's P/D path inside its Region, keeping OS.
-> A3 migrates one whole P/D job to another Region and legal path, keeping OS.
-> A4 inserts one positive-Flow-wait operation earlier in legal OS order.
-> A5 jointly inserts a positive-total-Flow-wait job's P/D earlier, P before D.
-> A6 selects about 10%, at least two jobs to destroy; ORIGINAL random legal repair is retained.
-> A7 moves one operation to an existing legal positive-active-union-compression critical time.
-> A8 selects a demand-paying Region, then original peak singleton/support-group members;
-> bounded precedence-aware single-path repair retains member/position/attempt limits, original
-> horizon and the strict ALL-window peak-reduction gate. It does not invent arbitrary coalitions.
-> 
-> You only assess the supplied finite options or stopping proposition. The program samples
-> your Choice probabilities with its explicit RNG; do not simulate random sampling or output
-> a schedule, code, explanation, changed constraint or extended budget. Questions in a request
-> are independent. Candidate IDs refer only to this snapshot; follow the ACTUALLY sampled parent
-> in subsequent states, which can differ from your highest-probability option.
+> Assist deterministic offline geo-distributed LLM scheduling. All jobs are known.
+> Each nonpreemptive job has Prefill P then Decode D in the SAME geographic Region;
+> different instances incur its KV delay. Respect releases, phase eligibility,
+> cumulative Compute <=1 and effective VRAM GB. Do not change constraints or durations.
+> Minimize total Flow=sum(D completion-release) and Bill=TOU+Demand, in seconds/CNY.
+> Power is kW, energy kWh: each instance uses idle/active power on [0,T_end), active
+> by interval UNION, zero after the last Decode. Demand checks ALL 900s windows
+> anchored at zero, including tied/new peaks; partial tails still divide by 900.
+> Flow/Balanced/Electricity label preferences, not Regions. Use the CURRENT fine weight.
+> The program enforces strict-direction/delta0 entry, SSGS, exact feasibility/billing,
+> normalized Tchebycheff acceptance, Archive and neighbor-own-weight replacement.
+> Each LS step freshly selects an action, constructs at most SIX distinct candidates
+> from ONE frozen incumbent, then accepts. Every complete feasible exact candidate
+> may update Archive, including locally rejected ones. At most FIVE steps; stop is
+> asked after steps 1-4. Polish follows outside the trajectory. All preparation,
+> queueing, HTTP and search consume production wall time. No future/oracle is known;
+> proxies are not exact gains, unobserved history is null, not failure.
+> A1 single phase instance; A2 P/D path within Region; A3 whole-job cross-Region path
+> (A1-3 keep OS); A4 positive-wait phase earlier in OS; A5 positive-wait job P/D
+> joint earlier insertion; A6 destroy ~10%, >=2 jobs, ORIGINAL random legal repair;
+> A7 one legal positive-union-compression critical-time move; A8 original-peak
+> singleton/support-group selection and bounded precedence-aware repair, retaining
+> member/position/attempt limits, original horizon and strict ALL-window peak gate.
+> Timing moves freeze unselected operations; structural moves rebuild by SSGS.
+> Assess only supplied options/proposition. Program RNG samples your Choice distribution;
+> follow ACTUALLY sampled parents, not your previous maximum. Do not output a schedule,
+> explanation, altered constraints or extra budget. Questions are independent.
+> Compact tables are lossless: columns label rows. all_jobs lists EVERY Job; operation
+> o=2*j/2*j+1 is P/D. Its machine/start come from current_solution.MS/starts_s, Region
+> from instance tables, profile from operation_profile_ids into profiles; end=start+duration.
+> resource_wait_s/flow_wait_s index o. Actual KV is kv_if_separate_s iff its P/D machines
+> differ. History default_metrics applies to every listed group/action except overrides.
+> Numeric precision and all options are retained. IDs bind only to this snapshot.
 
 中文（不发送）：
 
-> 你辅助静态、离线、确定性的跨地区 LLM Prefill-Decode 调度搜索。
-> 所有工件、释放时间、时长和资源需求已知。每个工件不可抢占地先P后D；P/D必须同地区，
-> 可在该地区不同实例，跨实例时D须等待输入定义的KV延迟。实例是原子资源，并发需满足
-> Compute累积份额不超过1及有效VRAM/KV容量。不得改变任务时长、容量、释放或地区合法性。
-> 
-> 两个目标都最小化：总Flow为Decode完成减release之和；总电费为TOU加固定窗口Demand。
-> 时间秒、功率kW、能量kWh、费用CNY。实例从零到批次结束的半开区间按idle/active计费，活动时间为区间并集，
-> 结束后本批功率贡献为零。Demand检查全部900秒固定窗口，尾窗也除以900，检查全部并列原峰和新峰。
-> 
-> MOEA/D搜索MS指派、OS顺序和可行时序。Flow/Balanced/Electricity是目标偏好组而非地理地区。
-> 偏好标签说明当前细权重；每一步LS都针对当前解与当前子问题重新询问动作分布，不跨步复用。
-> 真实局部接受仍用当前细权重。严格细方向及零质量容差控制LS进入。
-> 程序独占SSGS、可行性、精确电费、归一化Tchebycheff接受、Archive及邻居自身细权重替换。
-> Population与历史Archive不同；全部完整可行exact候选有独立Archive机会，包括局部拒绝者。
-> 不提供未来union、IGD+或oracle。暴露、负载、压缩、移除潜力是代理而非已知反事实收益。
-> 未观测历史为null而不是失败。
-> 
-> 一步LS为一次动作、MacroSearch及局部接受，最多五步。每步最多精评六个不同完整候选，
-> 都从同一冻结incumbent独立出发，不串成链。结构变化重跑SSGS，时序操作冻结未选工序。
-> Polish在轨迹之外。初始化、特征、排队、HTTP、解析、构造与搜索都计入同一生产墙钟。
-> 
-> A1同地区单P/D换实例；A2同地区P/D路径重指派；A3整工件跨地区联合迁移，三者OS不变。
-> A4单正等待工序合法前插；A5正总等待工件P/D联合前插且P在D前。
-> A6选择约10%且至少两个工件destroy，保留原随机合法repair。
-> A7单工序移动到原有限、合法、正活动并集压缩关键时刻。
-> A8选择有需量费的地区及原峰singleton/support-group；保留成员/位置/尝试上限、
-> 按前驱的单路径修复、原horizon和全窗严格削峰gate，不任意生成联盟。
-> 
-> 你只判断当前有限选项或停止命题。程序用显式RNG从Choice概率抽样；模型不自行模拟随机，
-> 不输出schedule、代码、解释、约束变更或额外预算。同批问题独立。
-> ID只绑定当前快照，后续状态必须跟随程序实际抽中对象，可能不同于模型最高概率项。
+> 辅助确定性离线跨地区LLM调度，所有工件已知。不可抢占工件先P后D且必须同地理地区，
+> 不同实例计其KV延迟；保持release、工序资格、Compute累积不超过1及有效VRAM，不能改约束或时长。
+> 最小化总Flow（D完成减release之和）及总Bill（TOU+Demand），时间秒、费用CNY、功率kW、能量kWh。
+> 每实例从零到最后D完成前按idle/active计功率，active按区间并集，之后为零。全部锚定零的900秒
+> 窗口检查原并列峰和新峰，尾窗仍除900。三偏好组不是地理地区，使用当前真实细权重。
+> 程序负责严格方向/零容差进入、SSGS、exact可行性/电费、归一化Tchebycheff接受、Archive与邻居自身权重替换。
+> 每一步重新选动作，最多六个不同候选都从同一冻结解出发；完整可行exact候选包括局部拒绝者均可入Archive。
+> 最多五步，第1至4步后问停止，Polish在轨迹外。准备、排队、HTTP和搜索均计墙钟；没有未来oracle，
+> proxy不是真实收益，未观测历史是null而非失败。
+> A1单工序实例，A2同地区P/D路径，A3整工件跨地区路径，三者OS不变；A4正等待工序前插，
+> A5正等待工件P/D联合前插；A6约10%且至少2工件destroy，原随机合法repair；
+> A7合法正并集压缩关键时刻；A8原峰singleton/support组及有限前驱修复，保留成员/位置/尝试上限、
+> 原horizon及全窗严格削峰。时序冻结未选工序，结构变化SSGS重建。
+> 只判断所给选项/命题，程序随机抽Choice概率，后问跟随实际抽中父对象；不输出schedule、解释、改约束或加预算。
+> 表格按columns解释rows，全部Job保留。工序o=2j/2j+1为P/D，实例和开始由MS/starts_s取得，
+> 地区查实例表，profile按operation_profile_ids查profiles，结束=开始+时长；两等待数组按o索引。
+> P/D实例不同才计kv_if_separate_s。历史default_metrics适用所有列出的组/动作，overrides覆盖例外。
+> 数值精度和全部选项保留，ID只绑定当前快照。
 
 ## action
 
@@ -238,6 +205,7 @@
 
 共同state含英文背景、真实拓扑/电价/资源、预算、曝光分母清晰的动作历史和Archive摘要。
 动作及对象请求都含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、全部地区固定窗口功率。实际criteria由代码填充ID和英文结构化说明。A8 repair带partial_solution，不能把已移除成员当作仍固定。
+v3使用可逆表格：全Job rows与profile索引、MS/starts恢复重复工序字段，历史default_metrics加overrides；全部候选和数值精度保留。expand_state可还原原快照。信息一致不保证模型分布一致，不把压缩当作已验证效果无损。
 动作请求另含当前子问题索引、偏好组、归一化上下文、下一步编号和本轨迹已完成步。动作反馈累计自run开始，不因每步新回答而清空。request_mode为per_ls_step。
 名称不发送，只传稳定数值ID；未按评分截取工件。超过255选项按稳定ID区间分层，保留全部可达候选；区间描述含数量和首尾对象。分层不等价于全局一次Choice。
 
@@ -260,7 +228,7 @@ A7绕过原两代表/2B预筛，A8改变支撑组及位置选择，是研究策�
 
 不重试、不换模型。HTTP子进程硬截止kill/reap。动作请求失败或额度不足时，本步用均匀分布，不复用先前分布；每步记录action_source、action_request和action_query_s。对象失败在完整eligible集合均匀抽样并记录回退，分层回退按组大小加权。停止失败且连续两步无局部接受/Archive新目标时用本地规则停，否则继续，仍受L5和墙钟约束。
 默认每run最多512请求、单次15秒、累计等待最多生产预算50%、已计费或保守预留输入最多400万token。每次发送前按64k默认整请求上界预留，合法usage按实替换；未知失败保留整份预留。额度是单run限制，不是账号余额或多run全局总预算。
-输入、请求及等待都计入生产墙钟。当前未启动正式campaign或做新付费调用。
+输入、请求及等待都计入生产墙钟。已做四原规模动作Prompt技术调用，没有启动正式campaign或验证完整LS费用/效果；实测见CAMPAIGN.md。
 
 ## 两版运行
 

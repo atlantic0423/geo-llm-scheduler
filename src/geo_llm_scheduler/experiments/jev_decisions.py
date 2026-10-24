@@ -12,8 +12,10 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from functools import partial
 from typing import Callable
 
+from geo_llm_scheduler.experiments.jev_compact import compact_state
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN, PROMPT_VERSION, PROMPTS
 
 Requester = Callable[[dict, float], dict]
@@ -100,10 +102,14 @@ class JevSettings:
     max_input_tokens: int = 4_000_000
     max_wait_fraction: float = 0.5
     stop_threshold: float = 0.5
+    long_context: bool = False
+    compact_prompt: bool = True
 
     def __post_init__(self) -> None:
         if self.epsilon_g not in (0.5, 0.9) or type(self.epsilon_g) is bool:
             raise ValueError("Two declared epsilon arms are 0.5 and 0.9")
+        if type(self.long_context) is not bool or type(self.compact_prompt) is not bool:
+            raise ValueError("Context switches must be explicit booleans")
         if not re.fullmatch(r"jev-\d+\.\d+\.\d+", self.model):
             raise ValueError("Pin a versioned Jev model")
         if any(type(v) is not int or v < 1 for v in (self.max_requests, self.max_input_tokens)):
@@ -114,7 +120,7 @@ class JevSettings:
             raise ValueError("Invalid wait/stop settings")
 
 
-def isolated_request(payload: dict, timeout: float) -> dict:
+def isolated_request(payload: dict, timeout: float, *, long_context: bool = False) -> dict:
     """Kill/reap the HTTPS child at the deadline; no retry, key in environment only."""
     if not math.isfinite(timeout) or timeout <= 0:
         raise TimeoutError("No HTTP budget")
@@ -126,10 +132,14 @@ def isolated_request(payload: dict, timeout: float) -> dict:
         stderr=subprocess.PIPE,
         text=True,
         encoding="utf-8",
+        errors="replace",
     )
     try:
         output, _ = process.communicate(
-            json.dumps({"payload": payload, "timeout": timeout}, allow_nan=False),
+            json.dumps(
+                {"payload": payload, "timeout": timeout, "long_context": long_context},
+                allow_nan=False,
+            ),
             timeout=max(0.001, timeout - (time.perf_counter() - started)),
         )
     except subprocess.TimeoutExpired:
@@ -158,7 +168,13 @@ class DecisionSession:
         self.settings, self.seconds = settings, seconds
         if not math.isfinite(seconds) or seconds <= 0:
             raise ValueError("Positive finite production seconds required")
-        self.requester, self.sink = requester, sink
+        self.requester = (
+            partial(isolated_request, long_context=settings.long_context)
+            if requester is isolated_request
+            else requester
+        )
+        self.sink = sink
+        self.reservation = 262144 if settings.long_context else 65536
         self.begin = time.perf_counter()
         self.wait_s = 0.0
         self.input_tokens = 0
@@ -193,7 +209,11 @@ class DecisionSession:
             return None
         payload = dict(
             model=self.settings.model,
-            state=dict(problem_contract=BACKGROUND_EN, prompt_version=PROMPT_VERSION, **state),
+            state=dict(
+                problem_contract=BACKGROUND_EN,
+                prompt_version=PROMPT_VERSION,
+                **(compact_state(state) if self.settings.compact_prompt else state),
+            ),
             questions=questions,
         )
         wire = json.dumps(payload, allow_nan=False)

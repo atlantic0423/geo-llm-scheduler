@@ -1,8 +1,8 @@
 """Versioned English wire prompts and Chinese reading-only translations."""
 
-PROMPT_VERSION = "jev_hierarchical_v2_per_step"
+PROMPT_VERSION = "jev_hierarchical_v3_compact"
 
-BACKGROUND_EN = """You advise a static, offline, deterministic geo-distributed LLM
+BACKGROUND_EN_V2 = """You advise a static, offline, deterministic geo-distributed LLM
 Prefill-Decode scheduling search. All jobs, releases, durations and resource demands are known.
 Each job has nonpreemptive Prefill P followed by nonpreemptive Decode D. P and D MUST use the
 same geographic Region, but may use different serving instances inside it. Decode starts after
@@ -56,7 +56,7 @@ a schedule, code, explanation, changed constraint or extended budget. Questions 
 are independent. Candidate IDs refer only to this snapshot; follow the ACTUALLY sampled parent
 in subsequent states, which can differ from your highest-probability option."""
 
-BACKGROUND_ZH = """你辅助静态、离线、确定性的跨地区 LLM Prefill-Decode 调度搜索。
+BACKGROUND_ZH_V2 = """你辅助静态、离线、确定性的跨地区 LLM Prefill-Decode 调度搜索。
 所有工件、释放时间、时长和资源需求已知。每个工件不可抢占地先P后D；P/D必须同地区，
 可在该地区不同实例，跨实例时D须等待输入定义的KV延迟。实例是原子资源，并发需满足
 Compute累积份额不超过1及有效VRAM/KV容量。不得改变任务时长、容量、释放或地区合法性。
@@ -87,6 +87,59 @@ A8选择有需量费的地区及原峰singleton/support-group；保留成员/位
 你只判断当前有限选项或停止命题。程序用显式RNG从Choice概率抽样；模型不自行模拟随机，
 不输出schedule、代码、解释、约束变更或额外预算。同批问题独立。
 ID只绑定当前快照，后续状态必须跟随程序实际抽中对象，可能不同于模型最高概率项。"""
+
+BACKGROUND_EN = """Assist deterministic offline geo-distributed LLM scheduling. All jobs are known.
+Each nonpreemptive job has Prefill P then Decode D in the SAME geographic Region;
+different instances incur its KV delay. Respect releases, phase eligibility,
+cumulative Compute <=1 and effective VRAM GB. Do not change constraints or durations.
+Minimize total Flow=sum(D completion-release) and Bill=TOU+Demand, in seconds/CNY.
+Power is kW, energy kWh: each instance uses idle/active power on [0,T_end), active
+by interval UNION, zero after the last Decode. Demand checks ALL 900s windows
+anchored at zero, including tied/new peaks; partial tails still divide by 900.
+Flow/Balanced/Electricity label preferences, not Regions. Use the CURRENT fine weight.
+The program enforces strict-direction/delta0 entry, SSGS, exact feasibility/billing,
+normalized Tchebycheff acceptance, Archive and neighbor-own-weight replacement.
+Each LS step freshly selects an action, constructs at most SIX distinct candidates
+from ONE frozen incumbent, then accepts. Every complete feasible exact candidate
+may update Archive, including locally rejected ones. At most FIVE steps; stop is
+asked after steps 1-4. Polish follows outside the trajectory. All preparation,
+queueing, HTTP and search consume production wall time. No future/oracle is known;
+proxies are not exact gains, unobserved history is null, not failure.
+A1 single phase instance; A2 P/D path within Region; A3 whole-job cross-Region path
+(A1-3 keep OS); A4 positive-wait phase earlier in OS; A5 positive-wait job P/D
+joint earlier insertion; A6 destroy ~10%, >=2 jobs, ORIGINAL random legal repair;
+A7 one legal positive-union-compression critical-time move; A8 original-peak
+singleton/support-group selection and bounded precedence-aware repair, retaining
+member/position/attempt limits, original horizon and strict ALL-window peak gate.
+Timing moves freeze unselected operations; structural moves rebuild by SSGS.
+Assess only supplied options/proposition. Program RNG samples your Choice distribution;
+follow ACTUALLY sampled parents, not your previous maximum. Do not output a schedule,
+explanation, altered constraints or extra budget. Questions are independent.
+Compact tables are lossless: columns label rows. all_jobs lists EVERY Job; operation
+o=2*j/2*j+1 is P/D. Its machine/start come from current_solution.MS/starts_s, Region
+from instance tables, profile from operation_profile_ids into profiles; end=start+duration.
+resource_wait_s/flow_wait_s index o. Actual KV is kv_if_separate_s iff its P/D machines
+differ. History default_metrics applies to every listed group/action except overrides.
+Numeric precision and all options are retained. IDs bind only to this snapshot."""
+
+BACKGROUND_ZH = """辅助确定性离线跨地区LLM调度，所有工件已知。不可抢占工件先P后D且必须同地理地区，
+不同实例计其KV延迟；保持release、工序资格、Compute累积不超过1及有效VRAM，不能改约束或时长。
+最小化总Flow（D完成减release之和）及总Bill（TOU+Demand），时间秒、费用CNY、功率kW、能量kWh。
+每实例从零到最后D完成前按idle/active计功率，active按区间并集，之后为零。全部锚定零的900秒
+窗口检查原并列峰和新峰，尾窗仍除900。三偏好组不是地理地区，使用当前真实细权重。
+程序负责严格方向/零容差进入、SSGS、exact可行性/电费、归一化Tchebycheff接受、Archive与邻居自身权重替换。
+每一步重新选动作，最多六个不同候选都从同一冻结解出发；完整可行exact候选包括局部拒绝者均可入Archive。
+最多五步，第1至4步后问停止，Polish在轨迹外。准备、排队、HTTP和搜索均计墙钟；没有未来oracle，
+proxy不是真实收益，未观测历史是null而非失败。
+A1单工序实例，A2同地区P/D路径，A3整工件跨地区路径，三者OS不变；A4正等待工序前插，
+A5正等待工件P/D联合前插；A6约10%且至少2工件destroy，原随机合法repair；
+A7合法正并集压缩关键时刻；A8原峰singleton/support组及有限前驱修复，保留成员/位置/尝试上限、
+原horizon及全窗严格削峰。时序冻结未选工序，结构变化SSGS重建。
+只判断所给选项/命题，程序随机抽Choice概率，后问跟随实际抽中父对象；不输出schedule、解释、改约束或加预算。
+表格按columns解释rows，全部Job保留。工序o=2j/2j+1为P/D，实例和开始由MS/starts_s取得，
+地区查实例表，profile按operation_profile_ids查profiles，结束=开始+时长；两等待数组按o索引。
+P/D实例不同才计kv_if_separate_s。历史default_metrics适用所有列出的组/动作，overrides覆盖例外。
+数值精度和全部选项保留，ID只绑定当前快照。"""
 
 # Only the English entry is ever placed on the wire. Chinese is documentation only.
 PROMPTS: dict[str, tuple[str, str]] = {

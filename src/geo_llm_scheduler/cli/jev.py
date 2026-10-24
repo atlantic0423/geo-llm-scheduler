@@ -21,6 +21,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-requests", type=int, default=512)
     parser.add_argument("--max-input-tokens", type=int, default=4_000_000)
+    parser.add_argument("--long-context", action="store_true")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     evidence: dict = {}
@@ -30,6 +31,7 @@ def main() -> None:
         epsilon_g=args.epsilon_g,
         max_requests=args.max_requests,
         max_input_tokens=args.max_input_tokens,
+        long_context=args.long_context,
     )
     with (args.output / "requests.jsonl").open("w", encoding="utf-8") as handle:
 

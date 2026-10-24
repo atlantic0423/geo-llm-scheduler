@@ -23,6 +23,7 @@ from geo_llm_scheduler.domain.models import (
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments.jev_candidates import DirectCandidates
+from geo_llm_scheduler.experiments.jev_compact import compact_state, expand_state
 from geo_llm_scheduler.experiments.jev_decisions import (
     DecisionDeadline,
     DecisionSession,
@@ -257,7 +258,7 @@ def test_position_question_uses_actual_sampled_job_not_models_argmax(problem, mo
     )
     assert out.proposals
     first = fake.requests[0]
-    assert len(first["state"]["all_jobs"]) == 3
+    assert len(expand_state(first["state"])["all_jobs"]) == 3
     assert set(v["job_id"] for v in first["questions"]["selection"]["criteria"].values()) == {
         0,
         1,
@@ -370,7 +371,7 @@ def test_fresh_action_before_every_step_binds_current_solution_and_cumulative_fe
     stops = [r for r in fake.requests if "stop" in r["questions"]]
     for i, request in enumerate(action_calls):
         assert list(request["questions"]) == ["action"]
-        state = request["state"]
+        state = expand_state(request["state"])
         assert state["trajectory"]["next_step"] == i + 1
         assert len(state["trajectory"]["completed_steps"]) == i
         assert state["current_subproblem"]["fine_weight"] == weights(6)[1]
@@ -457,7 +458,16 @@ def test_complete_engine_entry_independent_exact_and_english_wire(problem, arm):
     cfg = replace(study_config(arm, 8, 100), population=6, neighborhood=2, generations=1)
     g = Genotype((0, 1, 0, 1), (0, 1, 0, 1))
     evidence = {}
-    result = run_policy(problem, arm, cfg, evidence, requester=fake, initial=[g] * 6)
+    initialized = []
+
+    def observer(event, data):
+        if event == "initial_ready":
+            initialized.append(list(data["population"]))
+
+    result = run_policy(
+        problem, arm, cfg, evidence, requester=fake, initial=[g] * 6, observer=observer
+    )
+    assert len(initialized) == 1 and len(initialized[0]) == 6
     assert evidence["jev"]["valid_requests"] >= 1
     assert evidence["jev"]["action_request_mode"] == "per_ls_step"
     assert evidence["jev"]["valid_action_requests"] == evidence["jev"]["action_requests"] > 0
@@ -555,13 +565,58 @@ def test_two_hundred_jobs_are_all_candidates_with_compact_lossless_rows(problem)
     assert out.proposals
     first = fake.requests[0]
     assert len(first["questions"]["selection"]["criteria"]) == 200
-    assert len(first["state"]["all_jobs"]) == 200
+    restored = expand_state(first["state"])
+    assert len(restored["all_jobs"]) == 200
     columns = first["state"]["operation_columns"]
-    for row in first["state"]["all_jobs"]:
+    for row in restored["all_jobs"]:
         for data in row["operations"]:
             op = dict(zip(columns, data))
             assert op["start_s"] == x.schedule.starts[op["operation"]]
-    assert not any("name" in row for row in first["state"]["all_jobs"])
+    assert not any("name" in row for row in restored["all_jobs"])
+
+
+@pytest.mark.parametrize("observed", [False, True])
+def test_compact_state_roundtrip_preserves_all_values_and_does_not_mutate_source(problem, observed):
+    gateway, x = current(problem)
+    policy = JevPolicy(JevSettings(), 100, 1, FakeJev())
+    policy.observed = observed
+    if observed:
+        policy.stats["Flow"]["A3"] = {
+            "calls": 2,
+            "wall_s": 1.2345678912345,
+            "scalar_gain": 0.00000000012345,
+        }
+    state = policy.snapshot(gateway, x, (0.12345678912345, 0.87654321087655))
+    before = json.dumps(state)
+    packed = compact_state(state)
+    assert expand_state(packed) == state
+    assert json.dumps(state) == before
+    assert len(json.dumps(packed)) < len(before) * 0.6
+    assert len(packed["all_jobs"]["rows"]) == len(problem.jobs)
+    assert packed["action_history"]["default_metrics"]
+    assert (packed["action_history"]["overrides"] != []) is observed
+    with pytest.raises(ValueError, match="schema"):
+        expand_state({"wire_schema": "old"})
+
+
+def test_compaction_never_changes_questions_or_uses_implicit_rounding(problem):
+    gateway, x = current(problem)
+    state = JevPolicy(JevSettings(), 100, 1, FakeJev()).snapshot(gateway, x, (0.5, 0.5))
+    q = dict(
+        type="choice",
+        instructions="Select all eligible",
+        criteria={"a": {"time": 0.12345678912345678}, "b": {"time": 1.2345678912345678}},
+    )
+    fake = FakeJev()
+    session = DecisionSession(JevSettings(), 100, fake)
+    assert session.ask(state, "selection", q)
+    assert fake.requests[0]["questions"]["selection"] == q
+    decoded = expand_state(fake.requests[0]["state"])
+    assert all(decoded[k] == v for k, v in state.items())
+    malformed = json.loads(json.dumps(state))
+    malformed["all_jobs"][0]["job_id"] = 99
+    with pytest.raises(ValueError, match="identity"):
+        compact_state(malformed)
 
 
 def test_bilingual_export_comes_from_wire_constants(tmp_path):
@@ -628,7 +683,10 @@ def test_cli_exports_independent_exact_audit(problem, tmp_path, monkeypatch, cap
         cli.main()
 
 
-def test_worker_uses_fixed_official_url_and_sanitizes_credentials(monkeypatch, capsys):
+@pytest.mark.parametrize("long_context", [False, True])
+def test_worker_uses_fixed_official_url_and_sanitizes_credentials(
+    monkeypatch, capsys, long_context
+):
     import io
 
     import geo_llm_scheduler.experiments.jev_http_worker as worker
@@ -644,20 +702,42 @@ def test_worker_uses_fixed_official_url_and_sanitizes_credentials(monkeypatch, c
             return b'{"model":"jev-1.14.0","answers":{},"usage":{}}'
 
     urls = []
+    requests = []
     monkeypatch.setenv("TYPESAFE_API_KEY", "DUMMY_TEST_KEY")
     monkeypatch.setattr(
-        worker, "urlopen", lambda request, timeout: urls.append(request.full_url) or Reply()
+        worker,
+        "urlopen",
+        lambda request, timeout: (
+            requests.append(request) or urls.append(request.full_url) or Reply()
+        ),
     )
-    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(dict(payload={}, timeout=1))))
+    monkeypatch.setattr(
+        "sys.stdin", io.StringIO(json.dumps(dict(payload={}, timeout=1, long_context=long_context)))
+    )
     worker.main()
     assert urls == ["https://api.typesafe.ai/v1/systemone"]
     assert json.loads(capsys.readouterr().out)["ok"]
+    assert ("Typesafe-danger-zone-long-context" in requests[0].headers) == long_context
     monkeypatch.setattr(
         "sys.stdin", io.StringIO(json.dumps(dict(payload={"bad": "DUMMY_TEST_KEY"}, timeout=1)))
     )
     worker.main()
     out = capsys.readouterr().out
     assert not json.loads(out)["ok"] and "DUMMY" not in out
+
+
+def test_long_context_reserves_full_request_and_does_not_change_wire_state():
+    fake = FakeJev()
+    question = dict(type="choice", instructions="Select", criteria={"a": "A", "b": "B"})
+    blocked = DecisionSession(JevSettings(long_context=True, max_input_tokens=262143), 100, fake)
+    assert blocked.ask({"all_jobs": [1, 2]}, "action", question) is None and not fake.requests
+    session = DecisionSession(JevSettings(long_context=True, max_input_tokens=262144), 100, fake)
+    assert session.reservation == 262144
+    assert session.ask({"all_jobs": [1, 2]}, "action", question) is not None
+    assert fake.requests[0]["state"]["all_jobs"] == [1, 2]
+    assert session.charged_or_reserved_tokens == 100
+    with pytest.raises(ValueError, match="boolean"):
+        JevSettings(long_context=1)
 
 
 def test_malformed_usage_falls_back_without_leaking_or_crashing():

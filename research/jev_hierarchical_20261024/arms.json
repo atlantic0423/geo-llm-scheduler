@@ -1,5 +1,5 @@
 {
-  "prompt_version": "jev_hierarchical_v2_per_step",
+  "prompt_version": "jev_hierarchical_v3_compact",
   "action_request_mode": "per_ls_step",
   "arms": {
     "JEV_E05": {
@@ -9,7 +9,9 @@
       "max_requests": 512,
       "max_input_tokens": 4000000,
       "max_wait_fraction": 0.5,
-      "stop_threshold": 0.5
+      "stop_threshold": 0.5,
+      "long_context": false,
+      "compact_prompt": true
     },
     "JEV_E09": {
       "epsilon_g": 0.9,
@@ -18,7 +20,9 @@
       "max_requests": 512,
       "max_input_tokens": 4000000,
       "max_wait_fraction": 0.5,
-      "stop_threshold": 0.5
+      "stop_threshold": 0.5,
+      "long_context": false,
+      "compact_prompt": true
     }
   },
   "action_criteria_english": {

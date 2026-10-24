@@ -429,6 +429,8 @@ def run_policy(
             else factory(gateway, streams)
         )
         policy.initial_context = NormalizationContext(gateway.ideal, maximum(members))
+        if observer:
+            observer("initial_ready", dict(population=members, gateway=gateway))
         return members
 
     def observe(event: str, data: dict) -> None:

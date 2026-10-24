@@ -14,11 +14,14 @@ def main() -> None:
         body = json.dumps(value["payload"], allow_nan=False).encode()
         if not key or key.encode() in body:
             raise ValueError("Invalid credential boundary")
+        headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json"}
+        if value.get("long_context", False):
+            headers["TypeSafe-Danger-Zone-Long-Context"] = "true"
         request = Request(
             "https://api.typesafe.ai/v1/systemone",
             data=body,
             method="POST",
-            headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"},
+            headers=headers,
         )
         with urlopen(request, timeout=value["timeout"]) as response:
             raw = response.read()
