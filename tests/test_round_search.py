@@ -279,6 +279,17 @@ def test_custom_deepseek_system_prompt_is_validated_and_original_default_retaine
     assert "EXACTLY limits.selected_count" in ROUND_SELECT
 
 
+def test_calibrated_limits_and_exact_answer_keys_are_in_every_packet():
+    fake = Flash()
+    session = RoundSession(100, fake)
+    assert session.settings.max_requests == 32768
+    assert session.settings.max_input_tokens == 1_000_000_000
+    assert session.request("STEP_ACTION", {}, dict(A1=True)) is not None
+    contract = fake.packets[-1]["response_contract"]
+    assert contract["answer_keys_are_exact"] is True
+    assert contract["forbidden_transport_fields"] == ["type", "response_format"]
+
+
 def test_references_stay_on_the_existing_config_and_unknown_arms_rejected():
     from geo_llm_scheduler.experiments.llm_search import study_config as old
 

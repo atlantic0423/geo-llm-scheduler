@@ -65,13 +65,19 @@ Only the English contract in `PROMPTS_EN.md` and English-schema numeric state ar
 sent. Requests are self-contained; dynamic states use lossless tables and retain
 all eligible Jobs/operations/options without rounding or heuristic shortlisting.
 
-Initial transport guards are 30 seconds/request, at most 8192 requests and 64M
+Calibrated transport guards are 30 seconds/request, at most 32768 requests and 1B
 billed-or-reserved input tokens per LLM run. Unknown usage retains a conservative
 65,536-token reservation. There is no cumulative API-wait fraction cutoff.
 Request/usage/transport failures do not automatically retry. Action and object
 failures use recorded legal random fallbacks; invalid stop conservatively ends
 the current trajectory. Every request/task coverage and quota fallback is
 reported. A compute-complete run is not claimed to have full model coverage.
+
+Technical full-state probes observed approximately 13k-26k prompt tokens per
+100/200-Job request and about 18-23 requests per five-step trajectory. The earlier
+64M-input-token draft could have exhausted its allowance during a full run; the
+pre-formal calibration raises the guards without changing the search budget,
+quota or any executed move. The actual guard utilization is reported.
 
 ## Search-clock contract
 

@@ -123,8 +123,8 @@ class RoundSession(DecisionSession):
         requester: Requester = isolated_request,
         sink: Callable[[dict], None] | None = None,
         *,
-        max_requests: int = 8192,
-        max_input_tokens: int = 64_000_000,
+        max_requests: int = 32768,
+        max_input_tokens: int = 1_000_000_000,
     ) -> None:
         super().__init__(
             JevSettings(
@@ -194,6 +194,8 @@ class RoundSession(DecisionSession):
                 required=["request_id", "snapshot_id", payload_name],
                 score_keys=list(options),
                 extra_fields=False,
+                answer_keys_are_exact=True,
+                forbidden_transport_fields=["type", "response_format"],
             ),
             **extra,
         )
