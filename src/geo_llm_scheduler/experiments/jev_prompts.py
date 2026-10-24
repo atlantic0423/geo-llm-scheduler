@@ -1,6 +1,6 @@
 """Versioned English wire prompts and Chinese reading-only translations."""
 
-PROMPT_VERSION = "jev_hierarchical_v3_compact"
+PROMPT_VERSION = "jev_hierarchical_v4_run_bound"
 
 BACKGROUND_EN_V2 = """You advise a static, offline, deterministic geo-distributed LLM
 Prefill-Decode scheduling search. All jobs, releases, durations and resource demands are known.
@@ -89,6 +89,9 @@ A8选择有需量费的地区及原峰singleton/support-group；保留成员/位
 ID只绑定当前快照，后续状态必须跟随程序实际抽中对象，可能不同于模型最高概率项。"""
 
 BACKGROUND_EN = """Assist deterministic offline geo-distributed LLM scheduling. All jobs are known.
+This request belongs to ONE treatment, identified by state.sampling_rule. Its
+greedy_probability selects a maximum; the remaining branch samples your complete
+distribution. The PROGRAM samples each selection independently; you return probabilities.
 Each nonpreemptive job has Prefill P then Decode D in the SAME geographic Region;
 different instances incur its KV delay. Respect releases, phase eligibility,
 cumulative Compute <=1 and effective VRAM GB. Do not change constraints or durations.
@@ -123,6 +126,8 @@ differ. History default_metrics applies to every listed group/action except over
 Numeric precision and all options are retained. IDs bind only to this snapshot."""
 
 BACKGROUND_ZH = """辅助确定性离线跨地区LLM调度，所有工件已知。不可抢占工件先P后D且必须同地理地区，
+本次请求只属于sampling_rule指定的一种处理。greedy_probability概率取最大项，剩余分支按完整分布抽样。
+每次选择由程序独立抽样，模型只返回概率；不在请求中比较两种参数。
 不同实例计其KV延迟；保持release、工序资格、Compute累积不超过1及有效VRAM，不能改约束或时长。
 最小化总Flow（D完成减release之和）及总Bill（TOU+Demand），时间秒、费用CNY、功率kW、能量kWh。
 每实例从零到最后D完成前按idle/active计功率，active按区间并集，之后为零。全部锚定零的900秒

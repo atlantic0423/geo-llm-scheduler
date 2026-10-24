@@ -182,6 +182,101 @@ def prepare(
     return manifest
 
 
+def prepare_pilot(
+    root: Path,
+    historical: Path,
+    *,
+    original_key: str = "r0_n200_R2M12_kv_v0_s16101",
+    seed: int = 17401,
+    seconds: float = 1200,
+    max_tokens: int = 40_000_000,
+    spend_cap_usd: float = 2.0,
+) -> dict:
+    """Seal the user-selected single original n200 input and E09/MAIN/BILL pilot."""
+    if root.exists():
+        raise FileExistsError("Campaign root must be new")
+    if not math.isfinite(seconds) or seconds <= 0 or not math.isfinite(spend_cap_usd):
+        raise ValueError("Invalid pilot duration or spend cap")
+    if type(seed) is not int or seed < 0:
+        raise ValueError("Explicit nonnegative seed required")
+    upper = budget_bound(1, max_tokens)
+    if upper > spend_cap_usd:
+        raise ValueError("Pilot token allocation exceeds spend cap")
+    old = json.loads((historical / "manifest.json").read_text())
+    assert old["commit"] == "b148c4addd207fe30a6b2a43d953a04afc35d3a1"
+    assert (
+        sha(historical / "manifest.json")
+        == json.loads((historical / "manifest.sha256.json").read_text())["sha256"]
+    )
+    assert original_key in old["blocks"] and len(old["blocks"]) == 32
+    source_spec = historical / "specs" / (original_key + ".json")
+    assert sha(source_spec) == old["files"][source_spec.relative_to(historical).as_posix()]
+    original = json.loads(source_spec.read_text())
+    assert original["n"] == 200 and original["variant"] == 0
+    source_input = historical / original["input"]
+    assert sha(source_input) == original["input_sha256"] == old["files"][original["input"]]
+    key = original_key.rsplit("_s", 1)[0] + "_s" + str(seed)
+    arms = ["BILL_MOEAD", "MAIN_Q", "JEV_E09"]
+    spec = {
+        k: original[k]
+        for k in (
+            "n",
+            "regions",
+            "machines",
+            "pressure",
+            "variant",
+            "base_seed",
+            "input",
+            "input_sha256",
+        )
+    }
+    spec.update(
+        key=key,
+        seed=seed,
+        seconds=seconds,
+        old_key=original_key,
+        historical_spec_sha256=sha(source_spec),
+        host=socket.gethostname(),
+        order=arms,
+    )
+    root.mkdir(parents=True)
+    target = root / spec["input"]
+    target.parent.mkdir(exist_ok=True)
+    shutil.copyfile(source_input, target)
+    path = root / "specs" / (key + ".json")
+    atomic_json(path, spec)
+    manifest = dict(
+        kind="single_n200_e09_pilot",
+        source=source_hash(),
+        host=socket.gethostname(),
+        arms=arms,
+        blocks=[key],
+        runs=3,
+        files={spec["input"]: sha(target), path.relative_to(root).as_posix(): sha(path)},
+        commit=subprocess.check_output(
+            ["git", "-C", str(Path(__file__).resolve().parents[1]), "rev-parse", "HEAD"], text=True
+        ).strip(),
+        historical_manifest_sha256=sha(historical / "manifest.json"),
+        independent_parents=1,
+        seeds=[seed],
+        initialization="90+10_BILL4_P100_charged",
+        window_seconds=3600,
+        memory_reserve_bytes=200 * 1024**3,
+        max_input_tokens=max_tokens,
+        spend_cap_usd=spend_cap_usd,
+        preallocated_upper_usd=upper,
+        model="jev-1.14.0",
+        long_context=True,
+        api_concurrency=1,
+        prompt_version=PROMPT_VERSION,
+        epsilon_g=0.9,
+        interpretation="single-input/single-seed exploratory pilot; report all fallbacks and API coverage",
+    )
+    atomic_json(root / "manifest.json", manifest)
+    atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
+    return manifest
+
+
 def validate_inputs(root: Path) -> dict:
     """Reject changed source, panel, fee allocation, host, specs or inputs."""
     m = json.loads((root / "manifest.json").read_text())
@@ -190,15 +285,23 @@ def validate_inputs(root: Path) -> dict:
         == json.loads((root / "manifest.sha256.json").read_text())["sha256"]
     )
     assert m["source"] == source_hash() and m["host"] == socket.gethostname()
-    assert tuple(m["arms"]) == ARMS and len(set(m["blocks"])) == len(m["blocks"])
-    assert m["runs"] == len(m["blocks"]) * 4
+    expected = (
+        ("BILL_MOEAD", "MAIN_Q", "JEV_E09") if m.get("kind") == "single_n200_e09_pilot" else ARMS
+    )
+    assert tuple(m["arms"]) == expected and len(set(m["blocks"])) == len(m["blocks"])
+    assert m["runs"] == len(m["blocks"]) * len(expected)
+    jev_count = sum(a.startswith("JEV_") for a in expected)
     assert (
-        budget_bound(len(m["blocks"]) * 2, m["max_input_tokens"])
+        budget_bound(len(m["blocks"]) * jev_count, m["max_input_tokens"])
         == m["preallocated_upper_usd"]
         <= m["spend_cap_usd"]
     )
     for name, expected in m["files"].items():
         assert sha(root / name) == expected, name
+    if m.get("kind") == "single_n200_e09_pilot":
+        assert len(m["blocks"]) == 1 and m["epsilon_g"] == 0.9
+        spec = json.loads((root / "specs" / (m["blocks"][0] + ".json")).read_text())
+        assert spec["n"] == 200 and spec["variant"] == 0
     return m
 
 
@@ -497,7 +600,8 @@ def main() -> None:
     """Require explicit affordable preparation; never launch a campaign by import."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "action", choices=("prepare", "preflight", "worker", "validate", "dispatch")
+        "action",
+        choices=("prepare", "prepare-pilot", "preflight", "worker", "validate", "dispatch"),
     )
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--historical-root", type=Path)
@@ -509,6 +613,7 @@ def main() -> None:
     parser.add_argument("--arm", choices=ARMS)
     parser.add_argument("--cpu", type=int, default=0)
     parser.add_argument("--parallel", type=int, default=96)
+    parser.add_argument("--seconds", type=float, default=1200)
     args = parser.parse_args()
     if args.action == "prepare":
         print(
@@ -523,6 +628,21 @@ def main() -> None:
                 )
             )
         )
+    elif args.action == "prepare-pilot":
+        if len(args.seeds) != 1:
+            raise ValueError("Pilot requires one explicit seed")
+        print(
+            json.dumps(
+                prepare_pilot(
+                    args.root,
+                    args.historical_root,
+                    seed=args.seeds[0],
+                    seconds=args.seconds,
+                    max_tokens=args.max_input_tokens,
+                    spend_cap_usd=args.spend_cap_usd,
+                )
+            )
+        )
     elif args.action == "preflight":
         print(json.dumps(preflight(args.root, args.key)))
     elif args.action == "worker":
@@ -533,7 +653,9 @@ def main() -> None:
             json.dumps(
                 dict(
                     validated=sum(
-                        complete(args.root, k, a, m["source"]) for k in m["blocks"] for a in ARMS
+                        complete(args.root, k, a, m["source"])
+                        for k in m["blocks"]
+                        for a in m["arms"]
                     ),
                     total=m["runs"],
                 )

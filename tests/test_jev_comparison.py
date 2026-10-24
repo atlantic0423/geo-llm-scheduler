@@ -104,6 +104,39 @@ def test_preparation_keeps_both_variants_all_scales_and_original_bytes(tmp_path)
         campaign.validate_inputs(root)
 
 
+def test_single_n200_e09_pilot_uses_three_arms_twenty_minutes_and_under_two_dollars(tmp_path):
+    old = tmp_path / "original"
+    historical_fixture(old)
+    root = tmp_path / "pilot"
+    key = "n200_p0_v0_s16101"
+    m = campaign.prepare_pilot(root, old, original_key=key)
+    assert m["arms"] == ["BILL_MOEAD", "MAIN_Q", "JEV_E09"] and m["runs"] == 3
+    assert m["epsilon_g"] == 0.9 and m["preallocated_upper_usd"] == pytest.approx(1.78)
+    assert m["spend_cap_usd"] == 2 and m["max_input_tokens"] == 40_000_000
+    spec = json.loads((root / "specs" / (m["blocks"][0] + ".json")).read_text())
+    assert spec["seconds"] == 1200 and spec["n"] == 200 and spec["seed"] == 17401
+    assert (root / spec["input"]).read_bytes() == (old / spec["input"]).read_bytes()
+    assert campaign.validate_inputs(root) == m
+    m["arms"].append("JEV_E05")
+    campaign.atomic_json(root / "manifest.json", m)
+    campaign.atomic_json(
+        root / "manifest.sha256.json", dict(sha256=campaign.sha(root / "manifest.json"))
+    )
+    with pytest.raises(AssertionError):
+        campaign.validate_inputs(root)
+
+
+def test_pilot_refuses_overspend_and_non200_inputs_before_creation(tmp_path):
+    old = tmp_path / "original"
+    historical_fixture(old)
+    with pytest.raises(ValueError, match="spend"):
+        campaign.prepare_pilot(tmp_path / "bad", old, max_tokens=50_000_000)
+    assert not (tmp_path / "bad").exists()
+    with pytest.raises(AssertionError):
+        campaign.prepare_pilot(tmp_path / "bad", old, original_key="n20_p0_v0_s16101")
+    assert not (tmp_path / "bad").exists()
+
+
 def test_controls_match_existing_config_and_jev_keeps_strict_boundaries():
     for arm in campaign.ARMS:
         cfg = campaign.arm_config(arm, 17401, 300)

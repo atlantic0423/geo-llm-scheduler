@@ -476,6 +476,12 @@ def test_complete_engine_entry_independent_exact_and_english_wire(problem, arm):
         assert c.evaluation.feasible
     for payload in fake.requests:
         assert payload["state"]["problem_contract"] == BACKGROUND_EN
+        rule = payload["state"]["sampling_rule"]
+        assert rule["treatment"] == arm
+        assert rule["greedy_probability"] == (0.5 if arm == "JEV_E05" else 0.9)
+        assert rule["model_distribution_probability"] == pytest.approx(
+            1 - rule["greedy_probability"]
+        )
         wire = json.dumps(payload, ensure_ascii=False)
         assert not any("\u4e00" <= c <= "\u9fff" for c in wire)
     assert all(en.isascii() and zh for en, zh in PROMPTS.values())

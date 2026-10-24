@@ -88,6 +88,13 @@ class JevPolicy(LLMPolicy):
         if not self.problem_data:
             self.problem_data = _without_names(static_problem(gateway.problem))
         state: dict = dict(
+            sampling_rule=dict(
+                treatment="JEV_E05" if self.settings.epsilon_g == 0.5 else "JEV_E09",
+                greedy_probability=self.settings.epsilon_g,
+                model_distribution_probability=1 - self.settings.epsilon_g,
+                tie_break="uniform_among_maxima",
+                scope="this_run_only; program_samples_each_selection_independently",
+            ),
             instance=self.problem_data,
             action_history=self.feedback(),
             budget=dict(

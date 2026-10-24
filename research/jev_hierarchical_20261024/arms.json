@@ -1,6 +1,29 @@
 {
-  "prompt_version": "jev_hierarchical_v3_compact",
+  "prompt_version": "jev_hierarchical_v4_run_bound",
   "action_request_mode": "per_ls_step",
+  "active_pilot": {
+    "arms": [
+      "BILL_MOEAD",
+      "MAIN_Q",
+      "JEV_E09"
+    ],
+    "n": 200,
+    "seconds": 1200,
+    "seed": 17401,
+    "jev_settings": {
+      "epsilon_g": 0.9,
+      "model": "jev-1.14.0",
+      "request_timeout_s": 15.0,
+      "max_requests": 512,
+      "max_input_tokens": 40000000,
+      "max_wait_fraction": 0.5,
+      "stop_threshold": 0.5,
+      "long_context": true,
+      "compact_prompt": true
+    },
+    "campaign_spend_cap_usd": 2.0,
+    "jev_input_cost_cap_usd": 1.68
+  },
   "arms": {
     "JEV_E05": {
       "epsilon_g": 0.5,

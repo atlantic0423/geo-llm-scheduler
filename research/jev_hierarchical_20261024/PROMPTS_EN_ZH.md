@@ -1,7 +1,9 @@
-# Jev 实际提示词：英文发送，中文仅供阅读
+# Jev 当前试跑提示词：E09 英文发送，中文仅供阅读
 
-版本：jev_hierarchical_v3_compact；由 scripts/export_jev_prompts.py 从实际代码常量生成。
+版本：jev_hierarchical_v4_run_bound；由 scripts/export_jev_prompts.py 从实际代码常量生成。
 英文模板已做确定性注入接口测试；不是英文优于中文的效果证据或实网验证。
+当前试跑固定一个原200工件实例、一个种子，JEV_E09 / MAIN_Q / BILL_MOEAD三组各1200秒。
+Jev只运行epsilon_g=0.9：90%取最大项（并列均匀），10%按模型完整分布抽样。实际state.sampling_rule明确绑定本次E09；请求不让模型比较两档参数。
 
 ## 完整执行顺序
 
@@ -14,13 +16,16 @@
 7. 第1至4步后用真实结果问Noul停止；大于0.5停，等于0.5继续，第5步强制结束。
 8. 原两重点Polish在轨迹后执行，随后原邻域替换。
 
-两版仅epsilon_g不同，分别0.5/0.9。动作、工件与条件位置均以该概率选最大项（并列均匀），否则按Jev完整分布抽样。这是概率引导epsilon-greedy变体，随机分支不是均匀探索。随机操作在程序中，模型不自行模拟。
+本次仅epsilon_g=0.9。动作、工件与条件位置均以该概率选最大项（并列均匀），否则按Jev完整分布抽样。这是概率引导epsilon-greedy变体，随机分支不是均匀探索。随机操作在程序中，模型不自行模拟。
 
 ## 每次请求的共同背景
 
 英文（实际发送）：
 
 > Assist deterministic offline geo-distributed LLM scheduling. All jobs are known.
+> This request belongs to ONE treatment, identified by state.sampling_rule. Its
+> greedy_probability selects a maximum; the remaining branch samples your complete
+> distribution. The PROGRAM samples each selection independently; you return probabilities.
 > Each nonpreemptive job has Prefill P then Decode D in the SAME geographic Region;
 > different instances incur its KV delay. Respect releases, phase eligibility,
 > cumulative Compute <=1 and effective VRAM GB. Do not change constraints or durations.
@@ -57,6 +62,8 @@
 中文（不发送）：
 
 > 辅助确定性离线跨地区LLM调度，所有工件已知。不可抢占工件先P后D且必须同地理地区，
+> 本次请求只属于sampling_rule指定的一种处理。greedy_probability概率取最大项，剩余分支按完整分布抽样。
+> 每次选择由程序独立抽样，模型只返回概率；不在请求中比较两种参数。
 > 不同实例计其KV延迟；保持release、工序资格、Compute累积不超过1及有效VRAM，不能改约束或时长。
 > 最小化总Flow（D完成减release之和）及总Bill（TOU+Demand），时间秒、费用CNY、功率kW、能量kWh。
 > 每实例从零到最后D完成前按idle/active计功率，active按区间并集，之后为零。全部锚定零的900秒
@@ -204,6 +211,7 @@
 ## 实际动态输入
 
 共同state含英文背景、真实拓扑/电价/资源、预算、曝光分母清晰的动作历史和Archive摘要。
+sampling_rule固定本次treatment=JEV_E09、greedy_probability=0.9、model_distribution_probability=0.1，随机分支仍可能抽中最大项。
 动作及对象请求都含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、全部地区固定窗口功率。实际criteria由代码填充ID和英文结构化说明。A8 repair带partial_solution，不能把已移除成员当作仍固定。
 v3使用可逆表格：全Job rows与profile索引、MS/starts恢复重复工序字段，历史default_metrics加overrides；全部候选和数值精度保留。expand_state可还原原快照。信息一致不保证模型分布一致，不把压缩当作已验证效果无损。
 动作请求另含当前子问题索引、偏好组、归一化上下文、下一步编号和本轨迹已完成步。动作反馈累计自run开始，不因每步新回答而清空。request_mode为per_ls_step。
@@ -230,16 +238,16 @@ A7绕过原两代表/2B预筛，A8改变支撑组及位置选择，是研究策�
 默认每run最多512请求、单次15秒、累计等待最多生产预算50%、已计费或保守预留输入最多400万token。每次发送前按64k默认整请求上界预留，合法usage按实替换；未知失败保留整份预留。额度是单run限制，不是账号余额或多run全局总预算。
 输入、请求及等待都计入生产墙钟。已做四原规模动作Prompt技术调用，没有启动正式campaign或验证完整LS费用/效果；实测见CAMPAIGN.md。
 
-## 两版运行
+## 当前唯一Jev版本
 
-模型固定jev-1.14.0。两版仅epsilon_g不同，配置见arms.json。密钥只从进程环境TYPESAFE_API_KEY读取，不写命令参数、prompt、日志或Git。
+模型固定jev-1.14.0。本次只运行JEV_E09，当前配置见arms.json的active_pilot。密钥只从进程环境TYPESAFE_API_KEY读取，不写命令参数、prompt、日志或Git。
 
 ```powershell
-python -m geo_llm_scheduler.cli.jev --instance <original-component33-input.json> --epsilon-g 0.5 --seconds 300 --seed 18001 --output outputs/jev-e05
-python -m geo_llm_scheduler.cli.jev --instance <original-component33-input.json> --epsilon-g 0.9 --seconds 300 --seed 18001 --output outputs/jev-e09
+python -m geo_llm_scheduler.cli.jev --instance <original-component33-input.json> --epsilon-g 0.9 --seconds 1200 --seed 17401 --max-input-tokens 40000000 --long-context --output outputs/jev-e09
 ```
 
 时间/seed仅命令示例，正式需按原面板冻结。requests.jsonl保存脱敏完整请求/有效响应/失败；result.json保存最终P100/Archive、每个最终成员的独立exact审计和实际usage。
 实现与验收见IMPLEMENTATION.md。
+E05软件接口与原两档配置仅保留历史复现，本次不派发、不在模型请求中介绍另一档。
 
 [官方Choice](https://docs.typesafe.ai/primitives/choice)；[官方Noul](https://docs.typesafe.ai/primitives/noul)；[Jev-Mem附录B](https://arxiv.org/html/2609.23986v1)。
