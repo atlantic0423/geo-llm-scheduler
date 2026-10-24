@@ -20,6 +20,8 @@ import run_llm_flash as common
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.evaluation.exact import evaluate
+from geo_llm_scheduler.experiments.jev_clock import CLOCK_EN, search_clock_text
+from geo_llm_scheduler.experiments.jev_clock import PROMPT_VERSION as CLOCK_PROMPT_VERSION
 from geo_llm_scheduler.experiments.jev_decisions import JevSettings
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN, PROMPT_VERSION, PROMPTS
 from geo_llm_scheduler.experiments.jev_search import SINGLE_ARM
@@ -196,10 +198,13 @@ def prepare_pilot(
     max_tokens: int = 40_000_000,
     spend_cap_usd: float = 2.0,
     single_candidate: bool = False,
+    exclude_api_wait: bool = False,
 ) -> dict:
     """Seal the original n200 pilot, optionally running only the declared B1 treatment."""
     if root.exists():
         raise FileExistsError("Campaign root must be new")
+    if type(exclude_api_wait) is not bool or (exclude_api_wait and not single_candidate):
+        raise ValueError("Search clock requires the single B1 treatment")
     if not math.isfinite(seconds) or seconds <= 0 or not math.isfinite(spend_cap_usd):
         raise ValueError("Invalid pilot duration or spend cap")
     if type(seed) is not int or seed < 0:
@@ -277,6 +282,14 @@ def prepare_pilot(
         epsilon_g=0.9,
         interpretation="single-input/single-seed exploratory pilot; report all fallbacks and API coverage",
     )
+    if exclude_api_wait:
+        manifest.update(
+            exclude_api_wait=True,
+            clock_basis="search_excluding_api_wait",
+            prompt_version=CLOCK_PROMPT_VERSION,
+            aggregate_api_wait_cap_s=None,
+            window_seconds=seconds + 512 * 15 + 600,
+        )
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
     return manifest
@@ -290,6 +303,11 @@ def validate_inputs(root: Path) -> dict:
         == json.loads((root / "manifest.sha256.json").read_text())["sha256"]
     )
     assert m["source"] == source_hash() and m["host"] == socket.gethostname()
+    if "exclude_api_wait" in m:
+        assert m["exclude_api_wait"] is True and m["kind"] == "single_n200_b1_top10"
+        assert m["clock_basis"] == "search_excluding_api_wait"
+        assert m["prompt_version"] == CLOCK_PROMPT_VERSION
+        assert m["aggregate_api_wait_cap_s"] is None
     expected = (
         (SINGLE_ARM,)
         if m.get("kind") == "single_n200_b1_top10"
@@ -353,7 +371,11 @@ def complete(root: Path, key: str, arm: str, source: str) -> bool:
         assert j["settings"] == asdict(expected)
         assert j["provider_transport"] == "official_https_with_shared_queue"
         assert j["prompt_version"] == (
-            SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION
+            CLOCK_PROMPT_VERSION
+            if manifest.get("exclude_api_wait")
+            else SINGLE_PROMPT_VERSION
+            if arm == SINGLE_ARM
+            else PROMPT_VERSION
         )
         assert j["jev_treatment_valid"] and j["valid_action_requests"] > 0
         assert not any(any(row) for row in q["updates"])
@@ -366,6 +388,16 @@ def complete(root: Path, key: str, arm: str, source: str) -> bool:
             sum(c["reserved_input_tokens"] for c in calls) == j["billed_or_reserved_input_tokens"]
         )
         assert j["billed_or_reserved_input_tokens"] <= manifest["max_input_tokens"]
+        if manifest.get("exclude_api_wait"):
+            blocked = sum(c["api_blocked_s"] for c in calls)
+            assert all(c["api_blocked_s"] >= 0 for c in calls)
+            assert math.isclose(blocked, j["api_blocked_s"], abs_tol=1e-6)
+            assert j["clock_basis"] == manifest["clock_basis"]
+            assert j["aggregate_api_wait_cap_s"] is None
+            assert j["search_elapsed_s"] >= spec["seconds"]
+            assert math.isclose(
+                s["production_seconds"] - blocked, j["search_elapsed_s"], abs_tol=1e-6
+            )
     return True
 
 
@@ -422,12 +454,24 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
     out.mkdir(parents=True, exist_ok=False)
     cfg = arm_config(arm, spec["seed"], spec["seconds"])
     atomic_json(out / "config.json", asdict(cfg))
+    search_clock = manifest.get("exclude_api_wait", False)
     atomic_json(
         out / "prompts_en.json",
         dict(
-            version=SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION,
-            background=SINGLE_BACKGROUND if arm == SINGLE_ARM else BACKGROUND_EN,
-            questions={k: v[0] for k, v in PROMPTS.items()}
+            version=CLOCK_PROMPT_VERSION
+            if search_clock
+            else (SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION),
+            background=SINGLE_BACKGROUND.replace(
+                "All preparation,\nqueueing, HTTP and search consume production wall time.",
+                CLOCK_EN,
+            )
+            if search_clock
+            else SINGLE_BACKGROUND
+            if arm == SINGLE_ARM
+            else BACKGROUND_EN,
+            questions={
+                k: search_clock_text(v[0]) if search_clock else v[0] for k, v in PROMPTS.items()
+            }
             | ({"a6_job_ranking": RANK_EN} if arm == SINGLE_ARM else {}),
         ),
     )
@@ -471,14 +515,25 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
             if gateway is None:
                 return
             elapsed = time.perf_counter() - clock
+            budget_elapsed = data.get("search_elapsed_s", elapsed)
+            clock_fields = (
+                dict(
+                    search_elapsed_s=budget_elapsed,
+                    api_blocked_s=data.get("api_blocked_s", 0),
+                    clock_basis="search_excluding_api_wait",
+                )
+                if search_clock
+                else {}
+            )
             if event == "initial_ready":
                 common.write_candidates(out / "initial.json.gz", data["population"])
-            if event == "initial_ready" or thresholds and elapsed >= thresholds[0]:
+            if event == "initial_ready" or thresholds and budget_elapsed >= thresholds[0]:
                 target = "initialization" if event == "initial_ready" else thresholds.pop(0)
                 snapshots.append(
                     dict(
                         target=target,
                         elapsed=elapsed,
+                        **clock_fields,
                         objectives=[c.evaluation.objectives for c in gateway.archive.members],
                     )
                 )
@@ -493,6 +548,7 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
                         exact=gateway.counts["exact"],
                         archive=len(gateway.archive.members),
                         step_counts=step_counts,
+                        **clock_fields,
                     ),
                 )
                 last = elapsed
@@ -515,6 +571,7 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
                     settings=settings,
                     requester=queued_request,
                     request_sink=sink,
+                    **({"exclude_api_wait": True} if search_clock else {}),
                 )
             else:
                 result = run_control(problem, arm, cfg, evidence, observer=observe)
@@ -541,6 +598,15 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
                 dict(
                     target="final",
                     elapsed=result.elapsed,
+                    **(
+                        {
+                            "search_elapsed_s": evidence["jev"]["search_elapsed_s"],
+                            "api_blocked_s": evidence["jev"]["api_blocked_s"],
+                            "clock_basis": "search_excluding_api_wait",
+                        }
+                        if search_clock
+                        else {}
+                    ),
                     objectives=[c.evaluation.objectives for c in result.archive.members],
                 )
             )
@@ -624,6 +690,7 @@ def main() -> None:
     parser.add_argument("--key")
     parser.add_argument("--arm", choices=(*ARMS, SINGLE_ARM))
     parser.add_argument("--single-candidate", action="store_true")
+    parser.add_argument("--exclude-api-wait", action="store_true")
     parser.add_argument("--cpu", type=int, default=0)
     parser.add_argument("--parallel", type=int, default=96)
     parser.add_argument("--seconds", type=float, default=1200)
@@ -654,6 +721,7 @@ def main() -> None:
                     max_tokens=args.max_input_tokens,
                     spend_cap_usd=args.spend_cap_usd,
                     single_candidate=args.single_candidate,
+                    exclude_api_wait=args.exclude_api_wait,
                 )
             )
         )

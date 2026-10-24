@@ -62,7 +62,7 @@ def _without_names(value: Any) -> Any:
 
 
 class JevPolicy(LLMPolicy):
-    """Same exact search seam as Flash; no Q learning and no free model waiting."""
+    """Same exact search seam as Flash; opt-in research clock excludes API blocking."""
 
     def candidates(self, action: int, state: dict) -> DirectCandidates:
         """Construct the declared generator; subclasses may define an isolated treatment."""
@@ -75,12 +75,20 @@ class JevPolicy(LLMPolicy):
         seed: int,
         requester: Requester = isolated_request,
         sink: Callable[[dict], None] | None = None,
+        *,
+        exclude_api_wait: bool = False,
     ) -> None:
         super().__init__(seconds, seed)
-        self.session = DecisionSession(settings, seconds, requester, sink)
+        self.session = DecisionSession(
+            settings, seconds, requester, sink, exclude_api_wait=exclude_api_wait
+        )
         self.begin = self.session.begin
         self.settings = settings
         self.problem_data: dict = {}
+
+    def elapsed(self) -> float:
+        """Use the same declared clock for policy boundaries and history rates."""
+        return time.perf_counter() - self.begin - self.session.excluded_api_wait_s
 
     def snapshot(
         self,
@@ -109,6 +117,12 @@ class JevPolicy(LLMPolicy):
             ),
             archive_summary=objective_summary(gateway.archive.members),
         )
+        if self.session.exclude_api_wait:
+            state["budget"].update(
+                clock_basis="search_excluding_api_wait",
+                api_blocked_s=self.session.excluded_api_wait_s,
+                wait_cap_s=None,
+            )
         if candidate is not None:
             p, g, s = gateway.problem, candidate.genotype, candidate.schedule
             jobs = []
@@ -205,6 +219,7 @@ class JevPolicy(LLMPolicy):
             if self.session.expired():
                 break
             start = time.perf_counter()
+            excluded_at_start = self.session.excluded_api_wait_s
             tick = time.perf_counter()
             state = self.snapshot(gateway, current, weights[index])
             state["current_subproblem"].update(
@@ -310,7 +325,9 @@ class JevPolicy(LLMPolicy):
             after = result.context.scalar(current, weights[index])
             accepted = current is not prior
             failures = 0 if accepted or measured.new_objectives else failures + 1
-            action_seconds = time.perf_counter() - start
+            action_seconds = (
+                time.perf_counter() - start - (self.session.excluded_api_wait_s - excluded_at_start)
+            )
             stats = self.stats[group].setdefault(f"A{action}", {})
             for key, value in dict(
                 calls=1,
@@ -405,8 +422,15 @@ def run_policy(
     observer: Callable[[str, dict], None] | None = None,
     request_sink: Callable[[dict], None] | None = None,
     initial: list[Genotype] | None = None,
+    exclude_api_wait: bool = False,
 ) -> RunResult:
-    """Run an isolated Jev arm; explicit initial genotypes support deterministic audits."""
+    """Run Jev; B1 may exclude synchronous API blocking from deadline and progress.
+
+    Local initialization, prompts, validation, observers and search remain charged.
+    Actual wall time stays in RunResult.elapsed; both clocks enter opt-in evidence.
+    """
+    if type(exclude_api_wait) is not bool or (exclude_api_wait and arm != SINGLE_ARM):
+        raise ValueError("API-wait exclusion is declared only for the B1 treatment")
     expected = 0.5 if arm == "JEV_E05" else 0.9
     if arm not in (*ARMS, SINGLE_ARM):
         raise ValueError("Unknown Jev arm")
@@ -434,7 +458,12 @@ def run_policy(
         from geo_llm_scheduler.experiments.jev_single import SingleJevPolicy
 
         policy = SingleJevPolicy(
-            settings, config.seconds or 1, config.seed, requester, request_sink
+            settings,
+            config.seconds or 1,
+            config.seed,
+            requester,
+            request_sink,
+            exclude_api_wait=exclude_api_wait,
         )
     else:
         policy = JevPolicy(settings, config.seconds or 1, config.seed, requester, request_sink)
@@ -456,6 +485,16 @@ def run_policy(
         if event == "initialization":
             policy.begin = policy.session.begin = time.perf_counter() - data["elapsed"]
         if observer:
+            if exclude_api_wait:
+                data = dict(
+                    data,
+                    clock_basis="search_excluding_api_wait",
+                    search_elapsed_s=data.get(
+                        "elapsed", policy.elapsed() + policy.session.excluded_api_wait_s
+                    )
+                    - policy.session.excluded_api_wait_s,
+                    api_blocked_s=policy.session.excluded_api_wait_s,
+                )
             observer(event, data)
 
     result = run(
@@ -467,6 +506,9 @@ def run_policy(
         trajectory_override=policy,
         offspring_transform=PolishPostprocess("TWO_FOCUS"),
         safe_boundary_deadline=True,
+        budget_excluded_seconds=(
+            (lambda: policy.session.excluded_api_wait_s) if exclude_api_wait else None
+        ),
     )
     evidence["jev"] = dict(
         arm=arm,
@@ -489,5 +531,13 @@ def run_policy(
         provider_transport="official_https" if requester is isolated_request else "injected",
     )
     result.gateway.seconds["jev_wait"] = policy.session.wait_s
+    if exclude_api_wait:
+        evidence["jev"].update(
+            clock_basis="search_excluding_api_wait",
+            search_elapsed_s=result.elapsed - policy.session.excluded_api_wait_s,
+            api_blocked_s=policy.session.excluded_api_wait_s,
+            production_wall_s=result.elapsed,
+            aggregate_api_wait_cap_s=None,
+        )
     result.gateway.seconds["jev_features"] = policy.feature_s
     return result

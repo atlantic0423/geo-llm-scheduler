@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Callable
 
+from geo_llm_scheduler.experiments.jev_clock import search_clock_text
 from geo_llm_scheduler.experiments.jev_compact import compact_state
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN, PROMPT_VERSION, PROMPTS
 
@@ -164,7 +165,13 @@ class DecisionSession:
         seconds: float,
         requester: Requester = isolated_request,
         sink: Callable[[dict], None] | None = None,
+        *,
+        exclude_api_wait: bool = False,
     ) -> None:
+        if type(exclude_api_wait) is not bool:
+            raise ValueError("Explicit API clock switch required")
+        self.exclude_api_wait = exclude_api_wait
+        self.excluded_api_wait_s = 0.0
         self.settings, self.seconds = settings, seconds
         self.background = BACKGROUND_EN
         self.prompt_version = PROMPT_VERSION
@@ -186,8 +193,8 @@ class DecisionSession:
         self.selections: list[dict] = []
 
     def elapsed(self) -> float:
-        """Read actual end-to-end production wall time."""
-        return time.perf_counter() - self.begin
+        """Read the declared budget clock; only opt-in blocking calls are excluded."""
+        return time.perf_counter() - self.begin - self.excluded_api_wait_s
 
     def expired(self) -> bool:
         """Expose the hard boundary to finite candidate construction."""
@@ -207,8 +214,22 @@ class DecisionSession:
             self.seconds - self.elapsed(),
             self.settings.max_wait_fraction * self.seconds - self.wait_s,
         )
+        if self.exclude_api_wait:
+            timeout = self.settings.request_timeout_s
         if timeout <= 0.001:
             return None
+        if self.exclude_api_wait:
+            questions = {
+                name: dict(
+                    q,
+                    instructions=search_clock_text(q["instructions"]),
+                    criteria={
+                        k: search_clock_text(v) if isinstance(v, str) else v
+                        for k, v in q["criteria"].items()
+                    },
+                )
+                for name, q in questions.items()
+            }
         payload = dict(
             model=self.settings.model,
             state=dict(
@@ -231,9 +252,15 @@ class DecisionSession:
             reserved_input_tokens=self.reservation,
         )
         started = time.perf_counter()
+        excluded_before = self.excluded_api_wait_s
         answer = None
         try:
-            response = self.requester(payload, timeout)
+            blocking_start = time.perf_counter()
+            try:
+                response = self.requester(payload, timeout)
+            finally:
+                if self.exclude_api_wait:
+                    self.excluded_api_wait_s += time.perf_counter() - blocking_start
             if not isinstance(response, dict):
                 raise ValueError("Invalid response object")
             if key and key in json.dumps(response):
@@ -275,6 +302,9 @@ class DecisionSession:
         duration = time.perf_counter() - started
         self.wait_s += duration
         record["wait_s"] = duration
+        if self.exclude_api_wait:
+            record["api_blocked_s"] = self.excluded_api_wait_s - excluded_before
+            record["clock_basis"] = "search_excluding_api_wait"
         self.records.append(record)
         if self.sink:
             self.sink(record)

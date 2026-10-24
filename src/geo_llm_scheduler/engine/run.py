@@ -1,6 +1,7 @@
 """Run orchestration for the exact-evaluated plain MOEA/D reference baseline."""
 
 from dataclasses import dataclass
+from math import isfinite
 from time import perf_counter
 from typing import Callable
 
@@ -57,6 +58,7 @@ def run(
     offspring_transform: Callable[[Candidate, bool, EvaluationGateway, RNGManager], Candidate]
     | None = None,
     safe_boundary_deadline: bool = False,
+    budget_excluded_seconds: Callable[[], float] | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -70,11 +72,22 @@ def run(
     for both selected and unselected offspring; it runs before replacement.
     ``safe_boundary_deadline`` rechecks after a potentially blocking observer;
     only explicit online-policy callers opt in, preserving historical controls.
+    ``budget_excluded_seconds`` optionally reports cumulative synchronous API
+    blocking time. Only deadline/progress calculations subtract it; result and
+    observer elapsed values remain actual wall time. Initialization is charged.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
     validate_problem(problem)
     begin = perf_counter()
+
+    def budget_elapsed() -> float:
+        wall = perf_counter() - begin
+        excluded = 0.0 if budget_excluded_seconds is None else budget_excluded_seconds()
+        if not isfinite(excluded) or excluded < 0 or excluded > wall:
+            raise ValueError("Invalid excluded API time")
+        return wall - excluded
+
     observer_seconds = 0.0
     streams = RNGManager(config.seed)
     gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
@@ -157,7 +170,7 @@ def run(
         order = list(range(config.population))
         streams.stream("traversal").shuffle(order)
         for i in order:
-            if config.seconds is not None and perf_counter() - begin >= config.seconds:
+            if config.seconds is not None and budget_elapsed() >= config.seconds:
                 return finish("time_budget")
             if (
                 config.exact_evaluation_cap is not None
@@ -169,7 +182,7 @@ def run(
             if (
                 safe_boundary_deadline
                 and config.seconds is not None
-                and perf_counter() - begin >= config.seconds
+                and budget_elapsed() >= config.seconds
             ):
                 return finish("time_budget")
 
@@ -213,7 +226,7 @@ def run(
                         config.generations * config.population
                     )
                     if config.seconds is not None:
-                        progress = min(1.0, (perf_counter() - begin) / config.seconds)
+                        progress = min(1.0, budget_elapsed() / config.seconds)
                     elif config.exact_evaluation_cap is not None:
                         progress = min(1.0, gateway.counts["exact"] / config.exact_evaluation_cap)
                     try:

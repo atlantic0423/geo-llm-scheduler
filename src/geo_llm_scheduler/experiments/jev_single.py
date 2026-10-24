@@ -10,6 +10,8 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.experiments.jev_candidates import DirectCandidates
+from geo_llm_scheduler.experiments.jev_clock import CLOCK_EN
+from geo_llm_scheduler.experiments.jev_clock import PROMPT_VERSION as CLOCK_PROMPT_VERSION
 from geo_llm_scheduler.experiments.jev_decisions import JevSettings, Requester, isolated_request
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN
 from geo_llm_scheduler.experiments.jev_search import SINGLE_ARM, JevPolicy
@@ -125,10 +127,20 @@ class SingleJevPolicy(JevPolicy):
         seed: int,
         requester: Requester = isolated_request,
         sink: Callable[[dict], None] | None = None,
+        *,
+        exclude_api_wait: bool = False,
     ) -> None:
-        super().__init__(settings, seconds, seed, requester, sink)
+        super().__init__(
+            settings, seconds, seed, requester, sink, exclude_api_wait=exclude_api_wait
+        )
         self.session.background = BACKGROUND
         self.session.prompt_version = PROMPT_VERSION
+        if exclude_api_wait:
+            self.session.background = BACKGROUND.replace(
+                "All preparation,\nqueueing, HTTP and search consume production wall time.",
+                CLOCK_EN,
+            )
+            self.session.prompt_version = CLOCK_PROMPT_VERSION
 
     def candidates(self, action: int, state: dict) -> DirectCandidates:
         """Use the one-request full-job rank only for this isolated treatment."""
