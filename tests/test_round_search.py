@@ -290,6 +290,21 @@ def test_calibrated_limits_and_exact_answer_keys_are_in_every_packet():
     assert contract["forbidden_transport_fields"] == ["type", "response_format"]
 
 
+def test_usage_above_reservation_is_still_fully_charged_and_reported():
+    fake = Flash()
+
+    def requester(packet, timeout):
+        response = fake(packet, timeout)
+        response["usage"]["prompt_tokens"] = 70000
+        return response
+
+    session = RoundSession(100, requester, max_input_tokens=80000)
+    assert session.request("STEP_ACTION", {}, dict(A1=True)) is not None
+    assert session.input_tokens == session.charged_or_reserved_tokens == 70000
+    assert session.records[0]["provider_usage_exceeds_context_reservation"] is True
+    assert session.request("STEP_ACTION", {}, dict(A1=True)) is None
+
+
 def test_references_stay_on_the_existing_config_and_unknown_arms_rejected():
     from geo_llm_scheduler.experiments.llm_search import study_config as old
 

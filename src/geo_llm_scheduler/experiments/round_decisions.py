@@ -224,9 +224,11 @@ class RoundSession(DecisionSession):
                 raise ValueError("Invalid usage")
             tokens = usage.get("prompt_tokens")
             outputs = usage.get("completion_tokens")
-            if type(tokens) is int and 0 <= tokens <= self.reservation:
+            if type(tokens) is int and tokens >= 0:
                 self.charged_or_reserved_tokens += tokens - self.reservation
                 self.input_tokens += tokens
+                if tokens > self.reservation:
+                    record["provider_usage_exceeds_context_reservation"] = True
             if type(outputs) is int and outputs >= 0:
                 self.output_tokens += outputs
             record["response"] = response
