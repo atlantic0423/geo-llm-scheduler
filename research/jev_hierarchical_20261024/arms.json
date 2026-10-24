@@ -1,0 +1,34 @@
+{
+  "prompt_version": "jev_hierarchical_v1",
+  "arms": {
+    "JEV_E05": {
+      "epsilon_g": 0.5,
+      "model": "jev-1.14.0",
+      "request_timeout_s": 15.0,
+      "max_requests": 512,
+      "max_input_tokens": 4000000,
+      "max_wait_fraction": 0.5,
+      "stop_threshold": 0.5
+    },
+    "JEV_E09": {
+      "epsilon_g": 0.9,
+      "model": "jev-1.14.0",
+      "request_timeout_s": 15.0,
+      "max_requests": 512,
+      "max_input_tokens": 4000000,
+      "max_wait_fraction": 0.5,
+      "stop_threshold": 0.5
+    }
+  },
+  "action_criteria_english": {
+    "A1": "Single P/D instance reassignment within Region; preserve OS.",
+    "A2": "Joint P/D instance-path reassignment within Region; preserve OS.",
+    "A3": "Move one whole Job to another Region with a legal P/D path; preserve OS.",
+    "A4": "Earlier insertion of one positive-Flow-wait operation in OS.",
+    "A5": "Joint earlier insertion of P and D for one positive-total-wait Job.",
+    "A6": "Select destroy Jobs; original random legal multi-Job repair.",
+    "A7": "One timing-only positive active-union compression move.",
+    "A8": "Original-peak support selection and bounded strict all-window peak repair."
+  },
+  "chinese_sent_to_provider": false
+}
