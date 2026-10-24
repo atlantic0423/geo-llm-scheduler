@@ -22,8 +22,12 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments.jev_decisions import JevSettings
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN, PROMPT_VERSION, PROMPTS
+from geo_llm_scheduler.experiments.jev_search import SINGLE_ARM
 from geo_llm_scheduler.experiments.jev_search import run_policy as run_jev
 from geo_llm_scheduler.experiments.jev_search import study_config as jev_config
+from geo_llm_scheduler.experiments.jev_single import BACKGROUND as SINGLE_BACKGROUND
+from geo_llm_scheduler.experiments.jev_single import PROMPT_VERSION as SINGLE_PROMPT_VERSION
+from geo_llm_scheduler.experiments.jev_single import RANK_EN
 from geo_llm_scheduler.experiments.llm_search import run_policy as run_control
 from geo_llm_scheduler.experiments.llm_search import study_config as control_config
 from geo_llm_scheduler.io.loaders import load_instance
@@ -50,7 +54,7 @@ preflight = common.preflight
 
 def arm_config(arm: str, seed: int, seconds: float) -> Config:
     """Keep controls unchanged and use the accepted per-step Jev implementation."""
-    if arm not in ARMS:
+    if arm not in (*ARMS, SINGLE_ARM):
         raise ValueError("Unknown comparison arm")
     return (jev_config if arm.startswith("JEV_") else control_config)(arm, seed, seconds)
 
@@ -191,8 +195,9 @@ def prepare_pilot(
     seconds: float = 1200,
     max_tokens: int = 40_000_000,
     spend_cap_usd: float = 2.0,
+    single_candidate: bool = False,
 ) -> dict:
-    """Seal the user-selected single original n200 input and E09/MAIN/BILL pilot."""
+    """Seal the original n200 pilot, optionally running only the declared B1 treatment."""
     if root.exists():
         raise FileExistsError("Campaign root must be new")
     if not math.isfinite(seconds) or seconds <= 0 or not math.isfinite(spend_cap_usd):
@@ -216,7 +221,7 @@ def prepare_pilot(
     source_input = historical / original["input"]
     assert sha(source_input) == original["input_sha256"] == old["files"][original["input"]]
     key = original_key.rsplit("_s", 1)[0] + "_s" + str(seed)
-    arms = ["BILL_MOEAD", "MAIN_Q", "JEV_E09"]
+    arms = [SINGLE_ARM] if single_candidate else ["BILL_MOEAD", "MAIN_Q", "JEV_E09"]
     spec = {
         k: original[k]
         for k in (
@@ -246,12 +251,12 @@ def prepare_pilot(
     path = root / "specs" / (key + ".json")
     atomic_json(path, spec)
     manifest = dict(
-        kind="single_n200_e09_pilot",
+        kind="single_n200_b1_top10" if single_candidate else "single_n200_e09_pilot",
         source=source_hash(),
         host=socket.gethostname(),
         arms=arms,
         blocks=[key],
-        runs=3,
+        runs=len(arms),
         files={spec["input"]: sha(target), path.relative_to(root).as_posix(): sha(path)},
         commit=subprocess.check_output(
             ["git", "-C", str(Path(__file__).resolve().parents[1]), "rev-parse", "HEAD"], text=True
@@ -268,7 +273,7 @@ def prepare_pilot(
         model="jev-1.14.0",
         long_context=True,
         api_concurrency=1,
-        prompt_version=PROMPT_VERSION,
+        prompt_version=SINGLE_PROMPT_VERSION if single_candidate else PROMPT_VERSION,
         epsilon_g=0.9,
         interpretation="single-input/single-seed exploratory pilot; report all fallbacks and API coverage",
     )
@@ -286,7 +291,11 @@ def validate_inputs(root: Path) -> dict:
     )
     assert m["source"] == source_hash() and m["host"] == socket.gethostname()
     expected = (
-        ("BILL_MOEAD", "MAIN_Q", "JEV_E09") if m.get("kind") == "single_n200_e09_pilot" else ARMS
+        (SINGLE_ARM,)
+        if m.get("kind") == "single_n200_b1_top10"
+        else ("BILL_MOEAD", "MAIN_Q", "JEV_E09")
+        if m.get("kind") == "single_n200_e09_pilot"
+        else ARMS
     )
     assert tuple(m["arms"]) == expected and len(set(m["blocks"])) == len(m["blocks"])
     assert m["runs"] == len(m["blocks"]) * len(expected)
@@ -298,7 +307,7 @@ def validate_inputs(root: Path) -> dict:
     )
     for name, expected in m["files"].items():
         assert sha(root / name) == expected, name
-    if m.get("kind") == "single_n200_e09_pilot":
+    if m.get("kind") in ("single_n200_e09_pilot", "single_n200_b1_top10"):
         assert len(m["blocks"]) == 1 and m["epsilon_g"] == 0.9
         spec = json.loads((root / "specs" / (m["blocks"][0] + ".json")).read_text())
         assert spec["n"] == 200 and spec["variant"] == 0
@@ -343,7 +352,9 @@ def complete(root: Path, key: str, arm: str, source: str) -> bool:
         )
         assert j["settings"] == asdict(expected)
         assert j["provider_transport"] == "official_https_with_shared_queue"
-        assert j["prompt_version"] == PROMPT_VERSION
+        assert j["prompt_version"] == (
+            SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION
+        )
         assert j["jev_treatment_valid"] and j["valid_action_requests"] > 0
         assert not any(any(row) for row in q["updates"])
         with gzip.open(out / "policy_calls.jsonl.gz", "rt", encoding="utf-8") as stream:
@@ -414,9 +425,10 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
     atomic_json(
         out / "prompts_en.json",
         dict(
-            version=PROMPT_VERSION,
-            background=BACKGROUND_EN,
-            questions={k: v[0] for k, v in PROMPTS.items()},
+            version=SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION,
+            background=SINGLE_BACKGROUND if arm == SINGLE_ARM else BACKGROUND_EN,
+            questions={k: v[0] for k, v in PROMPTS.items()}
+            | ({"a6_job_ranking": RANK_EN} if arm == SINGLE_ARM else {}),
         ),
     )
     evidence: dict = {}
@@ -610,7 +622,8 @@ def main() -> None:
     parser.add_argument("--spend-cap-usd", type=float, default=4.5)
     parser.add_argument("--max-input-tokens", type=int, default=4_000_000)
     parser.add_argument("--key")
-    parser.add_argument("--arm", choices=ARMS)
+    parser.add_argument("--arm", choices=(*ARMS, SINGLE_ARM))
+    parser.add_argument("--single-candidate", action="store_true")
     parser.add_argument("--cpu", type=int, default=0)
     parser.add_argument("--parallel", type=int, default=96)
     parser.add_argument("--seconds", type=float, default=1200)
@@ -640,6 +653,7 @@ def main() -> None:
                     seconds=args.seconds,
                     max_tokens=args.max_input_tokens,
                     spend_cap_usd=args.spend_cap_usd,
+                    single_candidate=args.single_candidate,
                 )
             )
         )

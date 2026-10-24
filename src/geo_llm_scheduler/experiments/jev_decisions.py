@@ -166,6 +166,8 @@ class DecisionSession:
         sink: Callable[[dict], None] | None = None,
     ) -> None:
         self.settings, self.seconds = settings, seconds
+        self.background = BACKGROUND_EN
+        self.prompt_version = PROMPT_VERSION
         if not math.isfinite(seconds) or seconds <= 0:
             raise ValueError("Positive finite production seconds required")
         self.requester = (
@@ -210,8 +212,8 @@ class DecisionSession:
         payload = dict(
             model=self.settings.model,
             state=dict(
-                problem_contract=BACKGROUND_EN,
-                prompt_version=PROMPT_VERSION,
+                problem_contract=self.background,
+                prompt_version=self.prompt_version,
                 **(compact_state(state) if self.settings.compact_prompt else state),
             ),
             questions=questions,

@@ -132,6 +132,19 @@ def test_pilot_refuses_overspend_and_non200_inputs_before_creation(tmp_path):
     with pytest.raises(ValueError, match="spend"):
         campaign.prepare_pilot(tmp_path / "bad", old, max_tokens=50_000_000)
     assert not (tmp_path / "bad").exists()
+
+
+def test_single_candidate_pilot_excludes_controls_and_freezes_b1_prompt(tmp_path):
+    old = tmp_path / "original"
+    historical_fixture(old)
+    root = tmp_path / "b1"
+    m = campaign.prepare_pilot(root, old, original_key="n200_p0_v0_s16101", single_candidate=True)
+    assert m["arms"] == [campaign.SINGLE_ARM] and m["runs"] == 1
+    assert m["kind"] == "single_n200_b1_top10"
+    assert m["prompt_version"] == campaign.SINGLE_PROMPT_VERSION
+    assert campaign.arm_config(campaign.SINGLE_ARM, 17401, 1200).fixed_budget == 1
+    assert campaign.validate_inputs(root) == m
+    assert m["preallocated_upper_usd"] == pytest.approx(1.78)
     with pytest.raises(AssertionError):
         campaign.prepare_pilot(tmp_path / "bad", old, original_key="n20_p0_v0_s16101")
     assert not (tmp_path / "bad").exists()

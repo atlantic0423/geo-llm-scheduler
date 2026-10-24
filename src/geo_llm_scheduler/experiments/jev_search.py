@@ -24,8 +24,6 @@ from geo_llm_scheduler.experiments.jev_decisions import (
 )
 from geo_llm_scheduler.experiments.jev_prompts import (
     ACTION_CRITERIA,
-    BACKGROUND_EN,
-    PROMPT_VERSION,
     PROMPTS,
 )
 from geo_llm_scheduler.experiments.llm_features import (
@@ -44,13 +42,15 @@ from geo_llm_scheduler.utils.numeric import TOL, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 ARMS = ("JEV_E05", "JEV_E09")
+SINGLE_ARM = "JEV_E09_B1_TOP10"
 
 
 def study_config(arm: str, seed: int, seconds: float) -> Config:
-    """Return the matched BILL4/P100 strict B6/L5 and two-focus production setup."""
-    if arm not in ARMS:
+    """Return BILL4/P100 strict L5 with the explicitly named B6 or B1 candidate budget."""
+    if arm not in (*ARMS, SINGLE_ARM):
         raise ValueError("Unknown Jev arm")
-    return flash_config("LLM_FLASH", seed, seconds)
+    config = flash_config("LLM_FLASH", seed, seconds)
+    return replace(config, fixed_budget=1) if arm == SINGLE_ARM else config
 
 
 def _without_names(value: Any) -> Any:
@@ -63,6 +63,10 @@ def _without_names(value: Any) -> Any:
 
 class JevPolicy(LLMPolicy):
     """Same exact search seam as Flash; no Q learning and no free model waiting."""
+
+    def candidates(self, action: int, state: dict) -> DirectCandidates:
+        """Construct the declared generator; subclasses may define an isolated treatment."""
+        return DirectCandidates(action, self.session, state)
 
     def __init__(
         self,
@@ -252,7 +256,7 @@ class JevPolicy(LLMPolicy):
             )
             tick = time.perf_counter()
             selected_before = len(self.session.selections)
-            batch = DirectCandidates(action, self.session, state).propose(
+            batch = self.candidates(action, state).propose(
                 gateway.problem,
                 current,
                 config.fixed_budget,
@@ -404,7 +408,7 @@ def run_policy(
 ) -> RunResult:
     """Run an isolated Jev arm; explicit initial genotypes support deterministic audits."""
     expected = 0.5 if arm == "JEV_E05" else 0.9
-    if arm not in ARMS:
+    if arm not in (*ARMS, SINGLE_ARM):
         raise ValueError("Unknown Jev arm")
     settings = settings or JevSettings(epsilon_g=expected)
     if settings.epsilon_g != expected:
@@ -412,11 +416,11 @@ def run_policy(
     if (
         config.trigger_mode != "strict"
         or config.trigger_delta != 0
-        or config.fixed_budget != 6
+        or config.fixed_budget != (1 if arm == SINGLE_ARM else 6)
         or config.rl_steps != 5
         or not config.trigger_quality_gate
     ):
-        raise ValueError("Jev requires strict/delta0/B6/L5")
+        raise ValueError("Jev requires strict/delta0/L5 and its declared candidate budget")
     expected_config = study_config(arm, config.seed, config.seconds or 1)
     if (
         initial is None
@@ -425,7 +429,15 @@ def run_policy(
         raise ValueError("Undeclared production configuration; use study_config")
     if requester is isolated_request and not os.environ.get("TYPESAFE_API_KEY", "").strip():
         raise ValueError("TYPESAFE_API_KEY is required for a live Jev run")
-    policy = JevPolicy(settings, config.seconds or 1, config.seed, requester, request_sink)
+    policy: JevPolicy
+    if arm == SINGLE_ARM:
+        from geo_llm_scheduler.experiments.jev_single import SingleJevPolicy
+
+        policy = SingleJevPolicy(
+            settings, config.seconds or 1, config.seed, requester, request_sink
+        )
+    else:
+        policy = JevPolicy(settings, config.seconds or 1, config.seed, requester, request_sink)
     factory = charged_initializer(problem, config, "FULL_CURRENT_I4", evidence)
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
@@ -459,8 +471,8 @@ def run_policy(
     evidence["jev"] = dict(
         arm=arm,
         settings=asdict(settings),
-        prompt_version=PROMPT_VERSION,
-        background_sha256=hashlib.sha256(BACKGROUND_EN.encode()).hexdigest(),
+        prompt_version=policy.session.prompt_version,
+        background_sha256=hashlib.sha256(policy.session.background.encode()).hexdigest(),
         requests=len(policy.session.records),
         valid_requests=sum(r["accepted"] for r in policy.session.records),
         action_request_mode="per_ls_step",
