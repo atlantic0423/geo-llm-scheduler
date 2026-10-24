@@ -1,5 +1,6 @@
 {
-  "prompt_version": "jev_hierarchical_v1",
+  "prompt_version": "jev_hierarchical_v2_per_step",
+  "action_request_mode": "per_ls_step",
   "arms": {
     "JEV_E05": {
       "epsilon_g": 0.5,

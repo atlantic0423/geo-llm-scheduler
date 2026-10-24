@@ -26,8 +26,8 @@ def export(root: Path) -> None:
         "## 完整执行顺序",
         "",
         "1. 生产计时内执行BILL4/P100初始化。",
-        "2. 初始化后、约总预算1/3与2/3安全边界，最多3次POST；每次批量询问三偏好组动作分布。",
-        "3. 原strict/delta0门通过后，程序用当前组缓存分布执行本臂epsilon抽样选择动作。",
+        "2. 原strict/delta0门通过后，每一步LS开始前按当前解、真实细权重、轨迹反馈和累计动作历史重新问一次动作Choice。",
+        "3. 每步只问当前子问题所属偏好组，由程序用本步新分布执行epsilon抽样，不跨步复用；初始化与非LS子代不发动作请求。",
         "4. 对全部合资格工件问Choice，程序抽样实际工件；再按所需询问phase、Region、path、position。",
         "5. 各层独立抽样，下一问绑定实际抽中对象。单选项直接使用，不额外调用；空集返回无候选。",
         "6. 一步最多六个不同完整候选，均从该步同一incumbent独立构造。统一exact与Archive、细权重局部接受。",
@@ -67,9 +67,11 @@ def export(root: Path) -> None:
         "## 实际动态输入",
         "",
         "共同state含英文背景、真实拓扑/电价/资源、预算、曝光分母清晰的动作历史和Archive摘要。",
-        "对象请求另含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、"
+        "动作及对象请求都含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、"
         "全部地区固定窗口功率。实际criteria由代码填充ID和英文结构化说明。"
         "A8 repair带partial_solution，不能把已移除成员当作仍固定。",
+        "动作请求另含当前子问题索引、偏好组、归一化上下文、下一步编号和本轨迹已完成步。"
+        "动作反馈累计自run开始，不因每步新回答而清空。request_mode为per_ls_step。",
         "名称不发送，只传稳定数值ID；未按评分截取工件。超过255选项按稳定ID区间分层，"
         "保留全部可达候选；区间描述含数量和首尾对象。分层不等价于全局一次Choice。",
         "",
@@ -93,8 +95,9 @@ def export(root: Path) -> None:
         "",
         "## 失败与预算",
         "",
-        "不重试、不换模型。HTTP子进程硬截止kill/reap。动作首次失败用均匀分布，"
-        "后续保留最后合法缓存；对象失败在完整eligible集合均匀抽样并记录回退，"
+        "不重试、不换模型。HTTP子进程硬截止kill/reap。动作请求失败或额度不足时，本步用均匀分布，"
+        "不复用先前分布；每步记录action_source、action_request和action_query_s。"
+        "对象失败在完整eligible集合均匀抽样并记录回退，"
         "分层回退按组大小加权。停止失败且连续两步无局部接受/Archive新目标时用本地规则停，"
         "否则继续，仍受L5和墙钟约束。",
         "默认每run最多512请求、单次15秒、累计等待最多生产预算50%、已计费或保守预留输入"
@@ -127,6 +130,7 @@ def export(root: Path) -> None:
         json.dumps(
             {
                 "prompt_version": PROMPT_VERSION,
+                "action_request_mode": "per_ls_step",
                 "arms": {
                     name: asdict(JevSettings(epsilon_g=eps))
                     for name, eps in (("JEV_E05", 0.5), ("JEV_E09", 0.9))

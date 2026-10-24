@@ -335,22 +335,120 @@ def test_poststep_noul_timing_no_fifth_query_and_no_q_updates(problem, p_stop, s
     assert all(row["exact_evaluations"] <= 6 for row in rows)
 
 
-def test_three_group_action_batch_updates_and_failure_retains_last(problem):
+@pytest.mark.parametrize("epsilon", [0.5, 0.9])
+def test_fresh_action_before_every_step_binds_current_solution_and_cumulative_feedback(
+    problem, epsilon
+):
     gateway, x = current(problem)
     fake = FakeJev()
-    policy = JevPolicy(JevSettings(), 1000, 1, fake)
-    data = dict(gateway=gateway, population=[x] * 6)
-    policy.update(data)
-    assert len(fake.requests) == 1 and len(fake.requests[0]["questions"]) == 3
-    assert policy.revision == 1
-    before = policy.action_probabilities
-    policy.begin -= 334
-    policy.session.requester = lambda *args: {}
-    policy.update(data)
-    assert policy.revision == 1 and policy.action_probabilities is before
-    policy.begin -= 800
-    policy.update(data)
-    assert len(policy.session.records) == 2
+    chosen = ["A1", "A2", "A3", "A1", "A2"]
+    action_calls = []
+
+    def requester(payload, timeout):
+        response = fake(payload, timeout)
+        if "action" in payload["questions"]:
+            action = chosen[len(action_calls)]
+            action_calls.append(payload)
+            response["answers"]["action"].update(
+                choice=action,
+                probabilities={
+                    k: float(k == action) for k in payload["questions"]["action"]["criteria"]
+                },
+            )
+        return response
+
+    policy = JevPolicy(JevSettings(epsilon_g=epsilon), 1000, 1, requester)
+    policy.initial_context = NormalizationContext(gateway.ideal, x.evaluation.objectives)
+    policy.update(dict(gateway=gateway, population=[x] * 6))
+    assert not fake.requests  # No initialization or background policy request.
+    cfg = replace(study_config("JEV_E05", 1, 1000), population=6, neighborhood=2)
+    _, rows = policy(
+        x, 1, 0, 0, weights(6), x.evaluation.objectives, gateway, None, cfg, RNGManager(1)
+    )
+    assert len(action_calls) == len(rows) == policy.revision == 5
+    assert [f"A{r['action']}" for r in rows] == chosen
+    stops = [r for r in fake.requests if "stop" in r["questions"]]
+    for i, request in enumerate(action_calls):
+        assert list(request["questions"]) == ["action"]
+        state = request["state"]
+        assert state["trajectory"]["next_step"] == i + 1
+        assert len(state["trajectory"]["completed_steps"]) == i
+        assert state["current_subproblem"]["fine_weight"] == weights(6)[1]
+        assert state["current_subproblem"]["index"] == 1
+        assert state["current_subproblem"]["preference_group"] == rows[i]["preference"]
+        history = state["action_history"]
+        assert history["window_definition"] == "completed_LS_actions_since_run_start"
+        if i:
+            assert state["current_solution"] == stops[i - 1]["state"]["current_solution"]
+            assert state["trajectory"]["completed_steps"][-1]["action"] == rows[i - 1]["action"]
+            assert sum(a["calls"] for g in history["by_group"].values() for a in g.values()) == i
+        assert rows[i]["action_source"] == "jev_current_step"
+        assert policy.session.records[rows[i]["action_request"]]["request"] == request
+
+
+@pytest.mark.parametrize("epsilon", [0.5, 0.9])
+def test_action_failure_uses_current_uniform_fallback_without_stale_policy(problem, epsilon):
+    gateway, x = current(problem)
+    fake = FakeJev(stop=0)
+    action_calls = []
+
+    def requester(payload, timeout):
+        if "action" in payload["questions"]:
+            action_calls.append(payload)
+            if len(action_calls) > 1:
+                return {}
+            response = fake(payload, timeout)
+            response["answers"]["action"].update(
+                choice="A3", probabilities={f"A{k}": float(k == 3) for k in range(1, 9)}
+            )
+            return response
+        return fake(payload, timeout)
+
+    policy = JevPolicy(JevSettings(epsilon_g=epsilon), 1000, 1, requester)
+    cfg = replace(study_config("JEV_E05", 1, 1000), population=6, neighborhood=2)
+    _, rows = policy(
+        x, 1, 0, 0, weights(6), x.evaluation.objectives, gateway, None, cfg, RNGManager(1)
+    )
+    assert len(action_calls) == len(rows) == 5 and policy.revision == 1
+    assert rows[0]["action"] == 3 and rows[0]["action_source"] == "jev_current_step"
+    assert all(
+        row["action_probabilities"] == {f"A{k}": 1 / 8 for k in range(1, 9)} for row in rows[1:]
+    )
+    assert all(row["action_source"] == "uniform_fallback" for row in rows[1:])
+    assert all(not policy.session.records[row["action_request"]]["accepted"] for row in rows[1:])
+
+
+def test_action_request_guard_and_late_answer_never_reuse_a_previous_distribution(problem):
+    gateway, x = current(problem)
+    policy = JevPolicy(JevSettings(max_requests=1), 1000, 1, FakeJev(action="A3"))
+    cfg = replace(study_config("JEV_E05", 1, 1000), population=6, neighborhood=2)
+    _, rows = policy(
+        x, 1, 0, 0, weights(6), x.evaluation.objectives, gateway, None, cfg, RNGManager(1)
+    )
+    assert len(rows) >= 2 and len(policy.session.records) == 1
+    assert rows[0]["action_source"] == "jev_current_step"
+    assert all(
+        row["action_source"] == "uniform_fallback" and row["action_request"] is None
+        for row in rows[1:]
+    )
+
+    fake = FakeJev()
+
+    def late(payload, timeout):
+        response = fake(payload, timeout)
+        late_policy.session.begin -= 2000
+        return response
+
+    late_policy = JevPolicy(JevSettings(), 1000, 1, late)
+    exact_before = gateway.counts["exact"]
+    result, rows = late_policy(
+        x, 1, 0, 0, weights(6), x.evaluation.objectives, gateway, None, cfg, RNGManager(1)
+    )
+    assert not rows and result is x and gateway.counts["exact"] == exact_before
+    assert len(fake.requests) == 1 and list(fake.requests[0]["questions"]) == ["action"]
+    assert (
+        late_policy.session.input_tokens == 100 and not late_policy.session.records[0]["accepted"]
+    )
 
 
 @pytest.mark.parametrize("arm", ["JEV_E05", "JEV_E09"])
@@ -361,6 +459,8 @@ def test_complete_engine_entry_independent_exact_and_english_wire(problem, arm):
     evidence = {}
     result = run_policy(problem, arm, cfg, evidence, requester=fake, initial=[g] * 6)
     assert evidence["jev"]["valid_requests"] >= 1
+    assert evidence["jev"]["action_request_mode"] == "per_ls_step"
+    assert evidence["jev"]["valid_action_requests"] == evidence["jev"]["action_requests"] > 0
     for c in result.population + result.archive.members:
         assert c.evaluation == evaluate(problem, c.genotype, c.schedule)
         assert c.evaluation.feasible
@@ -479,9 +579,13 @@ def test_bilingual_export_comes_from_wire_constants(tmp_path):
             assert (english.format(group=group) if group else english) in doc
             assert (chinese.format(group=group) if group else chinese) in doc
     arms = json.loads((tmp_path / "arms.json").read_text())
+    assert arms["action_request_mode"] == "per_ls_step"
     a, b = arms["arms"]["JEV_E05"], arms["arms"]["JEV_E09"]
     assert a.pop("epsilon_g") == 0.5 and b.pop("epsilon_g") == 0.9 and a == b
     assert not any(chr(92) + c in doc for c in "()[]")
+    with open("research/jev_hierarchical_20261024/PROMPTS_EN_ZH.md", encoding="utf-8") as handle:
+        assert doc == handle.read()
+    assert "每一步LS" in doc and "不跨步复用" in doc
 
 
 def test_cli_exports_independent_exact_audit(problem, tmp_path, monkeypatch, capsys):

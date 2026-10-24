@@ -1,13 +1,13 @@
 # Jev 实际提示词：英文发送，中文仅供阅读
 
-版本：jev_hierarchical_v1；由 scripts/export_jev_prompts.py 从实际代码常量生成。
+版本：jev_hierarchical_v2_per_step；由 scripts/export_jev_prompts.py 从实际代码常量生成。
 英文模板已做确定性注入接口测试；不是英文优于中文的效果证据或实网验证。
 
 ## 完整执行顺序
 
 1. 生产计时内执行BILL4/P100初始化。
-2. 初始化后、约总预算1/3与2/3安全边界，最多3次POST；每次批量询问三偏好组动作分布。
-3. 原strict/delta0门通过后，程序用当前组缓存分布执行本臂epsilon抽样选择动作。
+2. 原strict/delta0门通过后，每一步LS开始前按当前解、真实细权重、轨迹反馈和累计动作历史重新问一次动作Choice。
+3. 每步只问当前子问题所属偏好组，由程序用本步新分布执行epsilon抽样，不跨步复用；初始化与非LS子代不发动作请求。
 4. 对全部合资格工件问Choice，程序抽样实际工件；再按所需询问phase、Region、path、position。
 5. 各层独立抽样，下一问绑定实际抽中对象。单选项直接使用，不额外调用；空集返回无候选。
 6. 一步最多六个不同完整候选，均从该步同一incumbent独立构造。统一exact与Archive、细权重局部接受。
@@ -38,8 +38,10 @@
 > ALL tied original peaks and newly created peaks must be checked by the program.
 > 
 > MOEA/D searches MS instance assignments, OS operation order and feasible timings. Flow,
-> Balanced and Electricity are objective-preference groups, NOT geographic Regions. Action
-> policies may be shared within one group; actual local acceptance uses the current fine weight.
+> Balanced and Electricity are objective-preference groups, NOT geographic Regions. These group
+> labels contextualize the current fine weight; each LS step asks for a FRESH action distribution
+> for its CURRENT incumbent and subproblem. No cached distribution is reused across steps.
+> Actual local acceptance uses the current fine weight.
 > Strict fine-direction agreement and zero quality tolerance control entry to local search.
 > The program alone performs SSGS decoding, resource/precedence checks, exact billing, normalized
 > Tchebycheff acceptance, Pareto Archive updates and neighbor-own-weight replacement.
@@ -84,7 +86,8 @@
 > 结束后本批功率贡献为零。Demand检查全部900秒固定窗口，尾窗也除以900，检查全部并列原峰和新峰。
 > 
 > MOEA/D搜索MS指派、OS顺序和可行时序。Flow/Balanced/Electricity是目标偏好组而非地理地区。
-> 动作策略可以组内共享，真实局部接受仍用当前细权重。严格细方向及零质量容差控制LS进入。
+> 偏好标签说明当前细权重；每一步LS都针对当前解与当前子问题重新询问动作分布，不跨步复用。
+> 真实局部接受仍用当前细权重。严格细方向及零质量容差控制LS进入。
 > 程序独占SSGS、可行性、精确电费、归一化Tchebycheff接受、Archive及邻居自身细权重替换。
 > Population与历史Archive不同；全部完整可行exact候选有独立Archive机会，包括局部拒绝者。
 > 不提供未来union、IGD+或oracle。暴露、负载、压缩、移除潜力是代理而非已知反事实收益。
@@ -109,27 +112,27 @@
 
 英文（实际发送，Flow）：
 
-> For the Flow preference group, using problem_contract, preference_summaries, action_history and budget, which of A1-A8 most merits a next LS step during the next policy interval? Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
+> For THIS LS step in the Flow preference group, using problem_contract, current_subproblem, current_solution, all_jobs, trajectory, action_history and budget, which of A1-A8 most merits execution NOW? Use the actual fine weight, current incumbent and completed-step feedback, not a previous step's policy. Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
 
 中文（仅阅读）：
 
-> 对Flow偏好组，依据问题背景、偏好组摘要、动作历史和预算，下一策略区间最值得投入下一步LS的A1-A8动作是哪一个？综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
+> 对Flow偏好组的本步LS，依据问题背景、当前细子问题、当前解、全部工件、轨迹、动作历史和预算，现在最值得执行的A1-A8动作是哪一个？使用真实细权重、当前解及已完成步的反馈，不复用前一步策略。综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
 
 英文（实际发送，Balanced）：
 
-> For the Balanced preference group, using problem_contract, preference_summaries, action_history and budget, which of A1-A8 most merits a next LS step during the next policy interval? Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
+> For THIS LS step in the Balanced preference group, using problem_contract, current_subproblem, current_solution, all_jobs, trajectory, action_history and budget, which of A1-A8 most merits execution NOW? Use the actual fine weight, current incumbent and completed-step feedback, not a previous step's policy. Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
 
 中文（仅阅读）：
 
-> 对Balanced偏好组，依据问题背景、偏好组摘要、动作历史和预算，下一策略区间最值得投入下一步LS的A1-A8动作是哪一个？综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
+> 对Balanced偏好组的本步LS，依据问题背景、当前细子问题、当前解、全部工件、轨迹、动作历史和预算，现在最值得执行的A1-A8动作是哪一个？使用真实细权重、当前解及已完成步的反馈，不复用前一步策略。综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
 
 英文（实际发送，Electricity）：
 
-> For the Electricity preference group, using problem_contract, preference_summaries, action_history and budget, which of A1-A8 most merits a next LS step during the next policy interval? Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
+> For THIS LS step in the Electricity preference group, using problem_contract, current_subproblem, current_solution, all_jobs, trajectory, action_history and budget, which of A1-A8 most merits execution NOW? Use the actual fine weight, current incumbent and completed-step feedback, not a previous step's policy. Balance observed objective/frontier benefit, opportunity, exposure uncertainty and real wall cost. Never equate high acceptance or low cost alone with a better final frontier.
 
 中文（仅阅读）：
 
-> 对Electricity偏好组，依据问题背景、偏好组摘要、动作历史和预算，下一策略区间最值得投入下一步LS的A1-A8动作是哪一个？综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
+> 对Electricity偏好组的本步LS，依据问题背景、当前细子问题、当前解、全部工件、轨迹、动作历史和预算，现在最值得执行的A1-A8动作是哪一个？使用真实细权重、当前解及已完成步的反馈，不复用前一步策略。综合真实目标/前沿收益、机会、曝光不确定性与墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。
 
 ## job
 
@@ -234,7 +237,8 @@
 ## 实际动态输入
 
 共同state含英文背景、真实拓扑/电价/资源、预算、曝光分母清晰的动作历史和Archive摘要。
-对象请求另含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、全部地区固定窗口功率。实际criteria由代码填充ID和英文结构化说明。A8 repair带partial_solution，不能把已移除成员当作仍固定。
+动作及对象请求都含真实细权重、完整MS/OS/时序、全部Job的P/D等待/资源/KV/指派、全部地区固定窗口功率。实际criteria由代码填充ID和英文结构化说明。A8 repair带partial_solution，不能把已移除成员当作仍固定。
+动作请求另含当前子问题索引、偏好组、归一化上下文、下一步编号和本轨迹已完成步。动作反馈累计自run开始，不因每步新回答而清空。request_mode为per_ls_step。
 名称不发送，只传稳定数值ID；未按评分截取工件。超过255选项按稳定ID区间分层，保留全部可达候选；区间描述含数量和首尾对象。分层不等价于全局一次Choice。
 
 ## 算子权限
@@ -254,7 +258,7 @@ A7绕过原两代表/2B预筛，A8改变支撑组及位置选择，是研究策�
 
 ## 失败与预算
 
-不重试、不换模型。HTTP子进程硬截止kill/reap。动作首次失败用均匀分布，后续保留最后合法缓存；对象失败在完整eligible集合均匀抽样并记录回退，分层回退按组大小加权。停止失败且连续两步无局部接受/Archive新目标时用本地规则停，否则继续，仍受L5和墙钟约束。
+不重试、不换模型。HTTP子进程硬截止kill/reap。动作请求失败或额度不足时，本步用均匀分布，不复用先前分布；每步记录action_source、action_request和action_query_s。对象失败在完整eligible集合均匀抽样并记录回退，分层回退按组大小加权。停止失败且连续两步无局部接受/Archive新目标时用本地规则停，否则继续，仍受L5和墙钟约束。
 默认每run最多512请求、单次15秒、累计等待最多生产预算50%、已计费或保守预留输入最多400万token。每次发送前按64k默认整请求上界预留，合法usage按实替换；未知失败保留整份预留。额度是单run限制，不是账号余额或多run全局总预算。
 输入、请求及等待都计入生产墙钟。当前未启动正式campaign或做新付费调用。
 

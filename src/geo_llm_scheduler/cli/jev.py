@@ -63,7 +63,7 @@ def main() -> None:
     )
     (args.output / "result.json").write_text(json.dumps(payload, allow_nan=False), encoding="utf-8")
     if not evidence["jev"]["jev_treatment_valid"]:
-        raise RuntimeError("No valid Jev action policy; invalid treatment evidence preserved")
+        raise RuntimeError("No valid Jev action decision; invalid treatment evidence preserved")
     print(json.dumps(dict(arm=arm, elapsed_s=result.elapsed, final_exact_audit=True)))
 
 

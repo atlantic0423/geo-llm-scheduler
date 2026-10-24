@@ -1,4 +1,4 @@
-"""Two Jev arms: cached action distributions, direct targets and post-step stopping."""
+"""Two Jev arms: fresh per-step actions, direct targets and post-step stopping."""
 
 from __future__ import annotations
 
@@ -30,7 +30,6 @@ from geo_llm_scheduler.experiments.jev_prompts import (
 )
 from geo_llm_scheduler.experiments.llm_features import (
     objective_summary,
-    preference_summaries,
     static_problem,
 )
 from geo_llm_scheduler.experiments.llm_search import LLMPolicy, ObservedEvaluator
@@ -77,9 +76,6 @@ class JevPolicy(LLMPolicy):
         self.session = DecisionSession(settings, seconds, requester, sink)
         self.begin = self.session.begin
         self.settings = settings
-        self.action_probabilities = {
-            g: {a: 1 / 8 for a in ACTION_CRITERIA} for g in PREFERENCE_LABELS
-        }
         self.problem_data: dict = {}
 
     def snapshot(
@@ -162,42 +158,13 @@ class JevPolicy(LLMPolicy):
         return state
 
     def update(self, data: dict) -> None:
-        """Batch three independent group Choice questions at <=3 safe boundaries."""
-        elapsed = self.elapsed()
-        if self.checkpoint >= 3 or elapsed >= self.seconds:
-            return
-        if self.checkpoint and elapsed < self.seconds * self.checkpoint / 3:
-            return
-        self.checkpoint = min(3, max(self.checkpoint + 1, int(3 * elapsed / self.seconds) + 1))
-        tick = time.perf_counter()
-        gateway, population = data["gateway"], data["population"]
-        state = self.snapshot(gateway)
-        state["population_summary"] = objective_summary(population)
-        state["preference_summaries"] = preference_summaries(
-            gateway.problem,
-            population,
-            gateway.archive.members,
-            NormalizationContext(gateway.ideal, maximum(population)),
-        )
-        self.feature_s += time.perf_counter() - tick
-        questions = {
-            group: dict(
-                type="choice",
-                instructions=PROMPTS["action"][0].format(group=group),
-                criteria=ACTION_CRITERIA,
-            )
-            for group in PREFERENCE_LABELS
-        }
-        try:
-            answers = self.session.ask_many(state, questions)
-        except DecisionDeadline:
-            answers = None
-        if answers is not None:
-            self.action_probabilities = {g: a["probabilities"] for g, a in answers.items()}
-            self.revision += 1
-            self.activation = self.elapsed()
-            self.stats = {g: {} for g in PREFERENCE_LABELS}
-            self.observed = True
+        """Disable inherited background updates; only an entered LS step asks for actions."""
+
+    def feedback(self) -> dict:
+        """Keep cumulative completed-action feedback across fresh per-step decisions."""
+        result = super().feedback()
+        result["window_definition"] = "completed_LS_actions_since_run_start"
+        return result
 
     def __call__(
         self,
@@ -221,22 +188,61 @@ class JevPolicy(LLMPolicy):
         if operator_overrides:
             raise ValueError("No undeclared Jev operator override")
         group = PREFERENCE_LABELS[preference(index, config.population)]
-        current, records, failures = child, [], 0
+        current, failures = child, 0
+        records: list[dict] = []
         for step in range(min(5, config.rl_steps)):
             if self.session.expired():
                 break
             start = time.perf_counter()
-            action = int(
-                epsilon_sample(
-                    self.action_probabilities[group],
-                    self.settings.epsilon_g,
-                    streams.stream("jev_action"),
-                )[1:]
-            )
             tick = time.perf_counter()
             state = self.snapshot(gateway, current, weights[index])
-            state["current_action"] = f"A{action}"
+            state["current_subproblem"].update(
+                index=index,
+                preference_group=group,
+                normalization=asdict(NormalizationContext(gateway.ideal, maximum)),
+            )
+            state["trajectory"] = dict(
+                next_step=step + 1,
+                step_cap=min(5, config.rl_steps),
+                completed_steps=[dict(row) for row in records],
+            )
             self.feature_s += time.perf_counter() - tick
+            request_index = len(self.session.records)
+            tick = time.perf_counter()
+            try:
+                answer = self.session.ask(
+                    state,
+                    "action",
+                    dict(
+                        type="choice",
+                        instructions=PROMPTS["action"][0].format(group=group),
+                        criteria=ACTION_CRITERIA,
+                    ),
+                )
+            except DecisionDeadline:
+                break
+            action_query_s = time.perf_counter() - tick
+            if self.session.expired():
+                break
+            action_request = request_index if len(self.session.records) > request_index else None
+            probabilities = (
+                answer["probabilities"]
+                if answer is not None
+                else {a: 1 / 8 for a in ACTION_CRITERIA}
+            )
+            if answer is not None:
+                self.revision += 1
+            action = int(
+                epsilon_sample(
+                    probabilities, self.settings.epsilon_g, streams.stream("jev_action")
+                )[1:]
+            )
+            state["current_action"] = f"A{action}"
+            state["budget"] = dict(
+                state["budget"],
+                remaining_s=max(0.0, self.seconds - self.elapsed()),
+                wait_used_s=self.session.wait_s,
+            )
             tick = time.perf_counter()
             selected_before = len(self.session.selections)
             batch = DirectCandidates(action, self.session, state).propose(
@@ -319,7 +325,10 @@ class JevPolicy(LLMPolicy):
                 action=action,
                 preference=group,
                 epsilon_g=self.settings.epsilon_g,
-                action_probabilities=self.action_probabilities[group],
+                action_probabilities=probabilities,
+                action_request=action_request,
+                action_source="jev_current_step" if answer is not None else "uniform_fallback",
+                action_query_s=action_query_s,
                 weight=weights[index],
                 scalar_before=before,
                 scalar_after=after,
@@ -425,8 +434,6 @@ def run_policy(
     def observe(event: str, data: dict) -> None:
         if event == "initialization":
             policy.begin = policy.session.begin = time.perf_counter() - data["elapsed"]
-        if event in ("initialization", "before_offspring"):
-            policy.update(data)
         if observer:
             observer(event, data)
 
@@ -447,6 +454,9 @@ def run_policy(
         background_sha256=hashlib.sha256(BACKGROUND_EN.encode()).hexdigest(),
         requests=len(policy.session.records),
         valid_requests=sum(r["accepted"] for r in policy.session.records),
+        action_request_mode="per_ls_step",
+        action_requests=sum("action" in r["request"]["questions"] for r in policy.session.records),
+        valid_action_requests=policy.revision,
         jev_treatment_valid=policy.revision > 0,
         actual_input_tokens=policy.session.input_tokens,
         actual_output_tokens=policy.session.output_tokens,

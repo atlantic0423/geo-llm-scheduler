@@ -1,6 +1,6 @@
 """Versioned English wire prompts and Chinese reading-only translations."""
 
-PROMPT_VERSION = "jev_hierarchical_v1"
+PROMPT_VERSION = "jev_hierarchical_v2_per_step"
 
 BACKGROUND_EN = """You advise a static, offline, deterministic geo-distributed LLM
 Prefill-Decode scheduling search. All jobs, releases, durations and resource demands are known.
@@ -20,8 +20,10 @@ Demand uses ALL fixed non-overlapping 900-second windows anchored at zero, divid
 ALL tied original peaks and newly created peaks must be checked by the program.
 
 MOEA/D searches MS instance assignments, OS operation order and feasible timings. Flow,
-Balanced and Electricity are objective-preference groups, NOT geographic Regions. Action
-policies may be shared within one group; actual local acceptance uses the current fine weight.
+Balanced and Electricity are objective-preference groups, NOT geographic Regions. These group
+labels contextualize the current fine weight; each LS step asks for a FRESH action distribution
+for its CURRENT incumbent and subproblem. No cached distribution is reused across steps.
+Actual local acceptance uses the current fine weight.
 Strict fine-direction agreement and zero quality tolerance control entry to local search.
 The program alone performs SSGS decoding, resource/precedence checks, exact billing, normalized
 Tchebycheff acceptance, Pareto Archive updates and neighbor-own-weight replacement.
@@ -64,7 +66,8 @@ Compute累积份额不超过1及有效VRAM/KV容量。不得改变任务时长�
 结束后本批功率贡献为零。Demand检查全部900秒固定窗口，尾窗也除以900，检查全部并列原峰和新峰。
 
 MOEA/D搜索MS指派、OS顺序和可行时序。Flow/Balanced/Electricity是目标偏好组而非地理地区。
-动作策略可以组内共享，真实局部接受仍用当前细权重。严格细方向及零质量容差控制LS进入。
+偏好标签说明当前细权重；每一步LS都针对当前解与当前子问题重新询问动作分布，不跨步复用。
+真实局部接受仍用当前细权重。严格细方向及零质量容差控制LS进入。
 程序独占SSGS、可行性、精确电费、归一化Tchebycheff接受、Archive及邻居自身细权重替换。
 Population与历史Archive不同；全部完整可行exact候选有独立Archive机会，包括局部拒绝者。
 不提供未来union、IGD+或oracle。暴露、负载、压缩、移除潜力是代理而非已知反事实收益。
@@ -88,13 +91,16 @@ ID只绑定当前快照，后续状态必须跟随程序实际抽中对象，可
 # Only the English entry is ever placed on the wire. Chinese is documentation only.
 PROMPTS: dict[str, tuple[str, str]] = {
     "action": (
-        "For the {group} preference group, using problem_contract, preference_summaries, "
-        "action_history and budget, which of A1-A8 most merits a next LS step during the "
-        "next policy interval? Balance observed objective/frontier benefit, opportunity, "
+        "For THIS LS step in the {group} preference group, using problem_contract, "
+        "current_subproblem, current_solution, all_jobs, trajectory, action_history and "
+        "budget, which of A1-A8 most merits execution NOW? Use the actual fine weight, "
+        "current incumbent and completed-step feedback, not a previous step's policy. "
+        "Balance observed objective/frontier benefit, opportunity, "
         "exposure uncertainty and real wall cost. Never equate high acceptance or low cost "
         "alone with a better final frontier.",
-        "对{group}偏好组，依据问题背景、偏好组摘要、动作历史和预算，下一策略区间最值得"
-        "投入下一步LS的A1-A8动作是哪一个？综合真实目标/前沿收益、机会、曝光不确定性与"
+        "对{group}偏好组的本步LS，依据问题背景、当前细子问题、当前解、全部工件、轨迹、"
+        "动作历史和预算，现在最值得执行的A1-A8动作是哪一个？使用真实细权重、当前解及"
+        "已完成步的反馈，不复用前一步策略。综合真实目标/前沿收益、机会、曝光不确定性与"
         "墙钟成本，不把高接受率或低耗时单独当作最终前沿更好。",
     ),
     "job": (
