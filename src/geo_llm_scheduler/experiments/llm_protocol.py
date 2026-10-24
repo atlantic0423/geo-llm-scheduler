@@ -163,6 +163,7 @@ class DeepSeekClient:
         model: str = "deepseek-flash",
         base_url: str = "https://api.deepseek.com",
         max_tokens: int = 2048,
+        system_prompt: str = SYSTEM_PROMPT,
     ) -> None:
         key = os.environ.get("DEEPSEEK_API_KEY") if api_key is None else api_key
         if not isinstance(key, str) or not key.strip() or any(c.isspace() for c in key):
@@ -171,6 +172,8 @@ class DeepSeekClient:
             raise ValueError("A model name is required")
         if type(max_tokens) is not int or max_tokens <= 0:
             raise ValueError("max_tokens must be a positive integer")
+        if not isinstance(system_prompt, str) or not system_prompt.strip():
+            raise ValueError("A nonempty system prompt is required")
         try:
             parts = urlsplit(base_url)
             if (
@@ -189,6 +192,7 @@ class DeepSeekClient:
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.max_tokens = max_tokens
+        self.system_prompt = system_prompt
 
     def request(self, payload: dict[str, Any], timeout: float) -> dict[str, Any]:
         """Make exactly one HTTPS JSON request; return sanitized response content and usage.
@@ -208,7 +212,7 @@ class DeepSeekClient:
         body = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_content},
             ],
             "thinking": {"type": "disabled"},

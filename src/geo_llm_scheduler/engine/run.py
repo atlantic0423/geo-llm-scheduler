@@ -59,6 +59,10 @@ def run(
     | None = None,
     safe_boundary_deadline: bool = False,
     budget_excluded_seconds: Callable[[], float] | None = None,
+    generation_transform: Callable[
+        [int, list[Candidate], EvaluationGateway, RNGManager, list[int]], None
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -75,6 +79,9 @@ def run(
     ``budget_excluded_seconds`` optionally reports cumulative synchronous API
     blocking time. Only deadline/progress calculations subtract it; result and
     observer elapsed values remain actual wall time. Initialization is charged.
+    ``generation_transform`` is an opt-in charged round-boundary research seam.
+    It runs only after a complete traversal and may refine the current population.
+    Omitting it preserves the original child trigger, replacement and RNG path.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -305,4 +312,11 @@ def run(
                 ]
                 trace.append(row)
             observe("offspring", {"row": row, "processed": processed})
+        if generation_transform is not None:
+            if config.seconds is not None and budget_elapsed() >= config.seconds:
+                return finish("time_budget")
+            try:
+                generation_transform(generation, population, gateway, streams, stagnation)
+            except EvaluationCapReached:
+                return finish("exact_evaluation_cap")
     return finish("generation_limit")
