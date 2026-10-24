@@ -3,23 +3,25 @@
 import random
 
 from geo_llm_scheduler.config import Config
+from geo_llm_scheduler.rl.state import state_count
 from geo_llm_scheduler.utils.numeric import EPS_RATIO
 
 
 class Controller:
-    """Maintain 42x8 values, state visits and action updates without per-child resets."""
+    """Maintain configured run-shared values, visits and updates without child resets."""
 
     def __init__(self, config: Config):
         self.config = config
-        self.q = [[0.0] * 8 for _ in range(42)]
-        self.visits = [0] * 42
-        self.updates = [[0] * 8 for _ in range(42)]
-        self.selections = [[0] * 8 for _ in range(42)]
+        size = state_count(config.rl_state_policy)
+        self.q = [[0.0] * 8 for _ in range(size)]
+        self.visits = [0] * size
+        self.updates = [[0] * 8 for _ in range(size)]
+        self.selections = [[0] * 8 for _ in range(size)]
 
     def available_actions(self, state: int) -> tuple[int, ...]:
         """Return enabled actions after the optional, state-specific campaign mask."""
-        if state not in range(42):
-            raise ValueError("State outside the 42-state space")
+        if state not in range(len(self.q)):
+            raise ValueError("State outside the configured state space")
         removed = {
             "none": (),
             "no_a6": (6,),
