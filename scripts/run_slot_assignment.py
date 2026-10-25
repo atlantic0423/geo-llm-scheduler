@@ -48,6 +48,11 @@ REQUIRED = (
 )
 FORMAL_SEEDS = (16501,)
 PILOT_SECONDS = {20: 45, 50: 60, 100: 120, 200: 240}
+LONG_SEED = 16502
+LONG_SCALE = 8
+LONG_ARMS = ("BILL_RANDOM", "MAIN_RANDOM")
+LONG_FRACTIONS = (0.125, 0.25, 0.5, 0.75, 0.9)
+DEFAULT_FRACTIONS = (0.1, 0.25, 0.5, 0.75, 0.9)
 
 
 def sha(path: Path) -> str:
@@ -97,8 +102,21 @@ def balanced_order(index: int) -> list[str]:
     return order if (index // count) % 2 == 0 else order[::-1]
 
 
-def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
-    """Copy only SHA-bound component33 input bytes; never regenerate easier cases."""
+def long_order(index: int) -> list[str]:
+    """Alternate the two unchanged reference arms between blocks."""
+    return list(LONG_ARMS) if index % 2 == 0 else list(LONG_ARMS[::-1])
+
+
+def prepare(root: Path, historical: Path, pilot: bool = False, long: bool = False) -> dict:
+    """Copy only SHA-bound component33 input bytes; never regenerate easier cases.
+
+    ``long`` builds the headroom campaign: the two unchanged reference arms, one new
+    seed and ``LONG_SCALE`` times the original wall-clock budget, with an extra
+    anytime snapshot at the original budget.
+    """
+    if pilot and long:
+        raise ValueError("pilot and long are exclusive")
+    arms = LONG_ARMS if long else ARMS
     if root.exists():
         raise FileExistsError("Campaign root must be new")
     old_manifest = json.loads((historical / "manifest.json").read_text())
@@ -112,7 +130,7 @@ def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
     files = {}
     blocks = []
     originals = old_manifest["blocks"][:4] if pilot else old_manifest["blocks"]
-    for seed in FORMAL_SEEDS:
+    for seed in (LONG_SEED,) if long else FORMAL_SEEDS:
         for old_key in originals:
             old_path = historical / "specs" / (old_key + ".json")
             assert (
@@ -148,10 +166,13 @@ def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
                 old_key=old_key,
                 historical_spec_sha256=sha(old_path),
                 host=socket.gethostname(),
-                order=balanced_order(len(blocks)),
+                order=long_order(len(blocks)) if long else balanced_order(len(blocks)),
             )
             if pilot:
                 spec["seconds"] = PILOT_SECONDS[spec["n"]]
+            if long:
+                spec["seconds"] = old["seconds"] * LONG_SCALE
+                spec["snapshot_fractions"] = list(LONG_FRACTIONS)
             spec_path = root / "specs" / (key + ".json")
             atomic_json(spec_path, spec)
             files[spec["input"]] = sha(target)
@@ -160,10 +181,10 @@ def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
     manifest = dict(
         source=source_hash(),
         host=socket.gethostname(),
-        arms=list(ARMS),
+        arms=list(arms),
         blocks=blocks,
-        runs=len(blocks) * len(ARMS),
-        kind="pilot" if pilot else "formal",
+        runs=len(blocks) * len(arms),
+        kind="long" if long else "pilot" if pilot else "formal",
         files=files,
         commit=subprocess.check_output(
             ["git", "-C", str(Path(__file__).resolve().parents[1]), "rev-parse", "HEAD"], text=True
@@ -171,10 +192,10 @@ def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
         historical_commit=old_manifest["commit"],
         historical_manifest_sha256=sha(historical / "manifest.json"),
         memory_reserve_bytes=200 * 1024**3,
-        slot_policies={arm: slot_policy(arm) for arm in ARMS},
-        reference_policies={arm: reference_policy(arm) for arm in ARMS},
-        child_address_limit_bytes=2 * 1024**3,
-        window_seconds=6 * 3600,
+        slot_policies={arm: slot_policy(arm) for arm in arms},
+        reference_policies={arm: reference_policy(arm) for arm in arms},
+        child_address_limit_bytes=(4 if long else 2) * 1024**3,
+        window_seconds=int(7.5 * 3600) if long else 6 * 3600,
         polish_policy="TWO_FOCUS_except_BILL_control",
         disk_reserve_bytes=200 * 1024**3,
         initialization="90+10_BILL4_P100",
@@ -193,9 +214,9 @@ def validate_inputs(root: Path) -> dict:
         == json.loads((root / "manifest.sha256.json").read_text())["sha256"]
     )
     assert manifest["source"] == source_hash() and manifest["host"] == socket.gethostname()
-    assert tuple(manifest["arms"]) == ARMS
+    assert tuple(manifest["arms"]) in (ARMS, LONG_ARMS)
     assert len(set(manifest["blocks"])) == len(manifest["blocks"])
-    assert manifest["runs"] == len(ARMS) * len(manifest["blocks"])
+    assert manifest["runs"] == len(manifest["arms"]) * len(manifest["blocks"])
     for name, expected in manifest["files"].items():
         assert sha(root / name) == expected, name
     return manifest
@@ -283,13 +304,14 @@ def worker(root: Path, key: str, arm: str, cpu: int) -> None:
     import fcntl
     import resource
 
-    resource.setrlimit(resource.RLIMIT_AS, (2 * 1024**3, 2 * 1024**3))
+    manifest = json.loads((root / "manifest.json").read_text())
+    limit = manifest["child_address_limit_bytes"]
+    resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     os.sched_setaffinity(0, {cpu})
     lock_path = root / "locks" / (key + "_" + arm + ".lock")
     lock_path.parent.mkdir(exist_ok=True)
     lock = lock_path.open("a")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    manifest = json.loads((root / "manifest.json").read_text())
     assert manifest["source"] == source_hash() and manifest["host"] == socket.gethostname()
     spec_path = root / "specs" / (key + ".json")
     assert sha(spec_path) == manifest["files"][spec_path.relative_to(root).as_posix()]
@@ -302,7 +324,8 @@ def worker(root: Path, key: str, arm: str, cpu: int) -> None:
     evidence: dict = {}
     snapshots: list = []
     structures = StructuralObserver()
-    thresholds = [spec["seconds"] * f for f in (0.1, 0.25, 0.5, 0.75, 0.9)]
+    fractions = spec.get("snapshot_fractions", DEFAULT_FRACTIONS)
+    thresholds = [spec["seconds"] * f for f in fractions]
     started, clock, last = time.time(), time.perf_counter(), -10.0
 
     def observe(event: str, data: dict) -> None:
@@ -443,13 +466,14 @@ if __name__ == "__main__":
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--historical-root", type=Path)
     parser.add_argument("--pilot", action="store_true")
+    parser.add_argument("--long", action="store_true")
     parser.add_argument("--parallel", type=int, default=48)
     parser.add_argument("--key")
     parser.add_argument("--arm", choices=ARMS)
     parser.add_argument("--cpu", type=int, default=0)
     args = parser.parse_args()
     if args.action == "prepare":
-        print(json.dumps(prepare(args.root, args.historical_root, args.pilot)))
+        print(json.dumps(prepare(args.root, args.historical_root, args.pilot, args.long)))
     elif args.action == "preflight":
         print(json.dumps(preflight(args.root, args.key)))
     elif args.action == "worker":
@@ -460,7 +484,9 @@ if __name__ == "__main__":
             json.dumps(
                 dict(
                     validated=sum(
-                        complete(args.root, k, a, m["source"]) for k in m["blocks"] for a in ARMS
+                        complete(args.root, k, a, m["source"])
+                        for k in m["blocks"]
+                        for a in m["arms"]
                     ),
                     total=m["runs"],
                 )

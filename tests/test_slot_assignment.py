@@ -118,6 +118,29 @@ def test_campaign_binds_original_inputs_with_one_seed(tmp_path, monkeypatch):
     } == set(runner.PILOT_SECONDS.values())
 
 
+def test_long_campaign_scales_budget_for_two_reference_arms(tmp_path):
+    from test_polish_policy_campaign import historical_fixture
+
+    runner = load_script("run_slot_assignment")
+    old = tmp_path / "old"
+    historical_fixture(old)
+    formal = runner.prepare(tmp_path / "formal", old)
+    manifest = runner.prepare(tmp_path / "long", old, long=True)
+    assert manifest["kind"] == "long" and tuple(manifest["arms"]) == runner.LONG_ARMS
+    assert manifest["runs"] == 64 and manifest["child_address_limit_bytes"] == 4 * 1024**3
+    for short_key, key in zip(formal["blocks"], manifest["blocks"]):
+        short = json.loads((tmp_path / "formal" / "specs" / (short_key + ".json")).read_text())
+        spec = json.loads((tmp_path / "long" / "specs" / (key + ".json")).read_text())
+        assert spec["seconds"] == 8 * short["seconds"] and spec["seed"] == 16502
+        assert spec["input_sha256"] == short["input_sha256"]
+        assert spec["snapshot_fractions"][0] * spec["seconds"] == short["seconds"]
+        assert set(spec["order"]) == set(runner.LONG_ARMS)
+        assert "snapshot_fractions" not in short
+    assert runner.validate_inputs(tmp_path / "long")["runs"] == 64
+    with pytest.raises(ValueError):
+        runner.prepare(tmp_path / "both", old, pilot=True, long=True)
+
+
 def test_dispatch_excludes_whole_cores_and_runs_longest_budgets_first(tmp_path):
     flat = load_script("slot_assignment_dispatch")
     topology = {c: ("0", str(c % 4)) for c in range(8)}

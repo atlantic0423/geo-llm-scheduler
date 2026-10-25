@@ -256,7 +256,7 @@ def main() -> None:
     parser.add_argument("--parallel", type=int, default=64)
     parser.add_argument("--exclude-cpus", default="")
     args = parser.parse_args()
-    assert args.root.resolve() in {(ROOT / "formal").resolve(), (ROOT / "pilot").resolve()}
+    assert args.root.resolve() in {(ROOT / name).resolve() for name in ("formal", "pilot", "long")}
     sys.path[:0] = [str(SOURCE / "src"), str(SOURCE / "scripts")]
     import run_slot_assignment as runner
 
