@@ -28,6 +28,11 @@ from geo_llm_scheduler.experiments.round_prompts import (
     STEP_TARGET,
     VERSION,
 )
+from geo_llm_scheduler.experiments.round_responses import ResponsesProfile
+
+
+class InferenceUnavailable(RuntimeError):
+    """Abort an opt-in Responses run rather than complete it as fallback search."""
 
 
 def isolated_request(payload: dict, timeout: float) -> dict:
@@ -125,11 +130,12 @@ class RoundSession(DecisionSession):
         *,
         max_requests: int = 32768,
         max_input_tokens: int = 1_000_000_000,
+        profile: ResponsesProfile | None = None,
     ) -> None:
         super().__init__(
             JevSettings(
                 epsilon_g=0.9,
-                request_timeout_s=30,
+                request_timeout_s=profile.request_timeout_s if profile else 30,
                 max_requests=max_requests,
                 max_input_tokens=max_input_tokens,
             ),
@@ -143,15 +149,22 @@ class RoundSession(DecisionSession):
         self.fallback_by_task: dict[str, int] = {}
         self.transport_intervals: list[tuple[float, float]] = []
         self.round_context: dict = {}
+        self.profile = profile
+        self.consecutive_transport_failures = 0
+        self.provider_failed = False
 
     def request(self, task: str, state: dict, options: dict, **extra: object) -> dict | None:
         """Charge local construction/validation; exclude just the requester interval."""
         if self.expired():
             raise DecisionDeadline("Search deadline")
+        if self.provider_failed:
+            raise InferenceUnavailable("provider_already_failed")
         if (
             len(self.records) >= self.settings.max_requests
             or self.charged_or_reserved_tokens + self.reservation > self.settings.max_input_tokens
         ):
+            if self.profile:
+                raise InferenceUnavailable("request_or_token_guard")
             self.fallback_by_task[task] = self.fallback_by_task.get(task, 0) + 1
             return None
         text = {
@@ -183,7 +196,7 @@ class RoundSession(DecisionSession):
             json.dumps(state, sort_keys=True, allow_nan=False).encode()
         ).hexdigest()[:24]
         packet: dict = dict(
-            prompt_version=VERSION,
+            prompt_version=self.profile.version if self.profile else VERSION,
             task=task,
             request_id=request_id,
             snapshot_id=digest,
@@ -201,7 +214,7 @@ class RoundSession(DecisionSession):
         )
         if task == "STEP_STOP":
             packet["response_contract"]["required"].append("reason_code")
-        key = os.environ.get("DEEPSEEK_API_KEY")
+        key = os.environ.get("ROUND_RESPONSES_API_KEY" if self.profile else "DEEPSEEK_API_KEY")
         wire = json.dumps(packet, ensure_ascii=False, allow_nan=False)
         if not wire.isascii() or key and key in wire:
             raise ValueError("Only secret-free English wire data are allowed")
@@ -209,6 +222,8 @@ class RoundSession(DecisionSession):
         record = dict(request=packet, accepted=False, failure_reason=None)
         started = time.perf_counter()
         answer = None
+        fatal_error = None
+        response: dict = {}
         try:
             start = time.perf_counter()
             try:
@@ -219,6 +234,18 @@ class RoundSession(DecisionSession):
                 self.transport_intervals.append((start - self.begin, end - self.begin))
             if not isinstance(response, dict):
                 raise ValueError("Invalid response envelope")
+            record["response"] = response
+            if self.profile:
+                if response.get("fatal_error"):
+                    fatal_error = response["fatal_error"]
+                if response.get("transport_error"):
+                    self.consecutive_transport_failures += 1
+                    if self.consecutive_transport_failures >= 5:
+                        fatal_error = "consecutive_transport_failures"
+                else:
+                    self.consecutive_transport_failures = 0
+                if fatal_error:
+                    raise RuntimeError("Provider cannot continue this run")
             usage = response.get("usage", {})
             if not isinstance(usage, dict):
                 raise ValueError("Invalid usage")
@@ -251,6 +278,9 @@ class RoundSession(DecisionSession):
             answer = None
             record["failure_reason"] = "invalid_or_unavailable"
             self.fallback_by_task[task] = self.fallback_by_task.get(task, 0) + 1
+        if fatal_error:
+            record["fatal_error"] = fatal_error
+            self.provider_failed = True
         duration = time.perf_counter() - started
         record.update(
             wall_s=duration,
@@ -271,6 +301,8 @@ class RoundSession(DecisionSession):
                 failure_reason=record["failure_reason"],
             )
         )
+        if fatal_error:
+            raise InferenceUnavailable(str(fatal_error))
         return answer
 
     def ask(self, state: dict, name: str, question: dict) -> dict | None:

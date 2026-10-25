@@ -23,6 +23,7 @@ from geo_llm_scheduler.experiments.llm_search import study_config as reference_c
 from geo_llm_scheduler.experiments.right_shift_policies import PolishPostprocess
 from geo_llm_scheduler.experiments.round_decisions import RoundSession, isolated_request
 from geo_llm_scheduler.experiments.round_prompts import BACKGROUND, VERSION
+from geo_llm_scheduler.experiments.round_responses import ResponsesProfile
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import (
     NormalizationContext,
@@ -136,6 +137,8 @@ class RoundPolicy(JevPolicy):
         requester: Requester = isolated_request,
         sink: Callable[[dict], None] | None = None,
         observer: Callable[[str, dict], None] | None = None,
+        *,
+        profile: ResponsesProfile | None = None,
     ) -> None:
         from geo_llm_scheduler.experiments.jev_decisions import JevSettings
 
@@ -146,7 +149,8 @@ class RoundPolicy(JevPolicy):
             requester,
             exclude_api_wait=True,
         )
-        self.session = RoundSession(config.seconds or 1, requester, sink)
+        self.session = RoundSession(config.seconds or 1, requester, sink, profile=profile)
+        self.model_label = profile.model if profile else "flash"
         self.begin = self.session.begin
         self.config, self.observer = config, observer
         self.rounds: list[dict] = []
@@ -298,7 +302,7 @@ class RoundPolicy(JevPolicy):
                 step=step,
                 action=action,
                 accepted=accepted,
-                action_source="flash" if answer else "uniform_legal_fallback",
+                action_source=self.model_label if answer else "uniform_legal_fallback",
                 exact_evaluations=result.exact_evaluations,
                 feasible=result.feasible_count,
                 candidate_objectives=[c.evaluation.objectives for c in result.evaluated],
@@ -325,7 +329,9 @@ class RoundPolicy(JevPolicy):
                 row["stop"] = stop_answer["stop"] if stop_answer else True
                 terminal = bool(row["stop"]) or self.session.expired()
                 row["stop_reason"] = (
-                    ("flash_stop" if stop_answer else "stop_fallback") if terminal else None
+                    (self.model_label + "_stop" if stop_answer else "stop_fallback")
+                    if terminal
+                    else None
                 )
             row.update(
                 terminal=terminal,
@@ -402,7 +408,7 @@ class RoundPolicy(JevPolicy):
             population_size=len(population),
             started=0,
             finished=0,
-            source="flash" if answer else "uniform_legal_fallback",
+            source=self.model_label if answer else "uniform_legal_fallback",
         )
         self.rounds.append(round_row)
         neighbor_map = neighborhoods(lambdas, self.config.neighborhood)
@@ -448,6 +454,7 @@ def run_policy(
     request_sink: Callable[[dict], None] | None = None,
     observer: Callable[[str, dict], None] | None = None,
     initial: list[Genotype] | None = None,
+    profile: ResponsesProfile | None = None,
 ) -> RunResult:
     """Run two unchanged references or the explicitly frozen population-reentry treatment."""
     if arm not in ARMS:
@@ -457,7 +464,7 @@ def run_policy(
     expected = study_config(arm, config.seed, config.seconds or 1)
     if initial is None and replace(config, generations=expected.generations) != expected:
         raise ValueError("Undeclared production configuration")
-    policy = RoundPolicy(config, requester, request_sink, observer)
+    policy = RoundPolicy(config, requester, request_sink, observer, profile=profile)
     factory = charged_initializer(problem, config, "FULL_CURRENT_I4", evidence)
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
@@ -502,8 +509,8 @@ def run_policy(
         generation_transform=policy.generation,
     )
     evidence["round_llm"] = dict(
-        prompt_version=VERSION,
-        model="deepseek-flash",
+        prompt_version=profile.version if profile else VERSION,
+        model=profile.model if profile else "deepseek-flash",
         background_sha256=hashlib.sha256(BACKGROUND.encode()).hexdigest(),
         entry_policy="population_reentry20",
         fraction=0.2,

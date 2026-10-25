@@ -19,6 +19,8 @@ from run_llm_flash import preflight, sha, source_hash, write_candidates
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments.campaign.support import atomic_json
 from geo_llm_scheduler.experiments.round_prompts import BACKGROUND, VERSION
+from geo_llm_scheduler.experiments.round_responses import ResponsesProfile
+from geo_llm_scheduler.experiments.round_responses import isolated_request as responses_request
 from geo_llm_scheduler.experiments.round_search import ARM, ARMS, run_policy, study_config
 from geo_llm_scheduler.io.loaders import load_instance
 
@@ -145,6 +147,9 @@ def complete(root: Path, key: str, arm: str) -> bool:
     assert abs(wall - search - blocked) < 1e-6 and search >= s["seconds"]
     if arm == ARM:
         e = init["round_llm"]
+        if m.get("responses_profile"):
+            profile = ResponsesProfile(**m["responses_profile"])
+            assert e["model"] == profile.model and e["prompt_version"] == profile.version
         assert set(e["valid_by_task"]) == {
             "ROUND_SELECT",
             "STEP_ACTION",
@@ -254,10 +259,28 @@ def worker(root: Path, key: str, arm: str, cpu: int) -> None:
             secret = Path(os.environ["LLM_SECRET_FILE"])
             assert secret.is_file() and secret.stat().st_uid == os.getuid()
             assert secret.stat().st_mode & 0o077 == 0
-            os.environ["DEEPSEEK_API_KEY"] = secret.read_text().strip()
+            secret_env = (
+                "ROUND_RESPONSES_API_KEY"
+                if manifest.get("responses_profile")
+                else "DEEPSEEK_API_KEY"
+            )
+            os.environ[secret_env] = secret.read_text().strip()
         problem = load_instance(root / spec["input"])
         evidence: dict = {}
-        result = run_policy(problem, arm, cfg, evidence, observer=observe, request_sink=sink)
+        if manifest.get("responses_profile"):
+            profile = ResponsesProfile(**manifest["responses_profile"])
+            result = run_policy(
+                problem,
+                arm,
+                cfg,
+                evidence,
+                observer=observe,
+                request_sink=sink,
+                profile=profile,
+                requester=lambda payload, timeout: responses_request(profile, payload, timeout),
+            )
+        else:
+            result = run_policy(problem, arm, cfg, evidence, observer=observe, request_sink=sink)
         steps.close()
         policies.close()
         audit = time.perf_counter()
