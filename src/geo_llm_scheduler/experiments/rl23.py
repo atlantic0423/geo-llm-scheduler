@@ -22,8 +22,15 @@ def run_policy(
     *,
     observer: Callable[[str, dict], None] | None = None,
     parameters: dict | None = None,
+    initial_order: Callable[[list[Candidate]], list[Candidate]] | None = None,
 ) -> RunResult:
-    """Charge common BILL4 initialization; keep study policies outside engine defaults."""
+    """Charge common BILL4 initialization; keep study policies outside engine defaults.
+
+    ``initial_order`` optionally permutes the finished initial members onto
+    subproblem slots. It runs inside the charged clock after the unchanged
+    initializer, so the initial member set and every RNG draw stay identical.
+    Omitting it preserves the original random slot correspondence.
+    """
     expected = study_config(arm, config.seed, config.seconds or 1.0)
     if replace(config, generations=expected.generations, seconds=expected.seconds) != expected:
         raise ValueError("Undeclared RL23 base configuration")
@@ -36,6 +43,11 @@ def run_policy(
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
         members = factory(gateway, streams)
+        if initial_order is not None:
+            ordered = initial_order(members)
+            if len(ordered) != len(members) or {id(c) for c in ordered} != {id(c) for c in members}:
+                raise ValueError("Initial slot order must permute the same members")
+            members = ordered
         study.initial_context = NormalizationContext(gateway.ideal, maximum(members))
         if observer is not None:
             observer("initial_ready", {"population": members, "gateway": gateway})
