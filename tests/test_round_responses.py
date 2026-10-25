@@ -64,7 +64,7 @@ def test_responses_wire_preserves_full_english_background_in_input_no_storage_or
     body = json.loads(http.data)
     assert http.full_url == "https://v1.cdks.work/v1/responses" and timeout == 10
     assert body["model"] == "gpt-6.1-sol" and body["store"] is False
-    assert body["reasoning"] == dict(effort="medium")
+    assert body["reasoning"] == dict(effort="high") and body["service_tier"] == "default"
     assert body["input"][0] == dict(role="developer", content=BACKGROUND)
     assert body["instructions"] == BACKGROUND and body["max_output_tokens"] == 8192
     assert "thinking" not in body and "synthetic-secret" not in http.data.decode()

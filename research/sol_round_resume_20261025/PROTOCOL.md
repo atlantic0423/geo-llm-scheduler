@@ -35,7 +35,8 @@ do not remove the scheduling contract from the explicit message payload. Dynamic
 packets retain lossless complete tables and conditional options. Existing strict
 IDs, complete scores, legal bindings and quota validation remain in force.
 
-Requested reasoning effort is medium. Requests use `store=false`, JSON-object
+The user selected high reasoning effort and ordinary speed. Requests explicitly
+use `reasoning.effort=high`, `service_tier=default`, `store=false`, JSON-object
 text output and maximum 8192 output tokens. Provider-echoed parameters and actual
 usage are retained, including if an intermediary does not echo/enforce a requested
 parameter. An output usage above 8192 is rejected. Per-request transport is bounded

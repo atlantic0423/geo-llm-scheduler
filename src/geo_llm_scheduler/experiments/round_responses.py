@@ -27,7 +27,7 @@ class ResponsesProfile:
 
     model: str = "gpt-6.1-sol"
     base_url: str = "https://v1.cdks.work/v1"
-    reasoning_effort: str = "medium"
+    reasoning_effort: str = "high"
     request_timeout_s: float = 120.0
     max_output_tokens: int = 8192
 
@@ -42,7 +42,7 @@ class ResponsesProfile:
             raise ValueError("An explicitly supported research model is required")
         if self.base_url != "https://v1.cdks.work/v1":
             raise ValueError("Gateway must match the user-authorized endpoint")
-        if self.reasoning_effort not in ("low", "medium", "high"):
+        if self.reasoning_effort not in ("low", "medium", "high", "xhigh", "max"):
             raise ValueError("Invalid reasoning effort")
         if not math.isfinite(self.request_timeout_s) or self.request_timeout_s <= 0:
             raise ValueError("Invalid request timeout")
@@ -75,6 +75,7 @@ def request(profile: ResponsesProfile, payload: dict, timeout: float) -> dict:
         instructions=BACKGROUND,
         input=[dict(role="developer", content=BACKGROUND), dict(role="user", content=wire)],
         store=False,
+        service_tier="default",
         reasoning=dict(effort=profile.reasoning_effort),
         text=dict(format=dict(type="json_object")),
         max_output_tokens=profile.max_output_tokens,
