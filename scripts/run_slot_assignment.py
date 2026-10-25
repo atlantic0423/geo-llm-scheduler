@@ -47,7 +47,7 @@ REQUIRED = (
     "diagnostics.json",
 )
 FORMAL_SEEDS = (16501,)
-PILOT_SECONDS = {20: 30, 50: 45, 100: 60, 200: 90}
+PILOT_SECONDS = {20: 45, 50: 60, 100: 120, 200: 240}
 
 
 def sha(path: Path) -> str:
