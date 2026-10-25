@@ -10,7 +10,11 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.experiments.jev_candidates import DirectCandidates
-from geo_llm_scheduler.experiments.jev_clock import CLOCK_EN
+from geo_llm_scheduler.experiments.jev_clock import (
+    CLOCK_EN,
+    UNCAPPED_CLOCK_EN,
+    UNCAPPED_PROMPT_VERSION,
+)
 from geo_llm_scheduler.experiments.jev_clock import PROMPT_VERSION as CLOCK_PROMPT_VERSION
 from geo_llm_scheduler.experiments.jev_decisions import JevSettings, Requester, isolated_request
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN
@@ -141,6 +145,11 @@ class SingleJevPolicy(JevPolicy):
                 CLOCK_EN,
             )
             self.session.prompt_version = CLOCK_PROMPT_VERSION
+            if settings.max_requests is None:
+                self.session.background = self.session.background.replace(
+                    CLOCK_EN, UNCAPPED_CLOCK_EN
+                )
+                self.session.prompt_version = UNCAPPED_PROMPT_VERSION
 
     def candidates(self, action: int, state: dict) -> DirectCandidates:
         """Use the one-request full-job rank only for this isolated treatment."""

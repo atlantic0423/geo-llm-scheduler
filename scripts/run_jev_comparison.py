@@ -20,7 +20,12 @@ import run_llm_flash as common
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.evaluation.exact import evaluate
-from geo_llm_scheduler.experiments.jev_clock import CLOCK_EN, search_clock_text
+from geo_llm_scheduler.experiments.jev_clock import (
+    CLOCK_EN,
+    UNCAPPED_CLOCK_EN,
+    UNCAPPED_PROMPT_VERSION,
+    search_clock_text,
+)
 from geo_llm_scheduler.experiments.jev_clock import PROMPT_VERSION as CLOCK_PROMPT_VERSION
 from geo_llm_scheduler.experiments.jev_decisions import JevSettings
 from geo_llm_scheduler.experiments.jev_prompts import BACKGROUND_EN, PROMPT_VERSION, PROMPTS
@@ -199,12 +204,18 @@ def prepare_pilot(
     spend_cap_usd: float = 2.0,
     single_candidate: bool = False,
     exclude_api_wait: bool = False,
+    no_request_cap: bool = False,
+    include_controls: bool = False,
 ) -> dict:
     """Seal the original n200 pilot, optionally running only the declared B1 treatment."""
     if root.exists():
         raise FileExistsError("Campaign root must be new")
     if type(exclude_api_wait) is not bool or (exclude_api_wait and not single_candidate):
         raise ValueError("Search clock requires the single B1 treatment")
+    if any(type(x) is not bool for x in (no_request_cap, include_controls)) or (
+        (no_request_cap or include_controls) and not (single_candidate and exclude_api_wait)
+    ):
+        raise ValueError("Uncapped/control pilot requires declared B1 search clock")
     if not math.isfinite(seconds) or seconds <= 0 or not math.isfinite(spend_cap_usd):
         raise ValueError("Invalid pilot duration or spend cap")
     if type(seed) is not int or seed < 0:
@@ -227,6 +238,8 @@ def prepare_pilot(
     assert sha(source_input) == original["input_sha256"] == old["files"][original["input"]]
     key = original_key.rsplit("_s", 1)[0] + "_s" + str(seed)
     arms = [SINGLE_ARM] if single_candidate else ["BILL_MOEAD", "MAIN_Q", "JEV_E09"]
+    if include_controls:
+        arms = ["BILL_MOEAD", "MAIN_Q", SINGLE_ARM]
     spec = {
         k: original[k]
         for k in (
@@ -256,7 +269,11 @@ def prepare_pilot(
     path = root / "specs" / (key + ".json")
     atomic_json(path, spec)
     manifest = dict(
-        kind="single_n200_b1_top10" if single_candidate else "single_n200_e09_pilot",
+        kind="n200_b1_controls_search_clock"
+        if include_controls
+        else "single_n200_b1_top10"
+        if single_candidate
+        else "single_n200_e09_pilot",
         source=source_hash(),
         host=socket.gethostname(),
         arms=arms,
@@ -290,6 +307,13 @@ def prepare_pilot(
             aggregate_api_wait_cap_s=None,
             window_seconds=seconds + 512 * 15 + 600,
         )
+    if no_request_cap:
+        manifest.update(
+            max_requests=None,
+            no_request_cap=True,
+            window_seconds=12 * 3600,
+            prompt_version=UNCAPPED_PROMPT_VERSION,
+        )
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
     return manifest
@@ -304,12 +328,19 @@ def validate_inputs(root: Path) -> dict:
     )
     assert m["source"] == source_hash() and m["host"] == socket.gethostname()
     if "exclude_api_wait" in m:
-        assert m["exclude_api_wait"] is True and m["kind"] == "single_n200_b1_top10"
+        assert m["exclude_api_wait"] is True and m["kind"] in (
+            "single_n200_b1_top10",
+            "n200_b1_controls_search_clock",
+        )
         assert m["clock_basis"] == "search_excluding_api_wait"
-        assert m["prompt_version"] == CLOCK_PROMPT_VERSION
+        assert m["prompt_version"] == (
+            UNCAPPED_PROMPT_VERSION if m.get("no_request_cap") else CLOCK_PROMPT_VERSION
+        )
         assert m["aggregate_api_wait_cap_s"] is None
     expected = (
-        (SINGLE_ARM,)
+        ("BILL_MOEAD", "MAIN_Q", SINGLE_ARM)
+        if m.get("kind") == "n200_b1_controls_search_clock"
+        else (SINGLE_ARM,)
         if m.get("kind") == "single_n200_b1_top10"
         else ("BILL_MOEAD", "MAIN_Q", "JEV_E09")
         if m.get("kind") == "single_n200_e09_pilot"
@@ -325,7 +356,13 @@ def validate_inputs(root: Path) -> dict:
     )
     for name, expected in m["files"].items():
         assert sha(root / name) == expected, name
-    if m.get("kind") in ("single_n200_e09_pilot", "single_n200_b1_top10"):
+    if m.get("no_request_cap"):
+        assert m["max_requests"] is None and m["exclude_api_wait"] is True
+    if m.get("kind") in (
+        "single_n200_e09_pilot",
+        "single_n200_b1_top10",
+        "n200_b1_controls_search_clock",
+    ):
         assert len(m["blocks"]) == 1 and m["epsilon_g"] == 0.9
         spec = json.loads((root / "specs" / (m["blocks"][0] + ".json")).read_text())
         assert spec["n"] == 200 and spec["variant"] == 0
@@ -367,11 +404,14 @@ def complete(root: Path, key: str, arm: str, source: str) -> bool:
             epsilon_g=0.5 if arm == "JEV_E05" else 0.9,
             max_input_tokens=manifest["max_input_tokens"],
             long_context=True,
+            max_requests=manifest.get("max_requests", 512),
         )
         assert j["settings"] == asdict(expected)
         assert j["provider_transport"] == "official_https_with_shared_queue"
         assert j["prompt_version"] == (
-            CLOCK_PROMPT_VERSION
+            UNCAPPED_PROMPT_VERSION
+            if manifest.get("no_request_cap")
+            else CLOCK_PROMPT_VERSION
             if manifest.get("exclude_api_wait")
             else SINGLE_PROMPT_VERSION
             if arm == SINGLE_ARM
@@ -454,16 +494,18 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
     out.mkdir(parents=True, exist_ok=False)
     cfg = arm_config(arm, spec["seed"], spec["seconds"])
     atomic_json(out / "config.json", asdict(cfg))
-    search_clock = manifest.get("exclude_api_wait", False)
+    search_clock = manifest.get("exclude_api_wait", False) and arm.startswith("JEV_")
     atomic_json(
         out / "prompts_en.json",
         dict(
-            version=CLOCK_PROMPT_VERSION
+            version=UNCAPPED_PROMPT_VERSION
+            if search_clock and manifest.get("no_request_cap")
+            else CLOCK_PROMPT_VERSION
             if search_clock
             else (SINGLE_PROMPT_VERSION if arm == SINGLE_ARM else PROMPT_VERSION),
             background=SINGLE_BACKGROUND.replace(
                 "All preparation,\nqueueing, HTTP and search consume production wall time.",
-                CLOCK_EN,
+                UNCAPPED_CLOCK_EN if manifest.get("no_request_cap") else CLOCK_EN,
             )
             if search_clock
             else SINGLE_BACKGROUND
@@ -561,6 +603,7 @@ def _worker(root: Path, key: str, arm: str, cpu: int) -> None:
                     epsilon_g=0.5 if arm == "JEV_E05" else 0.9,
                     max_input_tokens=manifest["max_input_tokens"],
                     long_context=True,
+                    max_requests=manifest.get("max_requests", 512),
                 )
                 result = run_jev(
                     problem,
@@ -691,6 +734,8 @@ def main() -> None:
     parser.add_argument("--arm", choices=(*ARMS, SINGLE_ARM))
     parser.add_argument("--single-candidate", action="store_true")
     parser.add_argument("--exclude-api-wait", action="store_true")
+    parser.add_argument("--no-request-cap", action="store_true")
+    parser.add_argument("--include-controls", action="store_true")
     parser.add_argument("--cpu", type=int, default=0)
     parser.add_argument("--parallel", type=int, default=96)
     parser.add_argument("--seconds", type=float, default=1200)
@@ -722,6 +767,8 @@ def main() -> None:
                     spend_cap_usd=args.spend_cap_usd,
                     single_candidate=args.single_candidate,
                     exclude_api_wait=args.exclude_api_wait,
+                    no_request_cap=args.no_request_cap,
+                    include_controls=args.include_controls,
                 )
             )
         )

@@ -26,6 +26,21 @@ class DecisionDeadline(RuntimeError):
     """No new model or candidate work may start after the production deadline."""
 
 
+class JevTransportError(RuntimeError):
+    """Sanitized child transport classification without raw provider text."""
+
+    def __init__(self, code: str, http_status: int | None = None) -> None:
+        self.code = (
+            code
+            if code in ("http_error", "connection_error", "invalid_json", "worker_error", "timeout")
+            else "transport_unavailable"
+        )
+        self.http_status = (
+            http_status if type(http_status) is int and 100 <= http_status <= 599 else None
+        )
+        super().__init__("Jev unavailable")
+
+
 def _number(value: object) -> float:
     if type(value) not in (int, float):
         raise ValueError("Invalid probability")
@@ -99,7 +114,7 @@ class JevSettings:
     epsilon_g: float = 0.5
     model: str = "jev-1.14.0"
     request_timeout_s: float = 15.0
-    max_requests: int = 512
+    max_requests: int | None = 512
     max_input_tokens: int = 4_000_000
     max_wait_fraction: float = 0.5
     stop_threshold: float = 0.5
@@ -113,7 +128,14 @@ class JevSettings:
             raise ValueError("Context switches must be explicit booleans")
         if not re.fullmatch(r"jev-\d+\.\d+\.\d+", self.model):
             raise ValueError("Pin a versioned Jev model")
-        if any(type(v) is not int or v < 1 for v in (self.max_requests, self.max_input_tokens)):
+        if (
+            (
+                self.max_requests is not None
+                and (type(self.max_requests) is not int or self.max_requests < 1)
+            )
+            or type(self.max_input_tokens) is not int
+            or self.max_input_tokens < 1
+        ):
             raise ValueError("Positive request/token limits required")
         if not math.isfinite(self.request_timeout_s) or self.request_timeout_s <= 0:
             raise ValueError("Invalid request timeout")
@@ -149,7 +171,9 @@ def isolated_request(payload: dict, timeout: float, *, long_context: bool = Fals
         raise TimeoutError("Jev hard deadline") from None
     result = json.loads(output)
     if process.returncode or not result.get("ok"):
-        raise RuntimeError("Jev unavailable")
+        raise JevTransportError(
+            result.get("error_code", "transport_unavailable"), result.get("http_status")
+        )
     return result["response"]
 
 
@@ -205,9 +229,9 @@ class DecisionSession:
         if self.expired():
             raise DecisionDeadline("Production deadline")
         if (
-            len(self.records) >= self.settings.max_requests
-            or self.charged_or_reserved_tokens + self.reservation > self.settings.max_input_tokens
-        ):
+            self.settings.max_requests is not None
+            and len(self.records) >= self.settings.max_requests
+        ) or self.charged_or_reserved_tokens + self.reservation > self.settings.max_input_tokens:
             return None
         timeout = min(
             self.settings.request_timeout_s,
@@ -254,6 +278,7 @@ class DecisionSession:
         started = time.perf_counter()
         excluded_before = self.excluded_api_wait_s
         answer = None
+        phase = "transport"
         try:
             blocking_start = time.perf_counter()
             try:
@@ -261,6 +286,7 @@ class DecisionSession:
             finally:
                 if self.exclude_api_wait:
                     self.excluded_api_wait_s += time.perf_counter() - blocking_start
+            phase = "response"
             if not isinstance(response, dict):
                 raise ValueError("Invalid response object")
             if key and key in json.dumps(response):
@@ -283,6 +309,7 @@ class DecisionSession:
                 self.output_tokens += outputs
             if set(response.get("answers", {})) != set(questions):
                 raise ValueError("Question batch mismatch")
+            phase = "answer_validation"
             answer = {
                 name: validate_answer(
                     dict(response, answers={name: response["answers"][name]}),
@@ -292,13 +319,43 @@ class DecisionSession:
                 )
                 for name, question in questions.items()
             }
+            phase = "deadline"
             if self.expired() or time.perf_counter() - started > timeout:
                 raise TimeoutError("Late answer")
             record["accepted"] = True
-        except (ValueError, KeyError, TypeError, RuntimeError, OSError, TimeoutError):
+        except (ValueError, KeyError, TypeError, RuntimeError, OSError, TimeoutError) as error:
             answer = None
             record.pop("response", None)  # Arbitrary provider error text never enters evidence.
             record["failure_reason"] = "invalid_unavailable_or_late"
+            # Only static local validation strings are mapped; provider text is never logged.
+            local_codes = {
+                "Invalid probability": "invalid_probability",
+                "Response binding mismatch": "response_binding_mismatch",
+                "Invalid usage object": "invalid_usage_object",
+                "Invalid usage": "invalid_usage",
+                "Invalid answer object": "invalid_answer_object",
+                "Answer type mismatch": "answer_type_mismatch",
+                "Option mismatch": "option_set_mismatch",
+                "Distribution not normalized": "probability_sum_not_one",
+                "Unknown choice": "unknown_choice",
+                "Choice is not a maximum": "choice_not_maximum",
+                "Question batch mismatch": "question_set_mismatch",
+                "Invalid response object": "invalid_response_object",
+                "Provider usage exceeds declared context limit": "usage_exceeds_context",
+                "Late answer": "late_answer",
+            }
+            detail = (
+                local_codes.get(str(error), "local_validation_error")
+                if phase != "transport"
+                else "transport_timeout"
+                if isinstance(error, TimeoutError)
+                else "transport_unavailable"
+            )
+            if phase == "transport" and isinstance(error, JevTransportError):
+                detail = error.code
+                record["http_status"] = error.http_status
+            record["failure_stage"] = phase
+            record["failure_detail"] = detail
         duration = time.perf_counter() - started
         self.wait_s += duration
         record["wait_s"] = duration

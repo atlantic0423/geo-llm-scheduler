@@ -19,6 +19,13 @@ CLOCK_ZH = (
 )
 
 
+UNCAPPED_PROMPT_VERSION = PROMPT_VERSION + "_no_request_cap"
+UNCAPPED_CLOCK_EN = CLOCK_EN.replace(
+    "Request/token limits still apply;",
+    "There is NO request-count cutoff; the input-token cost cap still applies;",
+)
+
+
 def search_clock_text(text: str) -> str:
     """Adapt an English question's cost terminology without changing its options."""
     return text.replace("wall time", "search time").replace("wall cost", "search computation cost")

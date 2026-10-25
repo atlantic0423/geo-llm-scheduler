@@ -3,6 +3,7 @@
 import json
 import os
 import sys
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
@@ -28,8 +29,16 @@ def main() -> None:
         if key.encode() in raw:
             raise ValueError("Credential in response")
         result = dict(ok=True, response=json.loads(raw))
+    except HTTPError as error:
+        result = dict(ok=False, error_code="http_error", http_status=error.code)
+    except TimeoutError:
+        result = dict(ok=False, error_code="timeout")
+    except URLError:
+        result = dict(ok=False, error_code="connection_error")
+    except json.JSONDecodeError:
+        result = dict(ok=False, error_code="invalid_json")
     except Exception:
-        result = dict(ok=False)
+        result = dict(ok=False, error_code="worker_error")
     print(json.dumps(result, allow_nan=False))
 
 
