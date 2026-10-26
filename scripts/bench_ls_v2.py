@@ -20,6 +20,7 @@ import random
 import time
 import zlib
 from concurrent.futures import ProcessPoolExecutor
+from dataclasses import replace
 from pathlib import Path
 
 from geo_llm_scheduler.archive.pareto import Archive
@@ -35,6 +36,7 @@ from geo_llm_scheduler.operators.active_pack import ActivePack
 from geo_llm_scheduler.operators.peak_coalition import PeakCoalition
 from geo_llm_scheduler.operators.right_shift import PolishStats, polish
 from geo_llm_scheduler.operators.structural import StructuralOperator
+from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
 
 OPERATORS = (
     *(f"A{a}" for a in range(1, 9)),
@@ -97,7 +99,14 @@ def call(name: str, problem, seed: Candidate, frame: FrozenFrame, config, rng: r
             seen.add(key)
             gateway.evaluate(prop.genotype, prop.schedule, name)
     seconds = time.perf_counter() - start
-    feasible = [c for c in captured if c.evaluation.feasible]
+    # 时间类提案不带资源等待诊断；与引擎接受 A7/A8 后一样刷新，供后续结构算子使用
+    feasible = [
+        c
+        if c.schedule.resource_wait
+        else replace(c, schedule=refresh_diagnostics(problem, c.genotype, c.schedule))
+        for c in captured
+        if c.evaluation.feasible
+    ]
     return feasible, seconds, gateway.counts["exact"], proposals
 
 
