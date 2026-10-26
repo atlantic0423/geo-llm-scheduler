@@ -30,6 +30,7 @@ from geo_llm_scheduler.experiments.component_random import charged_initializer
 from geo_llm_scheduler.experiments.lsv2_study import (
     ARMS,
     LSV2_ARMS,
+    PANEL_ARMS,
     lsv2_config,
     operator_config,
     run_arm,
@@ -57,6 +58,8 @@ BASE_REQUIRED = (
 )
 LSV2_REQUIRED = ("lsv2_steps.json.gz", "lsv2_summary.json")
 FORMAL_SEEDS = (16601,)
+PANEL_SEED = 16901
+BUDGETS = {20: 300, 50: 600, 100: 1200, 200: 2400}
 PILOT_SECONDS = {20: 45, 50: 60, 100: 120, 200: 240}
 DEFAULT_FRACTIONS = (0.1, 0.25, 0.5, 0.75, 0.9)
 
@@ -114,11 +117,11 @@ def write_candidates(path: Path, members: list[Candidate]) -> None:
         stream.write("]")
 
 
-def balanced_order(index: int) -> list[str]:
+def balanced_order(index: int, arms: tuple[str, ...] = ARMS) -> list[str]:
     """Rotate the four treatments using predeclared Williams entry orders."""
-    count = len(ARMS)
+    count = len(arms)
     row = [0] + [(j + 1) // 2 if j % 2 else count - j // 2 for j in range(1, count)]
-    order = [ARMS[(j + index % count) % count] for j in row]
+    order = [arms[(j + index % count) % count] for j in row]
     return order if (index // count) % 2 == 0 else order[::-1]
 
 
@@ -212,6 +215,73 @@ def prepare(root: Path, historical: Path, pilot: bool = False) -> dict:
     return manifest
 
 
+def prepare_panel(root: Path, panel_path: Path, source_root: Path, pilot: bool = False) -> dict:
+    """Build a stress-panel comparison campaign from a selected-panel file.
+
+    ``panel_path`` lists ``{key, panel, input, input_sha256, n, levels}`` with inputs
+    relative to ``source_root`` (the screening campaign). Bytes are copied and their
+    SHA re-checked; every instance is its own parent unit. Arms are ``PANEL_ARMS``.
+    """
+    if root.exists():
+        raise FileExistsError("Campaign root must be new")
+    panel = json.loads(panel_path.read_text())
+    root.mkdir(parents=True)
+    files, blocks = {}, []
+    instances = panel["instances"]
+    if pilot:
+        instances = [next(i for i in instances if i["n"] == n) for n in (20, 50, 100, 200)]
+    for item in instances:
+        original = source_root / item["input"]
+        assert sha(original) == item["input_sha256"]
+        target = root / "inputs" / Path(item["input"]).name
+        target.parent.mkdir(exist_ok=True)
+        shutil.copyfile(original, target)
+        assert sha(target) == item["input_sha256"]
+        key = item["key"] + "_s" + str(PANEL_SEED)
+        spec = dict(
+            n=item["n"],
+            regions=item.get("regions"),
+            levels=item.get("levels"),
+            panel=item["panel"],
+            base_seed=item["key"],
+            seconds=PILOT_SECONDS[item["n"]] if pilot else BUDGETS[item["n"]],
+            input=target.relative_to(root).as_posix(),
+            input_sha256=item["input_sha256"],
+            key=key,
+            seed=PANEL_SEED,
+            old_key=item["key"],
+            host=socket.gethostname(),
+            order=balanced_order(len(blocks), PANEL_ARMS),
+        )
+        spec_path = root / "specs" / (key + ".json")
+        atomic_json(spec_path, spec)
+        files[spec["input"]] = spec["input_sha256"]
+        files[spec_path.relative_to(root).as_posix()] = sha(spec_path)
+        blocks.append(key)
+    manifest = dict(
+        source=source_hash(),
+        host=socket.gethostname(),
+        arms=list(PANEL_ARMS),
+        blocks=blocks,
+        runs=len(blocks) * len(PANEL_ARMS),
+        kind="panel_pilot" if pilot else "panel_formal",
+        files=files,
+        commit=subprocess.check_output(
+            ["git", "-C", str(Path(__file__).resolve().parents[1]), "rev-parse", "HEAD"], text=True
+        ).strip(),
+        panel_file_sha256=sha(panel_path),
+        memory_reserve_bytes=200 * 1024**3,
+        lsv2_configs={arm: arm_record(arm, PANEL_SEED, 1.0)["lsv2"] for arm in PANEL_ARMS},
+        child_address_limit_bytes=3 * 1024**3,
+        window_seconds=6 * 3600,
+        disk_reserve_bytes=200 * 1024**3,
+        initialization="90+10_BILL4_P100",
+    )
+    atomic_json(root / "manifest.json", manifest)
+    atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
+    return manifest
+
+
 def validate_inputs(root: Path) -> dict:
     """Reject mutated source, host, input, spec or campaign seal."""
     manifest = json.loads((root / "manifest.json").read_text())
@@ -220,7 +290,7 @@ def validate_inputs(root: Path) -> dict:
         == json.loads((root / "manifest.sha256.json").read_text())["sha256"]
     )
     assert manifest["source"] == source_hash() and manifest["host"] == socket.gethostname()
-    assert tuple(manifest["arms"]) == ARMS
+    assert tuple(manifest["arms"]) in (ARMS, PANEL_ARMS)
     assert len(set(manifest["blocks"])) == len(manifest["blocks"])
     assert manifest["runs"] == len(manifest["arms"]) * len(manifest["blocks"])
     for name, expected in manifest["files"].items():
@@ -497,10 +567,14 @@ if __name__ == "__main__":
     parser.add_argument("--historical-root", type=Path)
     parser.add_argument("--pilot", action="store_true")
     parser.add_argument("--key")
-    parser.add_argument("--arm", choices=ARMS)
+    parser.add_argument("--arm", choices=sorted(set(ARMS + PANEL_ARMS)))
+    parser.add_argument("--panel", type=Path)
+    parser.add_argument("--source-root", type=Path)
     parser.add_argument("--cpu", type=int, default=0)
     args = parser.parse_args()
-    if args.action == "prepare":
+    if args.action == "prepare" and args.panel is not None:
+        print(json.dumps(prepare_panel(args.root, args.panel, args.source_root, args.pilot)))
+    elif args.action == "prepare":
         print(json.dumps(prepare(args.root, args.historical_root, args.pilot)))
     elif args.action == "preflight":
         print(json.dumps(preflight(args.root, args.key)))

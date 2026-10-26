@@ -78,6 +78,7 @@ class LSV2Config:
     frame_steps: int = 50
     bandit_window: int = 100
     bandit_exploration: float = 0.5
+    selector: str = "bandit"
     a8_gate_window: int = 8
     a8_gate_min_calls: int = 4
     a8_gate_empty_rate: float = 0.75
@@ -89,6 +90,8 @@ class LSV2Config:
             raise ValueError("LS time share must lie in (0, 1)")
         if self.seed_rule not in ("gap", "flow_end"):
             raise ValueError("Unknown LSV2 seed rule")
+        if self.selector not in ("bandit", "uniform"):
+            raise ValueError("Unknown LSV2 operator selector")
         if not self.operators or set(self.operators) - set(OPERATORS):
             raise ValueError("Unknown LSV2 operator")
         if len(set(self.operators)) != len(self.operators):
@@ -451,7 +454,15 @@ class LSV2Search:
         available = [
             op for op in self.config.operators if op != "A8" or self.gate.available(segment)
         ]
-        operator, decision = self.bandit.choose(segment, available, streams.stream("lsv2:bandit"))
+        if self.config.selector == "uniform":
+            # Matched control: same arms and gate, uniform choice; the bandit only logs.
+            pick = streams.stream("lsv2:uniform")
+            operator = available[pick.randrange(len(available))]
+            decision: dict = {"rule": "uniform", "candidates": len(available)}
+        else:
+            operator, decision = self.bandit.choose(
+                segment, available, streams.stream("lsv2:bandit")
+            )
         exact0, ssgs0 = gateway.counts["exact"], gateway.counts["ssgs"]
         t1 = self.timer()
         batch = self._propose(

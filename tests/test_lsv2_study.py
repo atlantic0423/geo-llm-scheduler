@@ -316,3 +316,65 @@ def test_worker_writes_audited_artifacts(tmp_path, monkeypatch, problem, arm):
     summary = json.loads((out / "summary.json").read_text())
     if arm == "LSV2":
         assert summary["lsv2"]["steps"] > 0 and 0.05 < summary["lsv2"]["share"] < 0.5
+
+
+def test_uniform_selector_is_a_matched_control(problem):
+    from geo_llm_scheduler.experiments.lsv2_study import PANEL_ARMS
+
+    assert PANEL_ARMS == ("BILL_RANDOM", "MAIN_RANDOM", "LSV2", "LSV2_RANDSEL")
+    rand = lsv2_config("LSV2_RANDSEL")
+    assert rand is not None and replace(rand, selector="bandit") == lsv2_config("LSV2")
+    assert study_config("LSV2_RANDSEL", 3, 60.0) == study_config("LSV2", 3, 60.0)
+    with pytest.raises(ValueError):
+        LSV2Config(selector="greedy")
+    cfg, gateway, streams, population = _seeded_state(problem)
+    runs = []
+    for _ in range(2):
+        cfg, gateway, streams, population = _seeded_state(problem)
+        search = LSV2Search(rand, cfg, operator_config(cfg.seed, 1e6), timer=FakeClock())
+        for value in (0.0, 0.5):
+            search(population, gateway, streams, lambda v=value: v)
+        runs.append(search.steps)
+    assert runs[0] == runs[1] and runs[0]
+    assert all(
+        r["bandit"]["rule"] == "uniform" and r["operator"] in r["available"] for r in runs[0]
+    )
+    assert len({r["operator"] for r in runs[0]}) > 3
+
+
+def test_panel_prepare_copies_selected_stress_inputs(tmp_path):
+    import json
+
+    from geo_llm_scheduler.experiments.stress_instances import FACTORS, stress_problem
+    from geo_llm_scheduler.io.loaders import save_instance
+
+    runner = _load_script("run_lsv2")
+    source = tmp_path / "screen"
+    (source / "inputs").mkdir(parents=True)
+    items = []
+    for i, n in enumerate((20, 50, 100, 200)):
+        levels = dict.fromkeys(FACTORS, i % 2)
+        path = source / "inputs" / f"st_n{n}_d{i:02d}.json"
+        save_instance(stress_problem(n, 3, levels, 100 + i), path)
+        items.append(
+            dict(
+                key=path.stem,
+                panel="dev" if i % 2 else "holdout",
+                n=n,
+                regions=3,
+                levels=levels,
+                input=f"inputs/{path.name}",
+                input_sha256=runner.sha(path),
+            )
+        )
+    panel = tmp_path / "panel.json"
+    panel.write_text(json.dumps(dict(instances=items)))
+    manifest = runner.prepare_panel(tmp_path / "formal", panel, source)
+    assert manifest["runs"] == 16 and tuple(manifest["arms"]) == runner.PANEL_ARMS
+    assert manifest["lsv2_configs"]["LSV2_RANDSEL"]["selector"] == "uniform"
+    runner.validate_inputs(tmp_path / "formal")
+    spec = json.loads(
+        (tmp_path / "formal" / "specs" / (manifest["blocks"][3] + ".json")).read_text()
+    )
+    assert spec["seconds"] == 2400 and spec["seed"] == runner.PANEL_SEED and spec["panel"] == "dev"
+    assert set(spec["order"]) == set(runner.PANEL_ARMS)
