@@ -195,7 +195,9 @@ def run_classic(
         raise ValueError("Unknown classic baseline")
     begin = perf_counter()
     streams = RNGManager(config.seed)
-    gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    gateway = EvaluationGateway(
+        problem, Archive(), config.exact_evaluation_cap, config.decode_cache_size
+    )
     if observer:
         gateway.candidate_sink = lambda c: observer(
             "candidate", dict(candidate=c, gateway=gateway, elapsed=perf_counter() - begin)

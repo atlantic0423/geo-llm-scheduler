@@ -97,7 +97,9 @@ def run(
 
     observer_seconds = 0.0
     streams = RNGManager(config.seed)
-    gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    gateway = EvaluationGateway(
+        problem, Archive(), config.exact_evaluation_cap, config.decode_cache_size
+    )
     if observer is not None:
 
         def observe_candidate(candidate: Candidate) -> None:
