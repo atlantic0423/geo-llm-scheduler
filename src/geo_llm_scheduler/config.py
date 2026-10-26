@@ -41,7 +41,9 @@ class Config:
     generations: int = 2
     seconds: float | None = None
     exact_evaluation_cap: int | None = None  # E15 equal-exact-evaluation protocol
-    decode_cache_size: int = 0  # engineering LRU of structural SSGS+exact; 0 disables
+    # Engineering LRU of structural SSGS+exact results; default for all new batches
+    # since 2026-10-26 (bit-identical results, 1.00-1.13x faster). 0 disables.
+    decode_cache_size: int = 2048
     seed: int = 1
     method: str = "plain"
     controller: str = "qlearning"

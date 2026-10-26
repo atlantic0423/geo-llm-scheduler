@@ -159,3 +159,11 @@ def test_fixed_generation_run_is_identical_with_and_without_cache(arm):
     assert off.controller.q == on.controller.q and off.offspring_count == on.offspring_count
     logical = {k: v for k, v in on.gateway.counts.items() if k != "ssgs_cache_hits"}
     assert logical == dict(off.gateway.counts)
+
+
+def test_new_batches_enable_the_cache_by_default():
+    assert Config().decode_cache_size == 2048
+    cfg = replace(study_config("BILL_RANDOM", 16101, 300), generations=1, seconds=None)
+    assert cfg.decode_cache_size == 2048
+    result = run_arm(problem20(), "BILL_RANDOM", cfg, {})
+    assert result.gateway.decode_cache_size == 2048
