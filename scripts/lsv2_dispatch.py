@@ -1,4 +1,4 @@
-"""Operations-only flat dispatch of LSV2-study workers (reuses the slot-assignment dispatcher).
+"""Operations-only flat dispatch of LSV2-study or stress-screen workers (slot dispatcher).
 
 Longest budgets first, physical cores before SMT siblings, excluded cores skipped
 entirely, fail-stop on any worker failure and 200 GB memory/disk reserve.
@@ -27,10 +27,13 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--parallel", type=int, default=48)
     parser.add_argument("--exclude-cpus", default="")
+    parser.add_argument("--runner", choices=("run_lsv2", "run_stress_screen"), default="run_lsv2")
     args = parser.parse_args()
     assert args.root.resolve() in {(ROOT / name).resolve() for name in ("formal", "pilot")}
     sys.path[:0] = [str(SOURCE / "src"), str(SOURCE / "scripts")]
-    import run_lsv2 as runner
+    import importlib
+
+    runner = importlib.import_module(args.runner)
 
     assert not subprocess.check_output(
         ["git", "-C", str(SOURCE), "status", "--porcelain"], text=True
@@ -46,7 +49,7 @@ def main() -> None:
     excluded = frozenset(int(c) for c in args.exclude_cpus.split(",") if c.strip())
     cpus = cpu_order(allowed, topology, args.parallel, excluded)
     print(
-        json.dumps(dispatch(args.root, runner, cpus, SOURCE / "scripts/run_lsv2.py")),
+        json.dumps(dispatch(args.root, runner, cpus, SOURCE / "scripts" / (args.runner + ".py"))),
         flush=True,
     )
 
