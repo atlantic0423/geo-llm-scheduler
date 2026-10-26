@@ -15,7 +15,7 @@ from typing import Callable
 from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
-from geo_llm_scheduler.engine.evaluation import EvaluationGateway
+from geo_llm_scheduler.engine.evaluation import EvaluationCapReached, EvaluationGateway
 from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments.nsga2 import dominates
 from geo_llm_scheduler.moead.variation import paths, reproduce
@@ -189,8 +189,17 @@ def run_classic(
     initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]],
     *,
     observer: Callable[[str, dict], None] | None = None,
+    generation_transform: Callable[[int, list[Candidate], EvaluationGateway, RNGManager], list[int]]
+    | None = None,
 ) -> RunResult:
-    """Run native SPEA2/epsilon-IBEA or random-key MOPSO under one total wall clock."""
+    """Run native SPEA2/epsilon-IBEA or random-key MOPSO under one total wall clock.
+
+    ``generation_transform`` is an opt-in charged research seam called after every
+    complete generation; it may replace population members in place and returns
+    the replaced indices. For RK-MOPSO a replaced member is offered to the native
+    repository and becomes the personal best when it strictly dominates it; keys
+    and velocities are unchanged. Omitting it preserves the original search path.
+    """
     if method not in ("SPEA2", "EPS_IBEA", "RK_MOPSO"):
         raise ValueError("Unknown classic baseline")
     begin = perf_counter()
@@ -293,6 +302,20 @@ def run_classic(
                 population = native.copy()
         if reason in ("time_budget", "exact_evaluation_cap"):
             break
+        if generation_transform is not None:
+            if config.seconds is not None and perf_counter() - begin >= config.seconds:
+                reason = "time_budget"
+                break
+            try:
+                changed = generation_transform(generation, population, gateway, streams)
+            except EvaluationCapReached:
+                reason = "exact_evaluation_cap"
+                break
+            if method == "RK_MOPSO":
+                for i in changed:
+                    native = update_repository(native, population[i], config.population, rng)
+                    if dominates(population[i], personal[i]):
+                        personal[i], best_vectors[i] = population[i], vectors[i].copy()
     if method == "SPEA2" and native:
         population, _ = spea_select(population + native, config.population)
     return RunResult(
