@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+from array import array
 from collections import Counter
 from dataclasses import replace
 
@@ -66,33 +68,46 @@ def study_specs(pilot: bool = False) -> list[dict]:
     return specs
 
 
+def genotype_digest(genotype: Genotype) -> bytes:
+    """Return a 128-bit digest of MS/OS so repeat counting needs O(1) memory per genotype."""
+    data = array("q", genotype.ms)
+    data.append(-1)
+    data.extend(genotype.os)
+    return hashlib.blake2b(data.tobytes(), digest_size=16).digest()
+
+
 class StructuralObserver:
-    """Count exact structural repeats without suppressing any evaluation or RNG draw."""
+    """Count exact structural repeats without suppressing any evaluation or RNG draw.
+
+    Seen genotypes are stored as 16-byte digests rather than full tuples, so memory
+    no longer grows with problem size times offspring count.
+    """
 
     def __init__(self) -> None:
         self.initialized = False
         self.last_ssgs = 0
-        self.seen: set[Genotype] = set()
-        self.seen_search: set[Genotype] = set()
+        self.seen: set[bytes] = set()
+        self.seen_search: set[bytes] = set()
         self.counts: Counter[str] = Counter()
 
     def candidate(self, candidate: Candidate, ssgs: int) -> None:
         """Use the gateway rebuild counter to distinguish structural and timing work."""
         rebuilt = ssgs > self.last_ssgs
         self.last_ssgs = ssgs
+        digest = genotype_digest(candidate.genotype)
         if rebuilt:
             stage = "search" if self.initialized else "initialization"
             self.counts[f"{stage}:structural_evaluations"] += 1
-            novel = candidate.genotype not in self.seen
+            novel = digest not in self.seen
             self.counts[f"{stage}:novel_structure_in_run"] += int(novel)
             self.counts[f"{stage}:repeated_structure_in_run"] += int(not novel)
             if self.initialized:
-                repeated = candidate.genotype in self.seen_search
+                repeated = digest in self.seen_search
                 self.counts["search:repeated_structure_in_search"] += int(repeated)
-                self.seen_search.add(candidate.genotype)
+                self.seen_search.add(digest)
         elif self.initialized:
             self.counts["search:timing_evaluations"] += 1
-        self.seen.add(candidate.genotype)
+        self.seen.add(digest)
 
     def summary(self, population: list[Candidate], archive: list[Candidate]) -> dict:
         """Return final genotype multiplicities; timing-distinct members remain intact."""

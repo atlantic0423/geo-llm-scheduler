@@ -32,7 +32,14 @@ def run_policy(
     Omitting it preserves the original random slot correspondence.
     """
     expected = study_config(arm, config.seed, config.seconds or 1.0)
-    if replace(config, generations=expected.generations, seconds=expected.seconds) != expected:
+    # decode_cache_size is a semantics-preserving engineering option, not a study parameter.
+    declared = replace(
+        config,
+        generations=expected.generations,
+        seconds=expected.seconds,
+        decode_cache_size=expected.decode_cache_size,
+    )
+    if declared != expected:
         raise ValueError("Undeclared RL23 base configuration")
     parameters = parameters or {"time_reference_seconds": {str(n): 1.0 for n in (20, 50, 100, 200)}}
     reference = parameters["time_reference_seconds"].get(str(len(problem.jobs)), 1.0)
