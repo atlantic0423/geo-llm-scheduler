@@ -125,7 +125,7 @@ def run_input(task: dict) -> dict:
     ]
     rows = []
     # E1：每个算子从同一组起点各调用一次，互不影响
-    for name in OPERATORS:
+    for name in task.get("operators", OPERATORS):
         for k, seed in enumerate(seeds):
             cands, sec, exact, props = call(
                 name, problem, seed, frame, config, random.Random(task["seed"] * 1000 + k)
@@ -150,7 +150,7 @@ def run_input(task: dict) -> dict:
                 )
             )
     # E2：三种起点规则，固定算子组合轮换，前沿随调用更新
-    for rule in RULES:
+    for rule in RULES if task.get("e2", True) else ():
         sampler = SeedSampler(rule, random.Random(task["seed"] + 7))
         current = list(front)
         pool = dict(by_obj)
@@ -208,6 +208,8 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, default=20)
     parser.add_argument("--e2-calls", type=int, default=30)
     parser.add_argument("--workers", type=int, default=12)
+    parser.add_argument("--operators", default=",".join(OPERATORS), help="E1 subset (re-timing)")
+    parser.add_argument("--skip-e2", action="store_true")
     args = parser.parse_args()
     tasks = []
     for topo in ("R2M12_kv", "R3M24_arrival", "R3M6_arrival", "R5M12_arrival"):
@@ -235,6 +237,8 @@ def main() -> None:
                         seed=zlib.crc32(key.encode()) % 100003,
                         seeds=args.seeds,
                         e2_calls=args.e2_calls,
+                        operators=args.operators.split(","),
+                        e2=not args.skip_e2,
                     )
                 )
                 break

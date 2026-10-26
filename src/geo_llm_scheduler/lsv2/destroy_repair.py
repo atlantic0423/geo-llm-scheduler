@@ -20,7 +20,7 @@ from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.lsv2.billing import WINDOW, PowerProfile
 from geo_llm_scheduler.moead.variation import paths
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
-from geo_llm_scheduler.scheduling.resources import ResourceCalendar
+from geo_llm_scheduler.scheduling.resources import ResourceCalendar, _fits_intervals
 
 MODES = ("FLOW", "KV", "TOU", "PEAK", "REGION", "MIXED")
 
@@ -89,6 +89,11 @@ def job_scores(problem: ProblemInstance, candidate: Candidate, mode: str) -> lis
     return out
 
 
+def _machine_load(problem: ProblemInstance, items: list[tuple[int, float, float]]) -> float:
+    """Duration-weighted compute of one machine's committed items, in calendar order."""
+    return sum(problem.profile(o).duration * problem.profile(o).compute for o, _, _ in items)
+
+
 @dataclass
 class TargetedDestroyRepair:
     """IG-style destroy-repair with objective-aware schedule-space reinsertion."""
@@ -107,13 +112,17 @@ class TargetedDestroyRepair:
     def _slots(
         self, cal: ResourceCalendar, machine: int, operation: int, est: float
     ) -> list[float]:
-        """First few distinct feasible starts: from EST and from later completion events."""
+        """First few distinct feasible starts: from EST and from later completion events.
+
+        ``earliest(e)`` is the first fitting point at or after ``e`` in the same sorted
+        event list, so scanning that list once and keeping fitting points returns
+        exactly the values of the original per-event ``earliest`` loop.
+        """
         found: list[float] = []
-        candidates = [est] + sorted({b for _, _, b in cal.items[machine] if b > est})
-        for e in candidates:
-            try:
-                t = cal.earliest(machine, operation, e)
-            except ValueError:
+        others = [item for item in cal.items[machine] if item[0] != operation]
+        events = sorted({est} | {b for _, _, b in others if b >= est})
+        for t in events:
+            if not _fits_intervals(cal.problem, machine, operation, t, others):
                 continue
             if not found or all(abs(t - x) > 1e-9 for x in found):
                 found.append(t)
@@ -155,15 +164,14 @@ class TargetedDestroyRepair:
                     cal.commit(ms[o], o, t)
             profile = PowerProfile(problem, ms, starts)
             order = sorted(removed, key=lambda j: -scores[j])
+            # Per-machine load in calendar (operation-index) order; only the two
+            # machines touched by a placement are re-summed, in the same order.
+            load = [_machine_load(problem, items) for items in cal.items]
             for j in order:
                 P, D = 2 * j, 2 * j + 1
                 job = problem.jobs[j]
-                load = [0.0] * len(problem.instances)
-                for m, items in enumerate(cal.items):
-                    load[m] = sum(
-                        problem.profile(o).duration * problem.profile(o).compute
-                        for o, _, _ in items
-                    )
+                base_bill = profile.bill()
+                longer_by_end: dict[float, tuple[PowerProfile, float]] = {}
                 options = paths(problem, j)
                 current = (incumbent.genotype.ms[P], incumbent.genotype.ms[D])
                 options.sort(
@@ -193,8 +201,11 @@ class TargetedDestroyRepair:
                         changes.setdefault(md, {})[D] = (td, td + pD)
                         end = td + pD
                         if end > profile.horizon:
-                            longer = profile.with_horizon(end)
-                            bill = longer.bill() - profile.bill() + longer.delta_for(changes)
+                            if end not in longer_by_end:
+                                longer = profile.with_horizon(end)
+                                longer_by_end[end] = (longer, longer.bill() - base_bill)
+                            longer, extension = longer_by_end[end]
+                            bill = extension + longer.delta_for(changes)
                         else:
                             bill = profile.delta_for(changes)
                         score = max(wf * flow / fs, wb * bill / bs)
@@ -210,12 +221,14 @@ class TargetedDestroyRepair:
                 _, _, _, mp, md, tp, td = pick
                 end = td + pD
                 if end > profile.horizon:
-                    profile = profile.with_horizon(end)
+                    profile = longer_by_end[end][0]
                 changes = {mp: {P: (tp, tp + pP)}}
                 changes.setdefault(md, {})[D] = (td, td + pD)
                 profile.apply(changes)
                 cal.commit(mp, P, tp)
                 cal.commit(md, D, td)
+                for m in {mp, md}:
+                    load[m] = _machine_load(problem, cal.items[m])
                 ms[P], ms[D] = mp, md
                 starts[P], starts[D] = tp, td
             ops = sorted(range(problem.operation_count), key=lambda o: (starts[o], o))

@@ -165,3 +165,40 @@ def test_demand_gate(cases):
     c = members[0]
     assert demand_gate(c, 0.0)
     assert not demand_gate(c, 1.01)
+
+
+def _reference_destroy_repair():
+    """Load the frozen pre-speedup prototype 2 (commit ca4e1dc) as a test oracle."""
+    import importlib.util
+    import sys
+    from pathlib import Path
+
+    path = Path(__file__).parent / "reference" / "lsv2_destroy_repair_ca4e1dc.py"
+    spec = importlib.util.spec_from_file_location("lsv2_destroy_repair_ca4e1dc", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+@pytest.mark.parametrize("n,regions,machines", [(20, 3, 6), (50, 2, 12)])
+def test_destroy_repair_speedup_matches_reference_proposals(n, regions, machines):
+    """Incremental slots/loads/horizon caching must reproduce every proposal and RNG draw."""
+    reference = _reference_destroy_repair()
+    problem = case_problem(n, regions, machines, 202610160020 + n, "arrival", 0)
+    seeds = []
+    for g in initial_genotypes(problem, Config(seed=11), random.Random(11))[:4]:
+        s = decode(problem, g)
+        seeds.append(Candidate(g, s, evaluate(problem, g, s), "test"))
+    for k, c in enumerate(seeds):
+        for mode in MODES:
+            kwargs = dict(mode=mode, weight=(0.3 + 0.1 * k, 0.7 - 0.1 * k), scale=(1e3, 10.0))
+            rng_old, rng_new = random.Random(k), random.Random(k)
+            old = reference.TargetedDestroyRepair(**kwargs).propose(
+                problem, c, 6, Config(seed=1), rng_old
+            )
+            new = TargetedDestroyRepair(**kwargs).propose(problem, c, 6, Config(seed=1), rng_new)
+            assert [p.genotype for p in new.proposals] == [p.genotype for p in old.proposals]
+            assert (new.attempts, new.diagnostics) == (old.attempts, old.diagnostics)
+            assert rng_new.getstate() == rng_old.getstate()

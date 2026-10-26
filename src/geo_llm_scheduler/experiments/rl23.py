@@ -23,6 +23,7 @@ def run_policy(
     observer: Callable[[str, dict], None] | None = None,
     parameters: dict | None = None,
     initial_order: Callable[[list[Candidate]], list[Candidate]] | None = None,
+    interleave: Callable[..., None] | None = None,
 ) -> RunResult:
     """Charge common BILL4 initialization; keep study policies outside engine defaults.
 
@@ -30,6 +31,8 @@ def run_policy(
     subproblem slots. It runs inside the charged clock after the unchanged
     initializer, so the initial member set and every RNG draw stay identical.
     Omitting it preserves the original random slot correspondence.
+    ``interleave`` is forwarded to the engine's opt-in charged research seam;
+    omitting it preserves the reference path.
     """
     expected = study_config(arm, config.seed, config.seconds or 1.0)
     # decode_cache_size is a semantics-preserving engineering option, not a study parameter.
@@ -83,6 +86,7 @@ def run_policy(
         retain_trace=False,
         trajectory_override=study,
         offspring_transform=PolishPostprocess(policy),
+        interleave=interleave,
     )
 
 

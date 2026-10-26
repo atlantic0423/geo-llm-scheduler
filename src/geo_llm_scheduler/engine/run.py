@@ -63,6 +63,10 @@ def run(
         [int, list[Candidate], EvaluationGateway, RNGManager, list[int]], None
     ]
     | None = None,
+    interleave: Callable[
+        [list[Candidate], EvaluationGateway, RNGManager, Callable[[], float]], None
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -82,6 +86,10 @@ def run(
     ``generation_transform`` is an opt-in charged round-boundary research seam.
     It runs only after a complete traversal and may refine the current population.
     Omitting it preserves the original child trigger, replacement and RNG path.
+    ``interleave`` is an opt-in charged research seam called before every offspring
+    slot with the population, gateway, streams and the budget clock. It may run
+    its own search on separately named streams and replace population members;
+    the deadline is rechecked after it returns. Omitting it preserves every path.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -186,6 +194,13 @@ def run(
                 and gateway.counts["exact"] >= config.exact_evaluation_cap
             ):
                 return finish("exact_evaluation_cap")
+            if interleave is not None:
+                try:
+                    interleave(population, gateway, streams, budget_elapsed)
+                except EvaluationCapReached:
+                    return finish("exact_evaluation_cap")
+                if config.seconds is not None and budget_elapsed() >= config.seconds:
+                    return finish("time_budget")
             streams.stream("variation")
             observe("before_offspring", {"generation": generation, "subproblem": i})
             if (
