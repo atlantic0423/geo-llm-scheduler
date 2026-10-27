@@ -55,13 +55,41 @@ from geo_llm_scheduler.operators.peak_coalition import PeakCoalition
 from geo_llm_scheduler.operators.structural import StructuralOperator
 from geo_llm_scheduler.rl.state import associate
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
-from geo_llm_scheduler.utils.numeric import identity
+from geo_llm_scheduler.utils.numeric import TOL, close, identity
 from geo_llm_scheduler.utils.rng import RNGManager
 
 OPERATORS = ("A1", "A2", "A3", "A4", "A5", "A7", "A8", "P2_FLOW", "P2_MIXED", "P3")
 SEGMENTS = ("flow_end", "middle", "bill_end")
 Point = tuple[float, float]
 Box = tuple[float, float, float, float]
+
+
+def _chain_next(
+    current: Candidate,
+    feasible: Sequence[Candidate],
+    entrants: Sequence[Candidate],
+    frame: FrozenFrame,
+    local_gain: Callable[[Candidate], float],
+) -> tuple[Candidate, str]:
+    """Resolve score ties against fixed extrema, then canonical phenotype identity.
+
+    Eligibility retains exact dominance and strictly positive gap gain. Only the
+    ranking of eligible candidates uses the contract's dimensionless tolerance.
+    Anchoring each tie set at its extremum avoids non-transitive pairwise sorting.
+    """
+    dominating = [c for c in feasible if dominates(c, current)]
+    scored = [(local_gain(c), c) for c in (dominating or entrants)]
+    if not dominating:
+        scored = [(gain, c) for gain, c in scored if gain > 0]
+    if not scored:
+        return current, "stay"
+    best_gain = max(gain for gain, _ in scored)
+    tied = [c for gain, c in scored if close(gain, best_gain, TOL.scalar)]
+    if dominating:
+        totals = [(sum(frame.normalize(c.evaluation.objectives)), c) for c in tied]
+        best_total = min(total for total, _ in totals)
+        tied = [c for total, c in totals if close(total, best_total, TOL.scalar)]
+    return min(tied, key=identity), "dominate" if dominating else "gap"
 
 
 @dataclass(frozen=True)
@@ -490,23 +518,7 @@ class LSV2Search:
                 box_before
             )
 
-        dominating = [c for c in feasible if dominates(c, current)]
-        decision_rule = "stay"
-        nxt = current
-        if dominating:
-            nxt = min(
-                dominating,
-                key=lambda c: (
-                    (-local_gain(c), sum(frame.normalize(c.evaluation.objectives))) + identity(c)
-                ),
-            )
-            decision_rule = "dominate"
-        else:
-            gains = [(local_gain(c), c) for c in entrants]
-            useful = [(g, c) for g, c in gains if g > 0]
-            if useful:
-                nxt = min(useful, key=lambda gc: (-gc[0],) + identity(gc[1]))[1]
-                decision_rule = "gap"
+        nxt, decision_rule = _chain_next(current, feasible, entrants, frame, local_gain)
         if nxt is not current:
             nxt = _with_diagnostics(problem, nxt)
         replaced = self.reflow(population, gateway, entrants)
