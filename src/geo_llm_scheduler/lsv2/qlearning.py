@@ -1,4 +1,4 @@
-"""Opt-in small-state Q screen; five-step episodes, frozen evaluation tables.
+"""Opt-in small-state Q screen; configurable short episodes, frozen evaluation tables.
 
 Selection, opportunity measurement and update overhead remain charged search work.
 Pending transitions resolve at the next *actual* decision, so A8's stateful gate
@@ -129,12 +129,19 @@ def encode_state(
     available: Sequence[str],
     previous_event: int,
     feature: float = 0.0,
+    *,
+    trajectory_steps: int = 5,
 ) -> State:
     """Encode only information known before action; opportunities split at train median."""
-    if segment not in range(3) or step not in range(5) or previous_event not in range(6):
+    if (
+        trajectory_steps < 1
+        or segment not in range(3)
+        or step not in range(trajectory_steps)
+        or previous_event not in range(6)
+    ):
         raise ValueError("State outside declared cardinality")
     gate = int("A8" in available)
-    base = (previous_event if spec.design == "Q3_NET" else segment, 5 - step, gate)
+    base = (previous_event if spec.design == "Q3_NET" else segment, trajectory_steps - step, gate)
     return base + (int(feature > spec.cutoff),) if spec.design.startswith("Q2_") else base
 
 
@@ -149,9 +156,16 @@ class QLearningSearch(LSV2Search):
     """LSV2 with a shared Q table; gate, proposals, acceptance and reflow are inherited."""
 
     def __init__(
-        self, engine: Config, operators: Config, spec: QSpec, table: QTable, *, training: bool
+        self,
+        engine: Config,
+        operators: Config,
+        spec: QSpec,
+        table: QTable,
+        *,
+        training: bool,
+        lsv2: LSV2Config | None = None,
     ) -> None:
-        super().__init__(LSV2Config(), engine, operators, retain_steps=True)
+        super().__init__(lsv2 or LSV2Config(), engine, operators, retain_steps=True)
         self.spec, self.table, self.training = spec, table, training
         self._pending: dict | None = None
         self._event = 0
@@ -217,7 +231,13 @@ class QLearningSearch(LSV2Search):
     ) -> tuple[str, dict]:
         tick = self.timer()
         state = encode_state(
-            self.spec, segment, info["step"], available, self._event, self._feature
+            self.spec,
+            segment,
+            info["step"],
+            available,
+            self._event,
+            self._feature,
+            trajectory_steps=self.config.trajectory_steps,
         )
         self._settle(state, available)
         action, probability = self.table.choose(

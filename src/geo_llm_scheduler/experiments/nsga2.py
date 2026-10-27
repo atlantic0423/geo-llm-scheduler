@@ -118,8 +118,15 @@ def run_nsga2(
     retain_trace: bool = True,
     observer: Callable[[str, dict], None] | None = None,
     initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
+    generation_transform: Callable[[int, list[Candidate], EvaluationGateway, RNGManager], object]
+    | None = None,
 ) -> RunResult:
-    """Run NSGA-II; an optional charged initializer executes inside the same clock."""
+    """Run NSGA-II; an optional charged initializer executes inside the same clock.
+
+    ``generation_transform`` is an opt-in charged research seam called after the
+    environmental selection of every complete generation; it may refine the
+    population in place. Omitting it preserves the original RNG and search path.
+    """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
     validate_problem(problem)
@@ -275,6 +282,15 @@ def run_nsga2(
                 stagnant = {identity(c): stagnant.get(identity(c), 0) for c in population}
         if reason in ("time_budget", "exact_evaluation_cap"):
             break
+        if generation_transform is not None:
+            if config.seconds is not None and perf_counter() - begin >= config.seconds:
+                reason = "time_budget"
+                break
+            try:
+                generation_transform(generation, population, gateway, streams)
+            except EvaluationCapReached:
+                reason = "exact_evaluation_cap"
+                break
     return RunResult(
         population,
         gateway.archive,
