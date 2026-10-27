@@ -78,14 +78,39 @@ def test_prepare_separates_whole_instances_and_persists_train_only_calibration(t
         )
     )
     manifest = json.loads((root / "manifest.json").read_text())
-    assert len(manifest["jobs"]) == 176
-    assert len(manifest["blocks"]) == 64
-    assert sum(len(j["runs"]) for j in manifest["jobs"]) == 736
+    assert len(manifest["jobs"]) == 416
+    assert len(manifest["blocks"]) == 32
+    assert manifest["learning_mode"] == "online_from_zero" and manifest["pretraining_runs"] == 0
+    assert sum(len(j["runs"]) for j in manifest["jobs"]) == 416
     for job in manifest["jobs"]:
+        assert len(job["runs"]) == 1
+        item = job["runs"][0]
+        assert item["training"] == (job["arm"] in runner.LEARNING_ARMS)
         if job["arm"] not in runner.LEARNING_ARMS:
             continue
-        assert [r["training"] for r in job["runs"]] == [True] * 4 + [False] * 4
-        train = {r["key"].rsplit("_s", 1)[0] for r in job["runs"][:4]}
-        valid = {r["key"].rsplit("_s", 1)[0] for r in job["runs"][4:]}
-        assert len(train) == len(valid) == 2 and not train & valid
-        assert {s.rsplit("_s", 1)[0] for s in job["calibration"]["keys"]} == train
+        instance = item["key"].rsplit("_s", 1)[0]
+        calibration_keys = {s.rsplit("_s", 1)[0] for s in job["calibration"]["keys"]}
+        assert instance not in calibration_keys and len(calibration_keys) == 2
+
+
+def test_run_rejects_pretrained_table(tmp_path, runner, monkeypatch):
+    import types
+
+    from geo_llm_scheduler.lsv2.qlearning import QTable
+
+    spec = dict(seed=18101, seconds=300, input="input.json", input_sha256="x")
+    monkeypatch.setattr(
+        runner, "_read", lambda p: spec if "specs" in str(p) else dict(source="s", input_sha256="x")
+    )
+    monkeypatch.setattr(runner, "sha", lambda p: "x")
+    monkeypatch.setattr(runner, "make_search", lambda *a, **k: types.SimpleNamespace())
+    for table in (QTable(values={"0": {"A7": 1}}), QTable(visits={"0": {"A7": 1}})):
+        with pytest.raises(AssertionError, match="No pretrained Q table"):
+            runner._run_one(
+                tmp_path,
+                tmp_path / "run",
+                dict(arm="Q1_NET_G9", calibration={}),
+                dict(key="case", training=True),
+                table,
+                dict(source="s"),
+            )

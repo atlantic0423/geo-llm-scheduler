@@ -1,4 +1,4 @@
-"""Sealed instance-crossfit Q screen with resumable per-run model checkpoints."""
+"""Sealed online-from-zero Q screen; independent per-run tables and fixed budgets."""
 
 from __future__ import annotations
 
@@ -7,7 +7,6 @@ import csv
 import gzip
 import json
 import os
-import random
 import shutil
 import socket
 import subprocess
@@ -32,8 +31,7 @@ from geo_llm_scheduler.experiments.lsv2_study import study_config
 from geo_llm_scheduler.io.loaders import load_instance
 from geo_llm_scheduler.lsv2.qlearning import QTable
 
-TRAIN_SEEDS = (18001, 18002)
-VALID_SEEDS = (18101, 18102)
+RUN_SEEDS = (18101, 18102)
 
 
 def _read(path: Path) -> dict:
@@ -62,7 +60,7 @@ def _prepare(args: argparse.Namespace) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(old / s["input"], target)
         files[s["input"]] = sha(target)
-        for seed in TRAIN_SEEDS + VALID_SEEDS:
+        for seed in RUN_SEEDS:
             key = s["base_seed"] + "_s" + str(seed)
             spec = dict(s, key=key, seed=seed, host=args.host)
             path = root / "specs" / (key + ".json")
@@ -77,31 +75,25 @@ def _prepare(args: argparse.Namespace) -> None:
             calibration = calibrate(rows, features, [s["key"] for s in train])
             calibration["validation_keys"] = [s["key"] for s in valid]
             calibrations[f"n{n}_f{fold}"] = calibration
-            training = [
-                dict(key=s["base_seed"] + "_s" + str(seed), training=True)
-                for s in train
-                for seed in TRAIN_SEEDS
-            ]
-            random.Random(20261027 + n + fold).shuffle(training)
-            validation = [
-                dict(key=s["base_seed"] + "_s" + str(seed), training=False)
-                for s in valid
-                for seed in VALID_SEEDS
-            ]
-            for arm in LEARNING_ARMS:
-                jobs.append(
-                    dict(
-                        id=f"n{n}_f{fold}_{arm}",
-                        n=n,
-                        fold=fold,
-                        arm=arm,
-                        calibration=calibration,
-                        runs=training + validation,
-                        seconds=8 * instances[0]["seconds"],
-                    )
-                )
+            # Historical calibration is fixed from OTHER instances; no Q pretraining.
+            for s in valid:
+                for seed in RUN_SEEDS:
+                    key = s["base_seed"] + "_s" + str(seed)
+                    for arm in LEARNING_ARMS:
+                        jobs.append(
+                            dict(
+                                id=f"{key}_{arm}",
+                                n=n,
+                                fold=fold,
+                                arm=arm,
+                                calibration=calibration,
+                                runs=[dict(key=key, training=True)],
+                                seconds=s["seconds"],
+                                learning_mode="online_from_zero",
+                            )
+                        )
         for s in instances:
-            for seed in VALID_SEEDS:
+            for seed in RUN_SEEDS:
                 key = s["base_seed"] + "_s" + str(seed)
                 for arm in REFERENCES:
                     jobs.append(
@@ -115,7 +107,7 @@ def _prepare(args: argparse.Namespace) -> None:
                             seconds=s["seconds"],
                         )
                     )
-    assert sum(len(j["runs"]) for j in jobs) == 736 and len(jobs) == 176
+    assert sum(len(j["runs"]) for j in jobs) == 416 and len(jobs) == 416
     atomic_json(root / "calibration.json", calibrations)
     files["calibration.json"] = sha(root / "calibration.json")
     manifest = dict(
@@ -129,12 +121,13 @@ def _prepare(args: argparse.Namespace) -> None:
         child_address_limit_bytes=3 * 1024**3,
         source_evidence=dict(random_steps=sha(args.steps), features=sha(args.features)),
         budgets={20: 300, 50: 600, 100: 1200, 200: 2400},
-        train_seeds=TRAIN_SEEDS,
-        validation_seeds=VALID_SEEDS,
+        run_seeds=RUN_SEEDS,
+        learning_mode="online_from_zero",
+        pretraining_runs=0,
     )
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
-    print(json.dumps(dict(jobs=len(jobs), runs=736, calibrations=calibrations)))
+    print(json.dumps(dict(jobs=len(jobs), runs=416, calibrations=calibrations)))
 
 
 def _validate(root: Path) -> dict:
@@ -186,6 +179,7 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
     search = make_search(arm, cfg, job["calibration"], table, training=item["training"])
     out.mkdir(parents=True, exist_ok=True)
     before = asdict(table)
+    assert before == dict(values={}, visits={}), "No pretrained Q table permitted"
     atomic_json(out / "q_before.json", before)
     atomic_json(
         out / "config.json",
@@ -279,6 +273,7 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
             key=key,
             arm=arm,
             training=item["training"],
+            learning_mode="online_from_zero" if arm in LEARNING_ARMS else "reference",
             elapsed=result.elapsed,
             audit_seconds=audit_seconds,
             termination=result.termination_reason,
@@ -317,6 +312,7 @@ def _worker(args: argparse.Namespace) -> None:
     out.mkdir(parents=True, exist_ok=True)
     lock = (out / "worker.lock").open("a")
     fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    assert len(job["runs"]) == 1, "Each job owns exactly one fresh Q table"
     table = QTable()
     completed = []
     for i, item in enumerate(job["runs"]):
