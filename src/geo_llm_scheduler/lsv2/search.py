@@ -482,15 +482,7 @@ class LSV2Search:
         available = [
             op for op in self.config.operators if op != "A8" or self.gate.available(segment)
         ]
-        if self.config.selector == "uniform":
-            # Matched control: same arms and gate, uniform choice; the bandit only logs.
-            pick = streams.stream("lsv2:uniform")
-            operator = available[pick.randrange(len(available))]
-            decision: dict = {"rule": "uniform", "candidates": len(available)}
-        else:
-            operator, decision = self.bandit.choose(
-                segment, available, streams.stream("lsv2:bandit")
-            )
+        operator, decision = self._choose_operator(segment, available, streams, current, info)
         exact0, ssgs0 = gateway.counts["exact"], gateway.counts["ssgs"]
         t1 = self.timer()
         batch = self._propose(
@@ -569,6 +561,26 @@ class LSV2Search:
                 )
             )
         return nxt, gain
+
+    def _choose_operator(
+        self,
+        segment: int,
+        available: Sequence[str],
+        streams: RNGManager,
+        current: Candidate,
+        info: dict,
+    ) -> tuple[str, dict]:
+        """Selector seam; default keeps the original draw order and bandit behavior."""
+        if self.config.selector == "uniform":
+            # Matched control: same arms and gate, uniform choice; the bandit only logs.
+            pick = streams.stream("lsv2:uniform")
+            operator = available[pick.randrange(len(available))]
+            decision: dict = {"rule": "uniform", "candidates": len(available)}
+        else:
+            operator, decision = self.bandit.choose(
+                segment, available, streams.stream("lsv2:bandit")
+            )
+        return operator, decision
 
     def reflow(
         self, population: list[Candidate], gateway: EvaluationGateway, members: list[Candidate]
