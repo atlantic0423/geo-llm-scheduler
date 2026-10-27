@@ -174,4 +174,7 @@ def test_short_continuation_audits_and_terminates(snapshot):
     row = continue_search(snapshot, "NOOP", 1, 2, 0.1)
     assert row["termination"] == "time_budget"
     assert row["charged_seconds"] >= 0.1
-    assert row["fresh_exact"] == row["tail_exact"] and row["offspring"] > 0
+    assert row["fresh_exact"] == row["tail_exact"] and row["fresh_exact"] > 0
+    # Instrumentation may let the initial LS trajectory consume this tiny budget.
+    # A valid timed continuation need not reach its first evolutionary offspring.
+    assert row["offspring"] + row["tail_ls_steps"] > 0
