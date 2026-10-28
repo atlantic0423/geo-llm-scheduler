@@ -22,7 +22,8 @@ trajectory:
 6. Archive entrants of the step try to replace MOEA/D members in the
    neighborhood of their associated direction, each neighbor by its own weight.
 
-There is no Polish after a trajectory. All randomness uses named streams.
+Post-episode fast right shift is opt-in; the original arm has no Polish.
+All randomness uses named streams.
 """
 
 from __future__ import annotations
@@ -41,6 +42,7 @@ from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.lsv2.destroy_repair import TargetedDestroyRepair
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import REF, FrozenFrame, SeedSampler, gap_scores, nondominated
+from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import (
     NormalizationContext,
@@ -55,7 +57,7 @@ from geo_llm_scheduler.operators.peak_coalition import PeakCoalition
 from geo_llm_scheduler.operators.structural import StructuralOperator
 from geo_llm_scheduler.rl.state import associate
 from geo_llm_scheduler.scheduling.ssgs import refresh_diagnostics
-from geo_llm_scheduler.utils.numeric import TOL, close, identity
+from geo_llm_scheduler.utils.numeric import TOL, close, identity, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 OPERATORS = ("A1", "A2", "A3", "A4", "A5", "A7", "A8", "P2_FLOW", "P2_MIXED", "P3")
@@ -112,6 +114,9 @@ class LSV2Config:
     a8_gate_empty_rate: float = 0.75
     a8_probe_interval: int = 20
     operators: tuple[str, ...] = OPERATORS
+    polish_region: str = "off"
+    polish_targets: str = "partial"
+    polish_budget: int = 3
 
     def __post_init__(self) -> None:
         if not 0 < self.time_share < 1:
@@ -124,6 +129,12 @@ class LSV2Config:
             raise ValueError("Unknown LSV2 operator")
         if len(set(self.operators)) != len(self.operators):
             raise ValueError("LSV2 operators must be unique")
+        if self.polish_region not in ("off", "all", "flow_end", "middle", "bill_end"):
+            raise ValueError("Unknown fast right-shift region")
+        if self.polish_targets not in ("partial", "all"):
+            raise ValueError("Unknown fast right-shift target pool")
+        if self.polish_region != "off" and "P3" in self.operators:
+            raise ValueError("External right shift requires removing P3 from the action pool")
         counts = (
             self.trajectory_steps,
             self.budget,
@@ -132,6 +143,7 @@ class LSV2Config:
             self.a8_gate_window,
             self.a8_gate_min_calls,
             self.a8_probe_interval,
+            self.polish_budget,
         )
         if any(type(v) is not int or v < 1 for v in counts):
             raise ValueError("LSV2 counts must be positive integers")
@@ -338,6 +350,8 @@ class LSV2Search:
         self.ls_seconds = 0.0
         self.trajectories = 0
         self.steps: list[dict] = []
+        self.polish_steps: list[dict] = []
+        self.polish_seconds = 0.0
         self.counts: dict[str, int] = {}
         self._structural: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 6)}
         self._timing: dict[str, Operator] = {
@@ -407,6 +421,7 @@ class LSV2Search:
         trajectory = self.trajectories
         self.trajectories += 1
         total_gain = 0.0
+        executed = 0
         for step in range(self.config.trajectory_steps):
             if self._deadline(budget_elapsed()):
                 break
@@ -420,8 +435,128 @@ class LSV2Search:
                 dict(trajectory=trajectory, step=step, seed=seed_point, seed_gap=seed_gap),
             )
             total_gain += gain
+            executed += 1
             self.steps_since_frame += 1
         self.sampler.report(seed_point, total_gain > 0)
+        self._finish_episode()
+        if self.config.polish_region != "off" and executed:
+            self._polish(
+                current,
+                frame,
+                trajectory,
+                population,
+                gateway,
+                streams,
+                budget_elapsed,
+            )
+
+    def _finish_episode(self) -> None:
+        """Close controller credit before any external polish (base has no pending TD)."""
+
+    def _polish(
+        self,
+        current: Candidate,
+        frame: FrozenFrame,
+        trajectory: int,
+        population: list[Candidate],
+        gateway: EvaluationGateway,
+        streams: RNGManager,
+        budget_elapsed: Callable[[], float],
+    ) -> None:
+        """Independently polish one endpoint, sharing LS time but never Q credit."""
+        started = self.timer()
+        segment = SEGMENTS[segment_of(frame.normalize(current.evaluation.objectives))]
+        row: dict = dict(
+            trajectory=trajectory,
+            frame=self.frame_id,
+            segment=segment,
+            start_objectives=list(current.evaluation.objectives),
+            status="region_skip",
+            proposals=0,
+            exact=0,
+            accepted=False,
+            hv_gain=0.0,
+            bill_gain=0.0,
+        )
+        try:
+            if self.config.polish_region not in ("all", segment):
+                return
+            elapsed = budget_elapsed()
+            if self._deadline(elapsed):
+                row["status"] = "deadline_skip"
+                return
+            # The outer scheduler admits the whole Q+polish episode under one
+            # cumulative share. Rechecking that share here would starve polish:
+            # a short Q trajectory normally spends the small admission deficit.
+            # Its full cost is charged once and delays the next admission.
+            before = list(gateway.archive.members)
+            before_ids = {id(c) for c in before}
+            hv_before = frame.hv([c.evaluation.objectives for c in before])
+            batch = FastRightShiftPolish(self.config.polish_targets == "all").propose(
+                gateway.problem,
+                current,
+                self.config.polish_budget,
+                self.operator_config,
+                streams.stream("lsv2:fast_rightshift"),
+            )
+            constructed = self.timer()
+            row.update(
+                status="empty" if not batch.proposals else "evaluated",
+                proposals=len(batch.proposals),
+                attempts=batch.attempts,
+                diagnostics=batch.diagnostics,
+                seconds_construct=constructed - started,
+            )
+            improving = []
+            exact_start = gateway.counts["exact"]
+            for proposal in batch.proposals:
+                if self._deadline(budget_elapsed()):
+                    row["status"] = "deadline_partial"
+                    break
+                candidate = gateway.evaluate(
+                    proposal.genotype, proposal.schedule, "LSV2:RIGHTSHIFT"
+                )
+                if not candidate.evaluation.feasible:
+                    raise AssertionError("Fast right shift generated an infeasible schedule")
+                if (
+                    candidate.genotype != current.genotype
+                    or candidate.schedule.starts[1::2] != current.schedule.starts[1::2]
+                    or any(
+                        less(a, b, TOL.time)
+                        for a, b in zip(
+                            candidate.schedule.starts[::2], current.schedule.starts[::2]
+                        )
+                    )
+                    or not close(candidate.evaluation.flow, current.evaluation.flow, TOL.time)
+                ):
+                    raise AssertionError("Fast right shift violated frozen timing semantics")
+                if less(candidate.evaluation.bill, current.evaluation.bill, TOL.cost):
+                    improving.append(candidate)
+            evaluated = self.timer()
+            entrants = [c for c in gateway.archive.members if id(c) not in before_ids]
+            # Refresh diagnostics for every admitted timing candidate, including non-best ones.
+            refreshed = {id(c): _with_diagnostics(gateway.problem, c) for c in entrants}
+            gateway.archive.members[:] = [refreshed.get(id(c), c) for c in gateway.archive.members]
+            replaced = self.reflow(population, gateway, list(refreshed.values()))
+            best = min(improving, key=lambda c: (c.evaluation.bill, identity(c)), default=current)
+            row.update(
+                exact=gateway.counts["exact"] - exact_start,
+                accepted=best is not current,
+                next_objectives=list(best.evaluation.objectives),
+                bill_gain=current.evaluation.bill - best.evaluation.bill,
+                hv_gain=frame.hv([c.evaluation.objectives for c in gateway.archive.members])
+                - hv_before,
+                entered_archive=len(entrants),
+                reflow_replaced=replaced,
+                seconds_evaluate=evaluated - constructed,
+                seconds_bookkeeping=self.timer() - evaluated,
+            )
+        finally:
+            row["seconds"] = self.timer() - started
+            self.polish_seconds += row["seconds"]
+            self._count("polish:" + row["status"])
+            if self.retain_steps:
+                self.polish_steps.append(row)
 
     def _propose(
         self,
@@ -610,6 +745,7 @@ class LSV2Search:
         return dict(
             config=asdict(self.config),
             ls_seconds=self.ls_seconds,
+            polish_seconds=self.polish_seconds,
             search_start=self.search_start,
             trajectories=self.trajectories,
             frames=self.frame_id + 1,

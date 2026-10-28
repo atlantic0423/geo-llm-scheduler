@@ -53,6 +53,8 @@ class FlowSafeBillMoves:
     target_ratio: float = 0.2
     min_targets: int = 20
     stochastic: float = 0.3
+    right_only: bool = False
+    all_targets: bool = False
 
     def propose(
         self,
@@ -69,15 +71,20 @@ class FlowSafeBillMoves:
         bounds = {}
         for o in range(0, problem.operation_count, 2):
             lo, hi = legal_bounds(problem, g, s, o)
+            if self.right_only:
+                lo = max(lo, s.starts[o])
             if less(lo, hi, TOL.time):
                 bounds[o] = (lo, hi)
         # Rank targets by their exclusive Bill contribution (cost if their interval vanished).
         saving = {o: -base.delta_for({g.ms[o]: {o: None}}) for o in bounds}
         k = max(self.min_targets, math.ceil(self.target_ratio * n))
-        targets = sorted(bounds, key=lambda o: -saving[o])[:k]
+        targets = sorted(bounds, key=lambda o: -saving[o])
+        if not self.all_targets:
+            targets = targets[:k]
         max_moves = max(self.min_moves, math.ceil(self.max_moves_ratio * n))
         batch = ProposalBatch()
         seen = set()
+        scanned, moves, capped = [], [], []
         for b in range(max(1, budget)):
             order = list(targets)
             if b:
@@ -87,9 +94,11 @@ class FlowSafeBillMoves:
             profile = base.copy()
             machines: dict[int, list[tuple[int, float, float]]] = {}
             moved: list[int] = []
+            checked = 0
             for o in order:
                 if len(moved) >= max_moves:
                     break
+                checked += 1
                 m = g.ms[o]
                 if m not in machines:
                     machines[m] = [
@@ -116,6 +125,9 @@ class FlowSafeBillMoves:
                 starts[o] = best_t
                 machines[m] = others + [(o, best_t, best_t + p)]
                 moved.append(o)
+            scanned.append(checked)
+            moves.append(len(moved))
+            capped.append(len(moved) >= max_moves)
             key = tuple(round(t / TOL.time) for t in starts)
             if moved and key not in seen:
                 seen.add(key)
@@ -125,4 +137,8 @@ class FlowSafeBillMoves:
         batch.diagnostics = dict(
             targets=len(targets), eligible=len(bounds), proposals=len(batch.proposals)
         )
+        if self.right_only:
+            batch.diagnostics.update(
+                scanned=scanned, moves=moves, move_cap_reached=capped, max_moves=max_moves
+            )
         return batch

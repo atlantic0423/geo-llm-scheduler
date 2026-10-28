@@ -309,6 +309,9 @@ class QLearningSearch(LSV2Search):
         assert self._pending is None
         self._event = 0
         super()._trajectory(population, gateway, streams, budget_elapsed)
+
+    def _finish_episode(self) -> None:
+        """Settle terminal TD before external polish changes the archive or timing."""
         self._settle(None, ())
 
 
