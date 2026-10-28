@@ -36,3 +36,21 @@ rates. Removing A8 helps the Q arm on average but hurts the uniform arm. Increas
 P3 selection and frequent empty proposals suggest a reward/cost interaction;
 the observational logs do not establish causality. No default algorithm change,
 new campaign, PR, or Release is implied by this development analysis.
+
+## B3L3 operator follow-up
+
+Run operator_profile.py and then operator_report.py with the same workspace
+argument. Per the user's narrowed scope, these read only Q gamma 0.9, Q gamma 0
+and uniform B3L3 (48 runs). They write operator_profile_b3l3/ in the campaign,
+verify input hashes, and cross-check action counts with previously audited tables.
+Ratios average runs equally. Large-reward events are the upper 5% of each run's
+positive net rewards, a descriptive rule rather than a new solver threshold.
+
+P3 has high empty-proposal rates and rising selection shares. A4 is mostly
+nonempty but low-yield; its B3L3 selection share does not rise. A7 gives frequent
+immediate improvements; P2_FLOW/P2_MIXED give larger occasional net rewards.
+A3 is costly and low-hit, A8 has gated rare opportunities, and A1/A2/A5 supply
+basic neighborhood changes. No action removal is established by these logs.
+
+The two targeted test modules are tests/test_lsv2_operator_profile.py and
+tests/test_lsv2_budget12_analysis.py. Solver behavior and raw results are unchanged.
