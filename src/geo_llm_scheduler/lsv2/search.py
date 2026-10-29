@@ -43,6 +43,13 @@ from geo_llm_scheduler.lsv2.destroy_repair import TargetedDestroyRepair
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import REF, FrozenFrame, SeedSampler, gap_scores, nondominated
 from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
+from geo_llm_scheduler.lsv2.polish_selection import (
+    POOL_POLICIES,
+    SEGMENTS,
+    PolishSelector,
+    physical_fingerprint,
+    segment_of,
+)
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import (
     NormalizationContext,
@@ -61,7 +68,6 @@ from geo_llm_scheduler.utils.numeric import TOL, close, identity, less
 from geo_llm_scheduler.utils.rng import RNGManager
 
 OPERATORS = ("A1", "A2", "A3", "A4", "A5", "A7", "A8", "P2_FLOW", "P2_MIXED", "P3")
-SEGMENTS = ("flow_end", "middle", "bill_end")
 Point = tuple[float, float]
 Box = tuple[float, float, float, float]
 
@@ -117,6 +123,8 @@ class LSV2Config:
     polish_region: str = "off"
     polish_targets: str = "partial"
     polish_budget: int = 3
+    polish_selection: str = "endpoint"
+    polish_diagnostics: bool = False
 
     def __post_init__(self) -> None:
         if not 0 < self.time_share < 1:
@@ -133,6 +141,10 @@ class LSV2Config:
             raise ValueError("Unknown fast right-shift region")
         if self.polish_targets not in ("partial", "all"):
             raise ValueError("Unknown fast right-shift target pool")
+        if self.polish_selection not in ("endpoint", *POOL_POLICIES):
+            raise ValueError("Unknown external right-shift selection policy")
+        if self.polish_selection != "endpoint" and self.polish_region != "all":
+            raise ValueError("Shared-pool selection requires all-region external right shift")
         if self.polish_region != "off" and "P3" in self.operators:
             raise ValueError("External right shift requires removing P3 from the action pool")
         counts = (
@@ -153,11 +165,6 @@ class LSV2Config:
             raise ValueError("LSV2 bonuses must be nonnegative")
         if len(self.flow_end_shares) != 3 or min(self.flow_end_shares) < 0:
             raise ValueError("Three nonnegative Flow-end shares required")
-
-
-def segment_of(norm: Point) -> int:
-    """Flow end, middle or Bill end by normalized-Flow thirds of the frozen frame."""
-    return 0 if norm[0] < 1 / 3 else 1 if norm[0] < 2 / 3 else 2
 
 
 def local_box(front_norm: Sequence[Point], point: Point) -> Box:
@@ -352,6 +359,7 @@ class LSV2Search:
         self.steps: list[dict] = []
         self.polish_steps: list[dict] = []
         self.polish_seconds = 0.0
+        self.polish_selector = PolishSelector()
         self.counts: dict[str, int] = {}
         self._structural: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 6)}
         self._timing: dict[str, Operator] = {
@@ -463,8 +471,9 @@ class LSV2Search:
         streams: RNGManager,
         budget_elapsed: Callable[[], float],
     ) -> None:
-        """Independently polish one endpoint, sharing LS time but never Q credit."""
+        """Select and polish one input after terminal Q credit, within shared LS time."""
         started = self.timer()
+        service_started: float | None = None
         segment = SEGMENTS[segment_of(frame.normalize(current.evaluation.objectives))]
         row: dict = dict(
             trajectory=trajectory,
@@ -485,6 +494,55 @@ class LSV2Search:
             if self._deadline(elapsed):
                 row["status"] = "deadline_skip"
                 return
+            if self.config.polish_diagnostics or self.config.polish_selection != "endpoint":
+                row.update(
+                    selection=self.config.polish_selection,
+                    target_scope=self.config.polish_targets,
+                    endpoint_objectives=list(current.evaluation.objectives),
+                )
+                if self.config.polish_selection != "endpoint":
+                    selected = self.polish_selector.choose(
+                        self.config.polish_selection,
+                        population,
+                        current,
+                        frame,
+                        NormalizationContext(gateway.ideal, maximum(population)),
+                        self.lambdas,
+                        streams.stream("lsv2:rightshift_selection"),
+                    )
+                    current = selected.candidate
+                    segment = SEGMENTS[selected.region]
+                    row.update(
+                        pool_size=selected.pool_size,
+                        region_sizes=selected.region_sizes,
+                        direction_sizes=selected.direction_sizes,
+                        direction=selected.direction,
+                        source=selected.source,
+                        segment=segment,
+                        start_objectives=list(current.evaluation.objectives),
+                    )
+                else:
+                    row.update(pool_size=1, source="endpoint")
+                selected_at = self.timer()
+                row["seconds_selection"] = selected_at - started
+                if self.config.polish_diagnostics:
+                    row.update(
+                        physical_fingerprint=physical_fingerprint(current),
+                        fingerprint_version="physical-v1/instance-scoped",
+                        input_schedule=dict(
+                            ms=current.genotype.ms,
+                            os=current.genotype.os,
+                            starts=current.schedule.starts,
+                        ),
+                        input_tou=current.evaluation.tou,
+                        input_demand=sum(current.evaluation.demand),
+                    )
+                diagnosed_at = self.timer()
+                row["seconds_input_diagnostics"] = diagnosed_at - selected_at
+                if self._deadline(budget_elapsed()):
+                    row["status"] = "deadline_after_selection"
+                    return
+                service_started = diagnosed_at
             # The outer scheduler admits the whole Q+polish episode under one
             # cumulative share. Rechecking that share here would starve polish:
             # a short Q trajectory normally spends the small admission deficit.
@@ -505,7 +563,7 @@ class LSV2Search:
                 proposals=len(batch.proposals),
                 attempts=batch.attempts,
                 diagnostics=batch.diagnostics,
-                seconds_construct=constructed - started,
+                seconds_construct=constructed - (service_started or started),
             )
             improving = []
             exact_start = gateway.counts["exact"]
@@ -552,7 +610,18 @@ class LSV2Search:
                 seconds_bookkeeping=self.timer() - evaluated,
             )
         finally:
-            row["seconds"] = self.timer() - started
+            finished = self.timer()
+            row["seconds"] = finished - started
+            if service_started is not None:
+                service_seconds = finished - service_started
+                region = SEGMENTS.index(segment)
+                self.polish_selector.charge(region, service_seconds)
+                row.update(
+                    seconds_service=service_seconds,
+                    region_service_totals=tuple(self.polish_selector.region_seconds),
+                    complete_empty=row["status"] == "empty",
+                    evaluation_complete=row["status"] in ("empty", "evaluated"),
+                )
             self.polish_seconds += row["seconds"]
             self._count("polish:" + row["status"])
             if self.retain_steps:

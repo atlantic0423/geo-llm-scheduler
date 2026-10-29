@@ -25,6 +25,8 @@ from geo_llm_scheduler.domain.models import (
 )
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
+from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous_study
+from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection_study
 from geo_llm_scheduler.experiments.comparison13 import case_problem
 from geo_llm_scheduler.experiments.lsv2_fast_rightshift import (
     ARMS,
@@ -292,7 +294,16 @@ def test_uniform_controller_can_use_same_polish_without_q():
     assert all(r["bandit"]["rule"] == "uniform" for r in search.steps)
 
 
-def test_single_job_runner_seals_separate_polish_logs(tmp_path):
+@pytest.mark.parametrize(
+    "study,arm",
+    [
+        (previous_study, ALL),
+        (selection_study, "DIRECTION_P"),
+        (selection_study, "REGION_TIME_F"),
+        (selection_study, "POOL_RANDOM_P"),
+    ],
+)
+def test_single_job_runner_seals_separate_polish_logs(tmp_path, study, arm):
     scripts = Path(__file__).resolve().parents[1] / "scripts"
     sys.path.insert(0, str(scripts))
     try:
@@ -306,12 +317,12 @@ def test_single_job_runner_seals_separate_polish_logs(tmp_path):
         calibration_path = tmp_path / "cal.json"
         calibration_path.write_text(json.dumps(CAL), encoding="utf-8")
         out = tmp_path / "out"
-        summary = runner.run_job(input_path, calibration_path, out, ALL, 0.3)
+        summary = runner.run_job(input_path, calibration_path, out, arm, 0.3, study=study)
         seal = json.loads((out / "complete.json").read_text())
         assert "rightshift_steps.json.gz" in seal["files"]
         assert all(runner.sha(out / name) == row["sha256"] for name, row in seal["files"].items())
         assert summary["lsv2"]["config"]["polish_region"] == "all"
         with pytest.raises(FileExistsError):
-            runner.run_job(input_path, calibration_path, out, ALL, 0.3)
+            runner.run_job(input_path, calibration_path, out, arm, 0.3, study=study)
     finally:
         sys.path.remove(str(scripts))

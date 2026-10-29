@@ -21,30 +21,25 @@ from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments import ext_hybrid
+from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous
+from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection
 from geo_llm_scheduler.experiments.campaign.support import atomic_json
-from geo_llm_scheduler.experiments.lsv2_fast_rightshift import (
-    ARMS,
-    EXTERNAL_ARMS,
-    LEARNING_ARMS,
-    RUN_SEED,
-    arm_config,
-    configuration_record,
-    make_search,
-)
 from geo_llm_scheduler.experiments.lsv2_qscreen import run_screen
 from geo_llm_scheduler.io.loaders import load_instance
 from geo_llm_scheduler.lsv2.qlearning import QTable
 from geo_llm_scheduler.scheduling.ssgs import decode
 from geo_llm_scheduler.utils.rng import RNGManager
 
+RUN_SEED = previous.RUN_SEED
 RUN_SEEDS = (RUN_SEED,)
+STUDIES = {"fast": previous, "selection": selection}
 
 
 def _read(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _prepare(args: argparse.Namespace) -> None:
+def _prepare(args: argparse.Namespace, study=previous) -> None:
     root, old, prior_root = args.root, args.historical, args.prior_q
     root.mkdir(parents=True, exist_ok=False)
     prior = _read(old / "manifest.json")
@@ -56,6 +51,12 @@ def _prepare(args: argparse.Namespace) -> None:
     dev = [_read(p) for p in sorted((old / "specs").glob("*.json"))]
     dev = [s for s in dev if s["panel"] == "dev" and s["n"] in (100, 200)]
     assert len(dev) == 8
+    if study is selection:
+        expected = {f"st_n{n}_d{i:02d}_s16901" for n, ids in selection.PANEL.items() for i in ids}
+        assert {s["key"] for s in dev} == expected, (
+            "Selection study must use the approved eight inputs"
+        )
+        assert all(s["seconds"] == {100: 1200, 200: 2400}[s["n"]] for s in dev)
     files, blocks, jobs, history = {}, [], [], {}
     for index, spec in enumerate(dev):
         key = spec["key"]
@@ -80,12 +81,12 @@ def _prepare(args: argparse.Namespace) -> None:
         assert sha(summary) == seal["files"]["summary.json"]["sha256"]
         hist = _read(summary)["initialization"]
         history[key] = {k: hist[k] for k in ("initial_population_sha256", "initial_archive_sha256")}
-        order = ARMS[index % len(ARMS) :] + ARMS[: index % len(ARMS)]
+        order = study.ARMS[index % len(study.ARMS) :] + study.ARMS[: index % len(study.ARMS)]
         for arm in order:
-            cal = matched[0] if arm in LEARNING_ARMS else {}
+            cal = matched[0] if arm in study.LEARNING_ARMS else {}
             config_name = "configs/" + key + "_" + arm + ".json"
             atomic_json(
-                root / config_name, configuration_record(arm, RUN_SEED, spec["seconds"], cal)
+                root / config_name, study.configuration_record(arm, RUN_SEED, spec["seconds"], cal)
             )
             files[config_name] = sha(root / config_name)
             jobs.append(
@@ -94,13 +95,13 @@ def _prepare(args: argparse.Namespace) -> None:
                     arm=arm,
                     n=spec["n"],
                     calibration=cal,
-                    runs=[dict(key=key, training=arm in LEARNING_ARMS)],
+                    runs=[dict(key=key, training=arm in study.LEARNING_ARMS)],
                     seconds=spec["seconds"],
                     config_file=config_name,
                     order_index=len(jobs),
                 )
             )
-    assert len(jobs) == 80
+    assert len(jobs) == 8 * len(study.ARMS)
     for name, data in (
         ("calibration.json", calibrations),
         ("historical_initialization.json", history),
@@ -111,10 +112,11 @@ def _prepare(args: argparse.Namespace) -> None:
         commit=subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         source=source_hash(),
         host=args.host,
+        study="selection" if study is selection else "fast",
         files=files,
         blocks=blocks,
         jobs=jobs,
-        arms=ARMS,
+        arms=study.ARMS,
         cpus=list(range(16, 24)),
         child_address_limit_bytes=3 * 1024**3,
         run_seeds=RUN_SEEDS,
@@ -124,15 +126,16 @@ def _prepare(args: argparse.Namespace) -> None:
         calibration_manifest_sha256=sha(prior_root / "manifest.json"),
         budgets={20: 300, 50: 600, 100: 1200, 200: 2400},
         classification="development_screen",
-        pilot="compressed: explicit right-shift smoke on two large inputs; full source/input/config/initialization preflight retained",
+        pilot=getattr(args, "pilot_note", None)
+        or "not recorded; source/input/config/initialization preflight required before dispatch",
     )
     atomic_json(root / "manifest.json", manifest)
     atomic_json(root / "manifest.sha256.json", dict(sha256=sha(root / "manifest.json")))
-    print(json.dumps(dict(jobs=len(jobs), seeds=RUN_SEEDS, arms=ARMS)))
+    print(json.dumps(dict(jobs=len(jobs), seeds=RUN_SEEDS, arms=study.ARMS)))
 
 
-def _preflight(root: Path, key: str) -> None:
-    manifest = _validate(root)
+def _preflight(root: Path, key: str, study=previous) -> None:
+    manifest = _validate(root, study)
     result = bill_preflight(root, key)
     spec = _read(root / "specs" / (key + ".json"))
     problem = load_instance(root / spec["input"])
@@ -154,7 +157,7 @@ def _preflight(root: Path, key: str) -> None:
     result["policies"][ext_hybrid.POLICY] = dict(evidence=evidence, fresh_exact_verified=100)
     result["historical_hybrid_match"] = True
     result["config_checks"] = sum(j["runs"][0]["key"] == key for j in manifest["jobs"])
-    assert result["config_checks"] == 10
+    assert result["config_checks"] == len(study.ARMS)
     atomic_json(root / "preflight" / (key + ".json"), result)
     atomic_json(
         root / "preflight" / (key + ".sha256.json"),
@@ -162,7 +165,7 @@ def _preflight(root: Path, key: str) -> None:
     )
 
 
-def _validate(root: Path) -> dict:
+def _validate(root: Path, study=previous) -> dict:
     manifest = _read(root / "manifest.json")
     assert sha(root / "manifest.json") == _read(root / "manifest.sha256.json")["sha256"]
     assert manifest["source"] == source_hash() and manifest["host"] == socket.gethostname()
@@ -173,12 +176,13 @@ def _validate(root: Path) -> dict:
     )
     for name, digest in manifest["files"].items():
         assert sha(root / name) == digest, name
-    assert tuple(manifest["arms"]) == ARMS and manifest["run_seeds"] == [RUN_SEED]
-    assert len(manifest["jobs"]) == 80 and len(manifest["blocks"]) == 8
+    assert manifest.get("study", "fast") == ("selection" if study is selection else "fast")
+    assert tuple(manifest["arms"]) == study.ARMS and manifest["run_seeds"] == [RUN_SEED]
+    assert len(manifest["jobs"]) == 8 * len(study.ARMS) and len(manifest["blocks"]) == 8
     for job in manifest["jobs"]:
         spec = _read(root / "specs" / (job["runs"][0]["key"] + ".json"))
         assert spec["seed"] == RUN_SEED and spec["panel"] == "dev"
-        expected = configuration_record(
+        expected = study.configuration_record(
             job["arm"], spec["seed"], spec["seconds"], job["calibration"]
         )
         assert _read(root / job["config_file"]) == json.loads(json.dumps(expected))
@@ -209,7 +213,9 @@ def _seal(out: Path, names: list[str], **extra: object) -> None:
     )
 
 
-def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manifest: dict) -> None:
+def _run_one(
+    root: Path, out: Path, job: dict, item: dict, table: QTable, manifest: dict, study=previous
+) -> None:
     key, arm = item["key"], job["arm"]
     spec = _read(root / "specs" / (key + ".json"))
     assert (
@@ -220,12 +226,12 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
     assert expected["source"] == manifest["source"]
     assert expected["input_sha256"] == spec["input_sha256"]
     assert sha(root / spec["input"]) == spec["input_sha256"]
-    cfg = arm_config(arm, spec["seed"], spec["seconds"])
-    external = arm in EXTERNAL_ARMS
+    cfg = study.arm_config(arm, spec["seed"], spec["seconds"])
+    external = arm in study.EXTERNAL_ARMS
     search = (
         None
         if external
-        else make_search(arm, cfg, job["calibration"], table, training=item["training"])
+        else study.make_search(arm, cfg, job["calibration"], table, training=item["training"])
     )
     steps = [] if search is None else search.steps
     policy = ext_hybrid.POLICY if external else "bill4"
@@ -305,7 +311,7 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
     assert result.termination_reason == "time_budget" and result.offspring_count > 0
     if not external:
         assert steps
-    if arm in LEARNING_ARMS:
+    if arm in study.LEARNING_ARMS:
         assert all("q_transition" in r for r in steps)
     if not item["training"]:
         assert asdict(table) == before
@@ -333,7 +339,7 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
             key=key,
             arm=arm,
             training=item["training"],
-            learning_mode="online_from_zero" if arm in LEARNING_ARMS else "reference",
+            learning_mode="online_from_zero" if arm in study.LEARNING_ARMS else "reference",
             elapsed=result.elapsed,
             audit_seconds=audit_seconds,
             termination=result.termination_reason,
@@ -360,12 +366,12 @@ def _run_one(root: Path, out: Path, job: dict, item: dict, table: QTable, manife
     _seal(out, names, commit=manifest["commit"], key=key, arm=arm, training=item["training"])
 
 
-def _worker(args: argparse.Namespace) -> None:
+def _worker(args: argparse.Namespace, study=previous) -> None:
     import fcntl
     import resource
 
     root = args.root
-    manifest = _validate(root)
+    manifest = _validate(root, study)
     limit = manifest["child_address_limit_bytes"]
     resource.setrlimit(resource.RLIMIT_AS, (limit, limit))
     job = next(j for j in manifest["jobs"] if j["id"] == args.job)
@@ -381,7 +387,7 @@ def _worker(args: argparse.Namespace) -> None:
         run = out / name
         marker = _sealed(run)
         if marker is None:
-            _run_one(root, run, job, item, table, manifest)
+            _run_one(root, run, job, item, table, manifest, study)
         else:
             assert marker["commit"] == manifest["commit"] and marker["arm"] == job["arm"]
             assert marker["key"] == item["key"] and marker["training"] == item["training"]
@@ -401,9 +407,9 @@ def _worker(args: argparse.Namespace) -> None:
     )
 
 
-def _dispatch(args: argparse.Namespace) -> None:
+def _dispatch(args: argparse.Namespace, study=previous) -> None:
     root = args.root
-    manifest = _validate(root)
+    manifest = _validate(root, study)
     pending = sorted(manifest["jobs"], key=lambda j: (-j["seconds"], j["order_index"]))
     active: dict = {}
     done, failed = [], []
@@ -453,6 +459,8 @@ def _dispatch(args: argparse.Namespace) -> None:
                     sys.executable,
                     str(Path(__file__).resolve()),
                     "worker",
+                    "--study",
+                    manifest.get("study", "fast"),
                     "--root",
                     str(root),
                     "--job",
@@ -496,22 +504,25 @@ def _dispatch(args: argparse.Namespace) -> None:
 def _main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("mode", choices=["prepare", "preflight", "worker", "dispatch", "validate"])
+    parser.add_argument("--study", choices=STUDIES, default="fast")
+    parser.add_argument("--pilot-note")
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--historical", type=Path)
     parser.add_argument("--prior-q", type=Path)
     parser.add_argument("--host", default="neu01-2288H-V6")
     parser.add_argument("--job")
     args = parser.parse_args()
+    study = STUDIES[args.study]
     try:
         if args.mode == "prepare":
-            _prepare(args)
+            _prepare(args, study)
         elif args.mode == "preflight":
-            _validate(args.root)
-            _preflight(args.root, args.job)
+            _validate(args.root, study)
+            _preflight(args.root, args.job, study)
         elif args.mode == "validate":
-            _validate(args.root)
+            _validate(args.root, study)
         else:
-            (_worker if args.mode == "worker" else _dispatch)(args)
+            (_worker if args.mode == "worker" else _dispatch)(args, study)
     except Exception:
         atomic_json(
             args.root / "failures" / ((args.job or args.mode) + ".json"),

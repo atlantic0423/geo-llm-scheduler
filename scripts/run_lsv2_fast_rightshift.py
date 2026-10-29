@@ -7,17 +7,13 @@ import json
 import subprocess
 from dataclasses import asdict
 from pathlib import Path
+from types import ModuleType
 
 from run_lsv2 import sha, source_hash, write_candidates, write_json_gz
 
+from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous
+from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection
 from geo_llm_scheduler.experiments.campaign.support import atomic_json
-from geo_llm_scheduler.experiments.lsv2_fast_rightshift import (
-    ARMS,
-    RUN_SEED,
-    arm_config,
-    configuration_record,
-    make_search,
-)
 from geo_llm_scheduler.experiments.lsv2_qscreen import run_screen
 from geo_llm_scheduler.io.loaders import load_instance
 from geo_llm_scheduler.lsv2.qlearning import QTable
@@ -29,7 +25,9 @@ def run_job(
     out: Path,
     arm: str,
     seconds: float,
-    seed: int = RUN_SEED,
+    seed: int = previous.RUN_SEED,
+    *,
+    study: ModuleType = previous,
 ) -> dict:
     """Run from an empty Q table and persist separate learning/polish evidence.
 
@@ -37,12 +35,12 @@ def run_job(
     Existing output directories are rejected; failure never writes complete.json.
     """
     calibration = json.loads(calibration_path.read_text(encoding="utf-8-sig"))
-    config = arm_config(arm, seed, seconds)
+    config = study.arm_config(arm, seed, seconds)
     table = QTable()
-    search = make_search(arm, config, calibration, table, training=True)
+    search = study.make_search(arm, config, calibration, table, training=True)
     problem = load_instance(input_path)
     out.mkdir(parents=True, exist_ok=False)
-    record = configuration_record(arm, seed, seconds, calibration)
+    record = study.configuration_record(arm, seed, seconds, calibration)
     record.update(
         arm=arm,
         input_sha256=sha(input_path),
@@ -78,14 +76,23 @@ def run_job(
 def main() -> None:
     """Require explicit input, frozen calibration and a new destination directory."""
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--study", choices=("fast", "selection"), default="fast")
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--calibration", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--arm", choices=ARMS, required=True)
+    parser.add_argument("--arm", choices=(*previous.ARMS, *selection.ARMS), required=True)
     parser.add_argument("--seconds", type=float, required=True)
-    parser.add_argument("--seed", type=int, default=RUN_SEED)
+    parser.add_argument("--seed", type=int, default=previous.RUN_SEED)
     args = parser.parse_args()
-    result = run_job(args.input, args.calibration, args.out, args.arm, args.seconds, args.seed)
+    result = run_job(
+        args.input,
+        args.calibration,
+        args.out,
+        args.arm,
+        args.seconds,
+        args.seed,
+        study=selection if args.study == "selection" else previous,
+    )
     print(json.dumps(dict(arm=args.arm, lsv2=result["lsv2"])))
 
 
