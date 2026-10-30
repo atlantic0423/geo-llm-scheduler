@@ -22,6 +22,7 @@ from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments import ext_hybrid
 from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous
+from geo_llm_scheduler.experiments import lsv2_group_rightshift as group
 from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection
 from geo_llm_scheduler.experiments.campaign.support import atomic_json
 from geo_llm_scheduler.experiments.lsv2_qscreen import run_screen
@@ -32,7 +33,7 @@ from geo_llm_scheduler.utils.rng import RNGManager
 
 RUN_SEED = previous.RUN_SEED
 RUN_SEEDS = (RUN_SEED,)
-STUDIES = {"fast": previous, "selection": selection}
+STUDIES = {"fast": previous, "selection": selection, "group": group}
 
 
 def _read(path: Path) -> dict:
@@ -51,7 +52,7 @@ def _prepare(args: argparse.Namespace, study=previous) -> None:
     dev = [_read(p) for p in sorted((old / "specs").glob("*.json"))]
     dev = [s for s in dev if s["panel"] == "dev" and s["n"] in (100, 200)]
     assert len(dev) == 8
-    if study is selection:
+    if study in (selection, group):
         expected = {f"st_n{n}_d{i:02d}_s16901" for n, ids in selection.PANEL.items() for i in ids}
         assert {s["key"] for s in dev} == expected, (
             "Selection study must use the approved eight inputs"
@@ -112,7 +113,7 @@ def _prepare(args: argparse.Namespace, study=previous) -> None:
         commit=subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         source=source_hash(),
         host=args.host,
-        study="selection" if study is selection else "fast",
+        study=next(name for name, module in STUDIES.items() if module is study),
         files=files,
         blocks=blocks,
         jobs=jobs,
@@ -176,7 +177,9 @@ def _validate(root: Path, study=previous) -> dict:
     )
     for name, digest in manifest["files"].items():
         assert sha(root / name) == digest, name
-    assert manifest.get("study", "fast") == ("selection" if study is selection else "fast")
+    assert manifest.get("study", "fast") == next(
+        name for name, module in STUDIES.items() if module is study
+    )
     assert tuple(manifest["arms"]) == study.ARMS and manifest["run_seeds"] == [RUN_SEED]
     assert len(manifest["jobs"]) == 8 * len(study.ARMS) and len(manifest["blocks"]) == 8
     for job in manifest["jobs"]:

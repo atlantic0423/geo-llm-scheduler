@@ -42,6 +42,7 @@ from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.lsv2.destroy_repair import TargetedDestroyRepair
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import REF, FrozenFrame, SeedSampler, gap_scores, nondominated
+from geo_llm_scheduler.lsv2.group_polish import ConcurrentRightShiftPolish
 from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
 from geo_llm_scheduler.lsv2.polish_selection import (
     POOL_POLICIES,
@@ -125,6 +126,7 @@ class LSV2Config:
     polish_budget: int = 3
     polish_selection: str = "endpoint"
     polish_diagnostics: bool = False
+    polish_method: str = "single"
 
     def __post_init__(self) -> None:
         if not 0 < self.time_share < 1:
@@ -141,6 +143,8 @@ class LSV2Config:
             raise ValueError("Unknown fast right-shift region")
         if self.polish_targets not in ("partial", "all"):
             raise ValueError("Unknown fast right-shift target pool")
+        if self.polish_method not in ("single", "common", "coordinated"):
+            raise ValueError("Unknown external right-shift method")
         if self.polish_selection not in ("endpoint", *POOL_POLICIES):
             raise ValueError("Unknown external right-shift selection policy")
         if self.polish_selection != "endpoint" and self.polish_region != "all":
@@ -550,7 +554,15 @@ class LSV2Search:
             before = list(gateway.archive.members)
             before_ids = {id(c) for c in before}
             hv_before = frame.hv([c.evaluation.objectives for c in before])
-            batch = FastRightShiftPolish(self.config.polish_targets == "all").propose(
+            polish: FastRightShiftPolish | ConcurrentRightShiftPolish
+            if self.config.polish_method == "single":
+                polish = FastRightShiftPolish(self.config.polish_targets == "all")
+            else:
+                polish = ConcurrentRightShiftPolish(
+                    coordinated=self.config.polish_method == "coordinated",
+                    all_targets=self.config.polish_targets == "all",
+                )
+            batch = polish.propose(
                 gateway.problem,
                 current,
                 self.config.polish_budget,
