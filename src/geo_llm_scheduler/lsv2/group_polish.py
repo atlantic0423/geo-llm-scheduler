@@ -13,7 +13,7 @@ from random import Random
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance, Schedule
 from geo_llm_scheduler.lsv2.billing import WINDOW, PowerProfile, merge
-from geo_llm_scheduler.lsv2.flowsafe import prefill_times
+from geo_llm_scheduler.lsv2.flowsafe import _PreparedFlow, prefill_times
 from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
 from geo_llm_scheduler.scheduling.resources import ResourceView, _fits_intervals
@@ -88,15 +88,21 @@ class ConcurrentRightShiftPolish:
 
 
 class _Search:
-    def __init__(self, problem: ProblemInstance, incumbent: Candidate) -> None:
+    def __init__(
+        self, problem: ProblemInstance, incumbent: Candidate, prepared: _PreparedFlow | None = None
+    ) -> None:
         self.problem, self.incumbent = problem, incumbent
         self.starts, self.ms = incumbent.schedule.starts, incumbent.genotype.ms
-        self.base = PowerProfile(problem, self.ms, self.starts)
+        self.base = prepared.base if prepared else PowerProfile(problem, self.ms, self.starts)
         self.view = ResourceView(problem, incumbent.genotype, incumbent.schedule)
-        self.upper = {
-            o: legal_bounds(problem, incumbent.genotype, incumbent.schedule, o)[1]
-            for o in range(0, problem.operation_count, 2)
-        }
+        self.upper = (
+            dict(prepared.upper)
+            if prepared
+            else {
+                o: legal_bounds(problem, incumbent.genotype, incumbent.schedule, o)[1]
+                for o in range(0, problem.operation_count, 2)
+            }
+        )
         self.upper = {o: hi for o, hi in self.upper.items() if less(self.starts[o], hi, TOL.time)}
         self.pool: dict[tuple[float, ...], tuple[float, str]] = {}
         self.stats = dict(
@@ -112,7 +118,7 @@ class _Search:
             duplicate_candidates=0,
         )
 
-    def groups(self) -> list[tuple[int, ...]]:
+    def groups(self, *, score_order: bool = True) -> list[tuple[int, ...]]:
         groups: set[tuple[int, ...]] = set()
         for m, items in enumerate(self.view.items):
             # Event sweep makes each distinct simultaneous cover set only once.
@@ -135,6 +141,8 @@ class _Search:
                 else:
                     groups.add(tuple(sorted(active)))
         # Whole-group removal potential, not the sum of exclusive single scores.
+        if not score_order:
+            return sorted(groups)
         return sorted(
             groups, key=lambda g: (self.base.delta_for({self.ms[g[0]]: {o: None for o in g}}), g)
         )
@@ -205,6 +213,40 @@ class _Search:
                 self.stats["resource_rejected"] += 1
                 continue
             self.offer({o: t for o, t, _ in moved}, "common")
+
+    def _shifts(self, group: tuple[int, ...]) -> list[float]:
+        m = self.ms[group[0]]
+        others = self.view.intervals(m, frozenset(group))
+        upper = min(self.upper[o] - self.starts[o] for o in group)
+        events = {t for _, a, b in others for t in (a, b)}
+        events.update(
+            t
+            for tariff in self.problem.regions[self.problem.instances[m].region].tariffs
+            for t in (tariff.start, tariff.end)
+        )
+        low = min(self.starts[o] for o in group)
+        high = max(self.starts[o] + self.problem.profile(o).duration for o in group) + upper
+        events.update(WINDOW * i for i in range(int(low // WINDOW), math.ceil(high / WINDOW) + 1))
+        shifts = {upper}
+        for o in group:
+            shifts.update(
+                t - v
+                for t in events
+                for v in (self.starts[o], self.starts[o] + self.problem.profile(o).duration)
+            )
+        return sorted(d for d in shifts if TOL.time < d <= upper)
+
+    def _fits(self, group: tuple[int, ...], delta: float) -> bool:
+        m = self.ms[group[0]]
+        moved = [
+            (o, self.starts[o] + delta, self.starts[o] + delta + self.problem.profile(o).duration)
+            for o in group
+        ]
+        merged = sorted(self.view.intervals(m, frozenset(group)) + moved)
+        return all(
+            _fits_intervals(self.problem, m, o, t, [v for v in merged if v[0] != o])
+            for o, t, _ in moved
+        )
 
     def insert(self, group: tuple[int, ...], order: tuple[int, ...]) -> None:
         m = self.ms[group[0]]

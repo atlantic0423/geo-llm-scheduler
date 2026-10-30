@@ -39,6 +39,7 @@ from geo_llm_scheduler.archive.pareto import dominates
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
+from geo_llm_scheduler.lsv2.common_refine import ReusedCommonPolish
 from geo_llm_scheduler.lsv2.destroy_repair import TargetedDestroyRepair
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import REF, FrozenFrame, SeedSampler, gap_scores, nondominated
@@ -143,7 +144,13 @@ class LSV2Config:
             raise ValueError("Unknown fast right-shift region")
         if self.polish_targets not in ("partial", "all"):
             raise ValueError("Unknown fast right-shift target pool")
-        if self.polish_method not in ("single", "common", "coordinated"):
+        if self.polish_method not in (
+            "single",
+            "common",
+            "coordinated",
+            "common_fast",
+            "common_peak",
+        ):
             raise ValueError("Unknown external right-shift method")
         if self.polish_selection not in ("endpoint", *POOL_POLICIES):
             raise ValueError("Unknown external right-shift selection policy")
@@ -364,6 +371,7 @@ class LSV2Search:
         self.polish_steps: list[dict] = []
         self.polish_seconds = 0.0
         self.polish_selector = PolishSelector()
+        self.reused_polish = ReusedCommonPolish()
         self.counts: dict[str, int] = {}
         self._structural: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 6)}
         self._timing: dict[str, Operator] = {
@@ -554,9 +562,14 @@ class LSV2Search:
             before = list(gateway.archive.members)
             before_ids = {id(c) for c in before}
             hv_before = frame.hv([c.evaluation.objectives for c in before])
-            polish: FastRightShiftPolish | ConcurrentRightShiftPolish
+            polish: FastRightShiftPolish | ConcurrentRightShiftPolish | ReusedCommonPolish
             if self.config.polish_method == "single":
                 polish = FastRightShiftPolish(self.config.polish_targets == "all")
+            elif self.config.polish_method in ("common_fast", "common_peak"):
+                self.reused_polish.peak_switch = self.config.polish_method == "common_peak"
+                self.reused_polish.all_targets = self.config.polish_targets == "all"
+                self.reused_polish.retain([*population, current])
+                polish = self.reused_polish
             else:
                 polish = ConcurrentRightShiftPolish(
                     coordinated=self.config.polish_method == "coordinated",

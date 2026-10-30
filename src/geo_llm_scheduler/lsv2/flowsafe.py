@@ -22,6 +22,17 @@ from geo_llm_scheduler.scheduling.timing import legal_bounds
 from geo_llm_scheduler.utils.numeric import TOL, close, less
 
 
+@dataclass
+class _PreparedFlow:
+    base: PowerProfile
+    upper: dict[int, float]
+    bounds: dict[int, tuple[float, float]]
+    saving: dict[int, float]
+    targets: list[int]
+    max_moves: int
+    empty_attempts: int | None = None
+
+
 def prefill_times(
     problem: ProblemInstance,
     machine: int,
@@ -65,12 +76,18 @@ class FlowSafeBillMoves:
         rng: random.Random,
     ) -> ProposalBatch:
         """Return up to ``budget`` distinct timing proposals from one frozen incumbent."""
+        prepared = self._prepare(problem, incumbent)
+        return self._propose_prepared(problem, incumbent, budget, rng, prepared)
+
+    def _prepare(self, problem: ProblemInstance, incumbent: Candidate) -> _PreparedFlow:
         g, s = incumbent.genotype, incumbent.schedule
         n = len(problem.jobs)
         base = PowerProfile(problem, g.ms, s.starts)
         bounds = {}
+        upper = {}
         for o in range(0, problem.operation_count, 2):
             lo, hi = legal_bounds(problem, g, s, o)
+            upper[o] = hi
             if self.right_only:
                 lo = max(lo, s.starts[o])
             if less(lo, hi, TOL.time):
@@ -82,6 +99,21 @@ class FlowSafeBillMoves:
         if not self.all_targets:
             targets = targets[:k]
         max_moves = max(self.min_moves, math.ceil(self.max_moves_ratio * n))
+        return _PreparedFlow(base, upper, bounds, saving, targets, max_moves)
+
+    def _propose_prepared(
+        self,
+        problem: ProblemInstance,
+        incumbent: Candidate,
+        budget: int,
+        rng: random.Random,
+        prepared: _PreparedFlow,
+        *,
+        reuse_empty: bool = False,
+    ) -> ProposalBatch:
+        g, s = incumbent.genotype, incumbent.schedule
+        base, bounds, saving = prepared.base, prepared.bounds, prepared.saving
+        targets, max_moves = prepared.targets, prepared.max_moves
         batch = ProposalBatch()
         seen = set()
         scanned, moves, capped = [], [], []
@@ -90,6 +122,14 @@ class FlowSafeBillMoves:
             if b:
                 rng.shuffle(order)
                 order.sort(key=lambda o: -saving[o] * (1 - self.stochastic * rng.random()))
+            # A complete zero-move deterministic pass leaves every competitor
+            # unchanged. Reordering these same targets cannot enable a first move.
+            # Still consume the original shuffle and key randomness on every call.
+            if reuse_empty and prepared.empty_attempts is not None:
+                scanned.append(len(order))
+                moves.append(0)
+                capped.append(False)
+                continue
             starts = list(s.starts)
             profile = base.copy()
             machines: dict[int, list[tuple[int, float, float]]] = {}
@@ -141,4 +181,10 @@ class FlowSafeBillMoves:
             batch.diagnostics.update(
                 scanned=scanned, moves=moves, move_cap_reached=capped, max_moves=max_moves
             )
+        if reuse_empty:
+            hit = prepared.empty_attempts is not None
+            batch.diagnostics["empty_cache_hit"] = hit
+            batch.diagnostics["saved_attempts"] = prepared.empty_attempts if hit else 0
+            if not hit and not any(moves):
+                prepared.empty_attempts = batch.attempts
         return batch

@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pytest
 
+from geo_llm_scheduler.experiments import lsv2_common_refine as refine
 from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous
 from geo_llm_scheduler.experiments import lsv2_group_rightshift as group
 from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection
@@ -30,7 +31,9 @@ def runner():
     sys.path.remove(str(scripts))
 
 
-@pytest.mark.parametrize("study,count", [(previous, 80), (selection, 96), (group, 64)])
+@pytest.mark.parametrize(
+    "study,count", [(previous, 80), (selection, 96), (group, 64), (refine, 40)]
+)
 def test_prepare_reuses_calibration_and_old_seed_and_seals_configs(tmp_path, runner, study, count):
     old, prior = tmp_path / "old", tmp_path / "q"
     files, cals = {}, {}

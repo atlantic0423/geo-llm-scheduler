@@ -21,6 +21,7 @@ from geo_llm_scheduler.archive.pareto import Archive
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments import ext_hybrid
+from geo_llm_scheduler.experiments import lsv2_common_refine as refine
 from geo_llm_scheduler.experiments import lsv2_fast_rightshift as previous
 from geo_llm_scheduler.experiments import lsv2_group_rightshift as group
 from geo_llm_scheduler.experiments import lsv2_rightshift_selection as selection
@@ -33,7 +34,7 @@ from geo_llm_scheduler.utils.rng import RNGManager
 
 RUN_SEED = previous.RUN_SEED
 RUN_SEEDS = (RUN_SEED,)
-STUDIES = {"fast": previous, "selection": selection, "group": group}
+STUDIES = {"fast": previous, "selection": selection, "group": group, "refine": refine}
 
 
 def _read(path: Path) -> dict:
@@ -52,7 +53,7 @@ def _prepare(args: argparse.Namespace, study=previous) -> None:
     dev = [_read(p) for p in sorted((old / "specs").glob("*.json"))]
     dev = [s for s in dev if s["panel"] == "dev" and s["n"] in (100, 200)]
     assert len(dev) == 8
-    if study in (selection, group):
+    if study in (selection, group, refine):
         expected = {f"st_n{n}_d{i:02d}_s16901" for n, ids in selection.PANEL.items() for i in ids}
         assert {s["key"] for s in dev} == expected, (
             "Selection study must use the approved eight inputs"
