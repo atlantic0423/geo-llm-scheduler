@@ -12,6 +12,7 @@ from geo_llm_scheduler.lsv2.billing import difference, merge
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves, _PreparedFlow
 from geo_llm_scheduler.lsv2.group_polish import _Search
 from geo_llm_scheduler.lsv2.polish_selection import PhysicalKey, physical_key
+from geo_llm_scheduler.lsv2.shift_calendar import ShiftCalendar
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
 from geo_llm_scheduler.utils.numeric import TOL
 
@@ -40,6 +41,9 @@ def _peak_switches(left: list[float], right: list[float]) -> list[float]:
 class _PeakSearch(_Search):
     def common(self, group: tuple[int, ...]) -> None:
         super().common(group)
+        self._peaks(group)
+
+    def _peaks(self, group: tuple[int, ...]) -> None:
         machine = self.ms[group[0]]
         server = self.problem.instances[machine]
         if self.problem.regions[server.region].demand_rate == 0:
@@ -86,6 +90,55 @@ class _PeakSearch(_Search):
                 self.offer({o: self.starts[o] + delta for o in group}, "peak_switch")
 
 
+class _CalendarSearch(_PeakSearch):
+    def __init__(
+        self,
+        problem: ProblemInstance,
+        incumbent: Candidate,
+        prepared: _PreparedFlow,
+        peak_switch: bool,
+    ) -> None:
+        super().__init__(problem, incumbent, prepared)
+        self.peak_switch = peak_switch
+        self.calendars: dict[tuple[int, ...], ShiftCalendar] = {}
+        self.stats.update(
+            calendar_builds=0, calendar_pairs=0, calendar_rejected=0, reference_resource_checks=0
+        )
+
+    def common(self, group: tuple[int, ...]) -> None:
+        for delta in self._shifts(group):
+            self.stats["candidate_positions"] += 1
+            if not self._fits(group, delta):
+                self.stats["resource_rejected"] += 1
+                continue
+            self.offer({o: self.starts[o] + delta for o in group}, "common")
+        if self.peak_switch:
+            self._peaks(group)
+
+    def _fits(self, group: tuple[int, ...], delta: float) -> bool:
+        if group not in self.calendars:
+            machine = self.ms[group[0]]
+            moving = [
+                (o, self.starts[o], self.starts[o] + self.problem.profile(o).duration)
+                for o in group
+            ]
+            calendar = ShiftCalendar(
+                self.problem,
+                machine,
+                moving,
+                self.view.intervals(machine, frozenset(group)),
+                min(self.upper[o] - self.starts[o] for o in group),
+            )
+            self.calendars[group] = calendar
+            self.stats["calendar_builds"] += 1
+            self.stats["calendar_pairs"] += calendar.pairs
+        if self.calendars[group].rejects(delta):
+            self.stats["calendar_rejected"] += 1
+            return False
+        self.stats["reference_resource_checks"] += 1
+        return super()._fits(group, delta)
+
+
 @dataclass
 class _Entry:
     prepared: _PreparedFlow
@@ -106,6 +159,7 @@ class ReusedCommonPolish:
 
     peak_switch: bool = False
     all_targets: bool = False
+    resource_calendar: bool = False
     _entries: dict[PhysicalKey, _Entry] = field(default_factory=dict, init=False)
     _scope: tuple | None = field(default=None, init=False)
 
@@ -113,6 +167,29 @@ class ReusedCommonPolish:
         """Discard entries absent from the current population-plus-endpoint pool."""
         keys = {physical_key(c) for c in candidates}
         self._entries = {k: v for k, v in self._entries.items() if k in keys}
+
+    def known_empty(
+        self, problem: ProblemInstance, candidate: Candidate, budget: int, config: Config
+    ) -> bool:
+        """Recognize only a complete no-first-move and empty-group certificate.
+
+        Scope must match the immutable problem identity and every search setting.
+        Partial execution, Archive rejection and zero HV are never certificates.
+        """
+        scope = (
+            problem,
+            budget,
+            self.all_targets,
+            self.peak_switch,
+            config,
+            self.resource_calendar,
+        )
+        if self._scope is None or self._scope[0] is not problem or self._scope[1:] != scope[1:]:
+            return False
+        entry = self._entries.get(physical_key(candidate))
+        return (
+            entry is not None and not entry.group_pool and entry.prepared.empty_attempts is not None
+        )
 
     def propose(
         self,
@@ -125,7 +202,14 @@ class ReusedCommonPolish:
         """Preserve COMMON proposals/RNG, or extend positions only when opted in."""
         if type(budget) is not int or budget < 1:
             raise ValueError("Polish candidate budget must be a positive integer")
-        scope = (problem, budget, self.all_targets, self.peak_switch, config)
+        scope = (
+            problem,
+            budget,
+            self.all_targets,
+            self.peak_switch,
+            config,
+            self.resource_calendar,
+        )
         # Identity protects against equal-looking instances with changed profiles.
         if self._scope is None or self._scope[0] is not problem or self._scope[1:] != scope[1:]:
             self._entries.clear()
@@ -136,7 +220,11 @@ class ReusedCommonPolish:
         single_op = FlowSafeBillMoves(right_only=True, all_targets=self.all_targets)
         if entry is None:
             prepared = single_op._prepare(problem, incumbent)
-            ctx = (_PeakSearch if self.peak_switch else _Search)(problem, incumbent, prepared)
+            ctx = (
+                _CalendarSearch(problem, incumbent, prepared, self.peak_switch)
+                if self.resource_calendar
+                else (_PeakSearch if self.peak_switch else _Search)(problem, incumbent, prepared)
+            )
             ctx.stats.update(
                 peak_intervals=0,
                 peak_infeasible_intervals=0,

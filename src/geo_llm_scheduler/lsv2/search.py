@@ -44,6 +44,7 @@ from geo_llm_scheduler.lsv2.destroy_repair import TargetedDestroyRepair
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import REF, FrozenFrame, SeedSampler, gap_scores, nondominated
 from geo_llm_scheduler.lsv2.group_polish import ConcurrentRightShiftPolish
+from geo_llm_scheduler.lsv2.opportunity_selection import OPPORTUNITY_POLICIES, OpportunitySelector
 from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
 from geo_llm_scheduler.lsv2.polish_selection import (
     POOL_POLICIES,
@@ -128,6 +129,7 @@ class LSV2Config:
     polish_selection: str = "endpoint"
     polish_diagnostics: bool = False
     polish_method: str = "single"
+    polish_pool_directions: bool = True
 
     def __post_init__(self) -> None:
         if not 0 < self.time_share < 1:
@@ -150,10 +152,19 @@ class LSV2Config:
             "coordinated",
             "common_fast",
             "common_peak",
+            "common_calendar",
+            "common_calendar_peak",
         ):
             raise ValueError("Unknown external right-shift method")
-        if self.polish_selection not in ("endpoint", *POOL_POLICIES):
+        if self.polish_selection not in ("endpoint", *POOL_POLICIES, *OPPORTUNITY_POLICIES):
             raise ValueError("Unknown external right-shift selection policy")
+        if self.polish_selection in OPPORTUNITY_POLICIES and self.polish_method not in (
+            "common_fast",
+            "common_peak",
+            "common_calendar",
+            "common_calendar_peak",
+        ):
+            raise ValueError("Opportunity selection requires scoped COMMON certificates")
         if self.polish_selection != "endpoint" and self.polish_region != "all":
             raise ValueError("Shared-pool selection requires all-region external right shift")
         if self.polish_region != "off" and "P3" in self.operators:
@@ -372,6 +383,7 @@ class LSV2Search:
         self.polish_seconds = 0.0
         self.polish_selector = PolishSelector()
         self.reused_polish = ReusedCommonPolish()
+        self.opportunity_selector = OpportunitySelector()
         self.counts: dict[str, int] = {}
         self._structural: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 6)}
         self._timing: dict[str, Operator] = {
@@ -486,6 +498,8 @@ class LSV2Search:
         """Select and polish one input after terminal Q credit, within shared LS time."""
         started = self.timer()
         service_started: float | None = None
+        opportunity = self.config.polish_selection in OPPORTUNITY_POLICIES
+        selected_region: int | None = None
         segment = SEGMENTS[segment_of(frame.normalize(current.evaluation.objectives))]
         row: dict = dict(
             trajectory=trajectory,
@@ -513,7 +527,7 @@ class LSV2Search:
                     endpoint_objectives=list(current.evaluation.objectives),
                 )
                 if self.config.polish_selection != "endpoint":
-                    selected = self.polish_selector.choose(
+                    selection_args = (
                         self.config.polish_selection,
                         population,
                         current,
@@ -522,6 +536,34 @@ class LSV2Search:
                         self.lambdas,
                         streams.stream("lsv2:rightshift_selection"),
                     )
+                    if opportunity:
+                        self.reused_polish.peak_switch = self.config.polish_method in (
+                            "common_peak",
+                            "common_calendar_peak",
+                        )
+                        self.reused_polish.resource_calendar = self.config.polish_method in (
+                            "common_calendar",
+                            "common_calendar_peak",
+                        )
+                        self.reused_polish.all_targets = self.config.polish_targets == "all"
+                        self.reused_polish.retain([*population, current])
+                        selected = self.opportunity_selector.choose(
+                            *selection_args,
+                            known_empty=lambda c: self.reused_polish.known_empty(
+                                gateway.problem, c, self.config.polish_budget, self.operator_config
+                            ),
+                        )
+                        row.update(self.opportunity_selector.diagnostics)
+                        if selected is None:
+                            row.update(
+                                status="no_opportunity", seconds_selection=self.timer() - started
+                            )
+                            return
+                    else:
+                        selected = self.polish_selector.choose(
+                            *selection_args, diagnose_directions=self.config.polish_pool_directions
+                        )
+                    selected_region = selected.region
                     current = selected.candidate
                     segment = SEGMENTS[selected.region]
                     row.update(
@@ -565,8 +607,20 @@ class LSV2Search:
             polish: FastRightShiftPolish | ConcurrentRightShiftPolish | ReusedCommonPolish
             if self.config.polish_method == "single":
                 polish = FastRightShiftPolish(self.config.polish_targets == "all")
-            elif self.config.polish_method in ("common_fast", "common_peak"):
-                self.reused_polish.peak_switch = self.config.polish_method == "common_peak"
+            elif self.config.polish_method in (
+                "common_fast",
+                "common_peak",
+                "common_calendar",
+                "common_calendar_peak",
+            ):
+                self.reused_polish.peak_switch = self.config.polish_method in (
+                    "common_peak",
+                    "common_calendar_peak",
+                )
+                self.reused_polish.resource_calendar = self.config.polish_method in (
+                    "common_calendar",
+                    "common_calendar_peak",
+                )
                 self.reused_polish.all_targets = self.config.polish_targets == "all"
                 self.reused_polish.retain([*population, current])
                 polish = self.reused_polish
@@ -634,9 +688,19 @@ class LSV2Search:
                 seconds_evaluate=evaluated - constructed,
                 seconds_bookkeeping=self.timer() - evaluated,
             )
+            if opportunity and row["status"] in ("empty", "evaluated"):
+                self.opportunity_selector.completed(current)
         finally:
             finished = self.timer()
             row["seconds"] = finished - started
+            if opportunity and selected_region is not None:
+                self.opportunity_selector.charge(selected_region, row["seconds"])
+                row.update(
+                    region_full_cost_totals=tuple(
+                        self.opportunity_selector.accounting.region_seconds
+                    ),
+                    region_accounting="full_call_including_selection",
+                )
             if service_started is not None:
                 service_seconds = finished - service_started
                 region = SEGMENTS.index(segment)

@@ -94,6 +94,8 @@ class PolishSelector:
         context: NormalizationContext,
         lambdas: tuple[tuple[float, float], ...],
         rng: Random,
+        *,
+        diagnose_directions: bool = True,
     ) -> Selection:
         """Select from the shared pool using an explicit, selection-only RNG.
 
@@ -105,13 +107,16 @@ class PolishSelector:
             raise ValueError("Unknown external right-shift selection policy")
         pool = candidate_pool(population, endpoint)
         regions: list[list[int]] = [[] for _ in SEGMENTS]
-        directions: list[list[int]] = [[] for _ in lambdas]
+        directions: list[list[int]] = (
+            [[] for _ in lambdas] if diagnose_directions or policy == "direction" else []
+        )
         labels = []
         for i, candidate in enumerate(pool):
             region = segment_of(frame.normalize(candidate.evaluation.objectives))
-            direction = associate(context.normalize(candidate), lambdas)
+            direction = associate(context.normalize(candidate), lambdas) if directions else -1
             regions[region].append(i)
-            directions[direction].append(i)
+            if directions:
+                directions[direction].append(i)
             labels.append((region, direction))
         if policy == "pool_random":
             chosen = rng.randrange(len(pool))
