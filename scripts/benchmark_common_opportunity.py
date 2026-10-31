@@ -18,7 +18,7 @@ from geo_llm_scheduler.lsv2.common_refine import ReusedCommonPolish, _CalendarSe
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves
 from geo_llm_scheduler.lsv2.frontier import FrozenFrame
 from geo_llm_scheduler.lsv2.group_polish import ConcurrentRightShiftPolish, _Search
-from geo_llm_scheduler.lsv2.polish_selection import PolishSelector
+from geo_llm_scheduler.lsv2.polish_selection import PolishSelector, candidate_pool
 from geo_llm_scheduler.moead.core import NormalizationContext, weights
 
 
@@ -216,7 +216,8 @@ def main() -> None:
                     full_directions=full,
                     seconds=duration,
                     calls=100,
-                    pool_size=len(candidates),
+                    raw_input_records=len(candidates),
+                    pool_size=len(candidate_pool(candidates, candidates[0])),
                 )
             )
         atomic_json(args.out, dict(accepted=False, rows=rows))
