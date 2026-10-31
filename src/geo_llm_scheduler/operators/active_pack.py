@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
+from geo_llm_scheduler.operators.packing_proxy import PackingBillProxy
 from geo_llm_scheduler.scheduling.timing import move, packing_moves
 
 Move = tuple[int, float, float, float]
@@ -14,21 +15,31 @@ Move = tuple[int, float, float, float]
 def rank_crowding(moves: list[Move]) -> tuple[dict[int, int], dict[int, float]]:
     """Nondominated layers for gain maximization and Flow-delta minimization."""
     remaining = set(range(len(moves)))
+    dominators = [0] * len(moves)
+    dominated: list[list[int]] = [[] for _ in moves]
+    # The original peeling recomputed the same pairwise relation on every
+    # layer. Build it once; sorted fronts retain the original crowding ties.
+    for i in range(len(moves)):
+        for j in range(i + 1, len(moves)):
+            if (
+                moves[i][2] >= moves[j][2]
+                and moves[i][3] <= moves[j][3]
+                and (moves[i][2] > moves[j][2] or moves[i][3] < moves[j][3])
+            ):
+                dominated[i].append(j)
+                dominators[j] += 1
+            elif (
+                moves[j][2] >= moves[i][2]
+                and moves[j][3] <= moves[i][3]
+                and (moves[j][2] > moves[i][2] or moves[j][3] < moves[i][3])
+            ):
+                dominated[j].append(i)
+                dominators[i] += 1
     ranks: dict[int, int] = {}
     crowd: dict[int, float] = {}
     layer = 0
     while remaining:
-        front = [
-            i
-            for i in sorted(remaining)
-            if not any(
-                moves[j][2] >= moves[i][2]
-                and moves[j][3] <= moves[i][3]
-                and (moves[j][2] > moves[i][2] or moves[j][3] < moves[i][3])
-                for j in remaining
-                if i != j
-            )
-        ]
+        front = [i for i in sorted(remaining) if dominators[i] == 0]
         for i in front:
             ranks[i] = layer
             crowd[i] = 0.0
@@ -46,6 +57,9 @@ def rank_crowding(moves: list[Move]) -> tuple[dict[int, int], dict[int, float]]:
                             moves[order[k + 1]][dim] - moves[order[k - 1]][dim]
                         ) / span
         remaining.difference_update(front)
+        for i in front:
+            for j in dominated[i]:
+                dominators[j] -= 1
         layer += 1
     return ranks, crowd
 
@@ -61,17 +75,34 @@ class PackingAudit:
 
 
 def select_packing_moves(
-    problem: ProblemInstance, incumbent: Candidate, budget: int, rng: random.Random
+    problem: ProblemInstance,
+    incumbent: Candidate,
+    budget: int,
+    rng: random.Random,
+    *,
+    representative_policy: str = "compression",
 ) -> PackingAudit:
-    """Expose existing A7 filtering stages without changing draws or move order."""
+    """Expose A7 stages; opt-in bill_proxy changes only the first representative."""
+    if representative_policy not in ("compression", "bill_proxy"):
+        raise ValueError("Unknown experimental A7 representative policy")
     all_moves = packing_moves(problem, incumbent.genotype, incumbent.schedule)
+    proxy = PackingBillProxy(problem, incumbent) if representative_policy == "bill_proxy" else None
     representatives = []
+    by_operation: dict[int, list[Move]] = {}
+    for item in all_moves:
+        by_operation.setdefault(item[0], []).append(item)
     for o in range(problem.operation_count):
-        available = [m for m in all_moves if m[0] == o]
+        available = by_operation.get(o, [])
         if not available:
             continue
         old = incumbent.schedule.starts[o]
-        first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
+        if proxy is None:
+            first = min(available, key=lambda m: (-m[2], m[3], abs(m[1] - old), m[1]))
+        else:
+            first = min(
+                available,
+                key=lambda m: (proxy.score(o, m[1]), -m[2], m[3], abs(m[1] - old), m[1]),
+            )
         representatives.append(first)
         available.remove(first)
         if available:
@@ -85,8 +116,11 @@ def select_packing_moves(
         return ranks[i], -crowd[i], tie[i]
 
     primary = []
+    by_representative: dict[int, list[int]] = {}
+    for i, item in enumerate(representatives):
+        by_representative.setdefault(item[0], []).append(i)
     for o in range(problem.operation_count):
-        indices = [i for i, m in enumerate(representatives) if m[0] == o]
+        indices = by_representative.get(o, [])
         if indices:
             primary.append(min(indices, key=key))
     pool = sorted(primary, key=key)[: 2 * budget]
@@ -115,7 +149,9 @@ class ActivePack:
         rng: random.Random,
     ) -> ProposalBatch:
         """Prescreen at most two moves per operation, then sample from a 2B pool."""
-        audit = select_packing_moves(problem, incumbent, budget, rng)
+        audit = select_packing_moves(
+            problem, incumbent, budget, rng, representative_policy=config.a7_representative_policy
+        )
         proposals = []
         for o, t, _, _ in audit.selected:
             schedule = move(problem, incumbent.genotype, incumbent.schedule, o, t)

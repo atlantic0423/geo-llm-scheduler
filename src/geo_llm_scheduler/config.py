@@ -15,6 +15,10 @@ class Config:
     neighborhood: int = 20
     neighbor_probability: float = 0.90
     replacement_cap: int = 2
+    offspring_policy: str = "variation"  # P2 only; default preserves the current algorithm
+    clone_probability: float = 0.20  # provisional CG/CT working value
+    replacement_policy: str = "birth"  # P2: birth, permuted, direction
+    a7_representative_policy: str = "compression"  # P2: compression or bill_proxy
     crossover_probability: float = 0.90
     mutation_probability: float = 0.20
     mutation_weights: tuple[float, ...] = (0.4, 0.4, 0.2)
@@ -28,6 +32,8 @@ class Config:
     budgets: tuple[int, ...] = (3, 6, 10)
     severity_budget_cutoffs: tuple[float, float] = (1.0, 2.0)
     action_mask_policy: str = "none"
+    rl_state_policy: str = "dominant"  # D7: dominant, pooled, compound
+    a3_region_policy: str = "load"  # D7: load or tariff; exact acceptance unchanged
     a8_singleton_attempts: int = 2
     a8_member_cap: int = 8
     a8_position_limit: int = 6
@@ -35,6 +41,9 @@ class Config:
     generations: int = 2
     seconds: float | None = None
     exact_evaluation_cap: int | None = None  # E15 equal-exact-evaluation protocol
+    # Engineering LRU of structural SSGS+exact results; default for all new batches
+    # since 2026-10-26 (bit-identical results, 1.00-1.13x faster). 0 disables.
+    decode_cache_size: int = 2048
     seed: int = 1
     method: str = "plain"
     controller: str = "qlearning"
@@ -75,6 +84,8 @@ class Config:
         )
         if any(type(v) is not int or v < 1 for v in positive_counts):
             raise ValueError("Counts must be positive integers")
+        if type(self.decode_cache_size) is not int or self.decode_cache_size < 0:
+            raise ValueError("Decode cache size must be a non-negative integer")
         if self.seconds is not None and (not isfinite(self.seconds) or self.seconds <= 0):
             raise ValueError("Wall-clock budget must be finite and positive")
         if self.exact_evaluation_cap is not None and (
@@ -92,6 +103,31 @@ class Config:
             raise ValueError("Two finite, positive, increasing severity budget cutoffs required")
         if self.action_mask_policy not in ("none", "no_a6", "no_a4a5", "no_a4a5a6"):
             raise ValueError("Unknown experimental action mask policy")
+        if self.rl_state_policy not in ("dominant", "pooled", "compound"):
+            raise ValueError("Unknown RL state policy")
+        if self.a3_region_policy not in ("load", "tariff"):
+            raise ValueError("Unknown A3 region policy")
+        if self.rl_state_policy != "dominant" and self.action_mask_policy != "none":
+            raise ValueError("Historical action masks require the dominant state encoding")
+        if self.method != "full" and (
+            self.rl_state_policy != "dominant" or self.a3_region_policy != "load"
+        ):
+            raise ValueError("D7 experimental mechanisms require method=full")
+        if self.offspring_policy not in ("variation", "genotype_clone", "phenotype_clone"):
+            raise ValueError("Unknown experimental offspring policy")
+        if self.replacement_policy not in ("birth", "permuted", "direction"):
+            raise ValueError("Unknown experimental replacement policy")
+        if self.a7_representative_policy not in ("compression", "bill_proxy"):
+            raise ValueError("Unknown experimental A7 representative policy")
+        if self.method != "full" and (
+            self.offspring_policy != "variation"
+            or (
+                self.replacement_policy != "birth"
+                and not (self.method == "plain" and self.replacement_policy == "permuted")
+            )
+            or self.a7_representative_policy != "compression"
+        ):
+            raise ValueError("P2 experimental mechanisms require method=full")
         if self.method not in (
             "plain",
             "full",
@@ -161,6 +197,7 @@ class Config:
             self.initialization_perturbation,
             self.fixed_ls_probability,
             self.a6_destroy_ratio,
+            self.clone_probability,
         ):
             if not 0 <= value <= 1:
                 raise ValueError("Probability outside [0,1]")
