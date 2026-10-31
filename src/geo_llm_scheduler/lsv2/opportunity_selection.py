@@ -25,6 +25,7 @@ OPPORTUNITY_POLICIES = (
     "eligible_region",
     "fresh_region",
     "frontier_region",
+    "eligible_direction",
     "fresh_direction",
 )
 
@@ -56,6 +57,9 @@ class OpportunitySelector:
         """Choose one non-certified input, or None when no opportunity remains."""
         if policy not in OPPORTUNITY_POLICIES:
             raise ValueError("Unknown opportunity selection policy")
+        direction_policy = policy in ("eligible_direction", "fresh_direction")
+        if direction_policy and not lambdas:
+            raise ValueError("Direction selection requires nonempty weights")
         pool = candidate_pool(population, endpoint)
         keys = {physical_key(c) for c in pool}
         self.visits = {k: v for k, v in self.visits.items() if k in keys}
@@ -64,12 +68,12 @@ class OpportunitySelector:
             raw_pool_size=len(pool),
             eligible_pool_size=len(eligible),
             certified_empty_excluded=len(pool) - len(eligible),
-            direction_diagnostics=policy == "fresh_direction",
+            direction_diagnostics=direction_policy,
         )
         if not eligible:
             return None
         regions: list[list[int]] = [[], [], []]
-        directions: list[list[int]] = [[] for _ in lambdas] if policy == "fresh_direction" else []
+        directions: list[list[int]] = [[] for _ in lambdas] if direction_policy else []
         labels = []
         for i, c in enumerate(eligible):
             region = segment_of(frame.normalize(c.evaluation.objectives))
@@ -80,7 +84,7 @@ class OpportunitySelector:
             labels.append((region, direction))
         if policy == "eligible_random":
             candidates = list(range(len(eligible)))
-        elif policy == "fresh_direction":
+        elif direction_policy:
             group = next(
                 (self.accounting.direction_cursor + k) % len(lambdas)
                 for k in range(len(lambdas))
@@ -120,7 +124,7 @@ class OpportunitySelector:
                     if j != i
                 )
             ]
-        if policy == "fresh_direction":
+        if direction_policy:
             scores = {i: context.scalar(eligible[i], lambdas[group]) for i in candidates}
             minimum_score = min(scores.values())
             chosen = min(
