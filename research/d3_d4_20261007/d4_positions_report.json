@@ -1,0 +1,3016 @@
+{
+  "role": "positions",
+  "source_commit": "46bcb3385b39969b82b46b2b46fe13136d1badad",
+  "source_hash": "6dbbb9cdd2702b60cd36205eae3d461dd097149eca81bddb336e6134a7d05469",
+  "keys": 192,
+  "bases": 32,
+  "observations": 82944,
+  "units": 13824,
+  "hosts": [
+    "196ec6b261f1"
+  ],
+  "audit_counts": {
+    "total": 1401166,
+    "source_exact": 82944,
+    "repaired_exact": 1075677,
+    "proposal_exact": 242545,
+    "independent_certificate": 0
+  },
+  "false_veto": 0,
+  "output_pairs": 82944,
+  "reference_nonempty_recipes": 487063,
+  "stages": {
+    "RANDOM_SCORED": {
+      "peak_gate": 292133,
+      "resource_positions": 124762,
+      "proposal": 68434,
+      "duplicate": 1734
+    },
+    "PEAK_RANK": {
+      "peak_gate": 240970,
+      "resource_positions": 120846,
+      "proposal": 105677,
+      "duplicate": 4428
+    },
+    "REFERENCE": {
+      "peak_gate": 292133,
+      "resource_positions": 124762,
+      "proposal": 68434,
+      "duplicate": 1734
+    }
+  },
+  "veto_reference": {},
+  "summaries": {
+    "all": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017015238550395453,
+          "wall": 0.017016310296055985,
+          "proposals": 1.2740764853395063,
+          "nonempty": 0.5715543016975309,
+          "positive": 0.14999276620370372,
+          "gain": 0.003004716654927576,
+          "recipes": 5.689633969907408,
+          "repaired": 4.23267505787037,
+          "certificate": 0.0,
+          "attempts": 5.689633969907408,
+          "flow_percent_gain": -0.33715402948455764,
+          "bill_percent_gain": 0.15700542508110818
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0006846192436723909,
+          "ci": [
+            0.0006039346550518014,
+            0.0007698329454985999
+          ],
+          "positive_bases": 32
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1408420138888889,
+          "ci": [
+            0.12120225694444443,
+            0.16098813657407407
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.029875578703703703,
+          "ci": [
+            0.02693383487654321,
+            0.032684702932098755
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005186612646689346,
+          "ci": [
+            -0.005528129825193511,
+            -0.004849227470861078
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005186854695351446,
+          "ci": [
+            -0.005528370169839844,
+            -0.004849470989516524
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -47.36873615997416,
+          "ci": [
+            -51.02540650829268,
+            -43.70169855620618
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01771037790579185,
+          "wall": 0.01771145721797865,
+          "proposals": 0.8250626929012346,
+          "nonempty": 0.430712287808642,
+          "positive": 0.1201171875,
+          "gain": 0.0023200974112551846,
+          "recipes": 5.872190875771604,
+          "repaired": 4.368019386574074,
+          "certificate": 0.0,
+          "attempts": 5.872190875771604,
+          "flow_percent_gain": -0.25257994894843266,
+          "bill_percent_gain": 0.11801214788983
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005881752002085745,
+          "ci": [
+            -0.006218967516492734,
+            -0.0055430837837254785
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005882001617274112,
+          "ci": [
+            -0.006219285307666262,
+            -0.00554326425877061
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -54.30151706783698,
+          "ci": [
+            -59.04557943175006,
+            -49.58558835313418
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011828625903706105,
+          "wall": 0.011829455600704539,
+          "proposals": 0.8250626929012346,
+          "nonempty": 0.430712287808642,
+          "positive": 0.1201171875,
+          "gain": 0.0023200974112551846,
+          "recipes": 5.872190875771604,
+          "repaired": 4.368019386574074,
+          "certificate": 0.0,
+          "attempts": 5.872190875771604,
+          "flow_percent_gain": -0.25257994894843266,
+          "bill_percent_gain": 0.11801214788983
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "n100": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.02205662799782987,
+          "wall": 0.02205802231183492,
+          "proposals": 1.1005497685185186,
+          "nonempty": 0.5087046682098766,
+          "positive": 0.18831983024691357,
+          "gain": 0.003951258124704676,
+          "recipes": 5.7399932484567895,
+          "repaired": 3.4343171296296298,
+          "certificate": 0.0,
+          "attempts": 5.7399932484567895,
+          "flow_percent_gain": -0.39439062080603543,
+          "bill_percent_gain": 0.17362760333559307
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0007273024607562929,
+          "ci": [
+            0.0006533085060404678,
+            0.0008209883823968559
+          ],
+          "positive_bases": 16
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.09073591820987653,
+          "ci": [
+            0.08379147376543211,
+            0.09746334876543208
+          ],
+          "positive_bases": 16
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.029079861111111105,
+          "ci": [
+            0.02551118827160493,
+            0.0327932098765432
+          ],
+          "positive_bases": 16
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": -0.006013935179108803,
+          "ci": [
+            -0.0062825837631931905,
+            -0.005760789236487292
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": -0.006014302694601622,
+          "ci": [
+            -0.006282916411514578,
+            -0.005761194631705387
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": -37.578238005042735,
+          "ci": [
+            -39.115507455102644,
+            -36.053436196875175
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.022681299923104737,
+          "wall": 0.02268265258921199,
+          "proposals": 0.8058690200617284,
+          "nonempty": 0.41796875,
+          "positive": 0.1592399691358025,
+          "gain": 0.003223955663948384,
+          "recipes": 5.86646412037037,
+          "repaired": 3.50537712191358,
+          "certificate": 0.0,
+          "attempts": 5.86646412037037,
+          "flow_percent_gain": -0.3288933019457478,
+          "bill_percent_gain": 0.14000894831358227
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": -0.0066386071043836705,
+          "ci": [
+            -0.006938595862602426,
+            -0.006348467869634368
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": -0.006638932971978692,
+          "ci": [
+            -0.006938909767049389,
+            -0.00634875449433237
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": -41.42811342570757,
+          "ci": [
+            -42.820766010856374,
+            -40.03129517540028
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.016042692818721067,
+          "wall": 0.016043719617233297,
+          "proposals": 0.8058690200617284,
+          "nonempty": 0.41796875,
+          "positive": 0.1592399691358025,
+          "gain": 0.003223955663948384,
+          "recipes": 5.86646412037037,
+          "repaired": 3.50537712191358,
+          "certificate": 0.0,
+          "attempts": 5.86646412037037,
+          "flow_percent_gain": -0.3288933019457478,
+          "bill_percent_gain": 0.14000894831358227
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "n50": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.011973849102961034,
+          "wall": 0.011974598280277051,
+          "proposals": 1.4476032021604939,
+          "nonempty": 0.6344039351851852,
+          "positive": 0.11166570216049383,
+          "gain": 0.0020581751851504746,
+          "recipes": 5.639274691358025,
+          "repaired": 5.031032986111111,
+          "certificate": 0.0,
+          "attempts": 5.639274691358025,
+          "flow_percent_gain": -0.2799174381630799,
+          "bill_percent_gain": 0.14038324682662331
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0006419360265884889,
+          "ci": [
+            0.0005067436800985918,
+            0.0007837443121937976
+          ],
+          "positive_bases": 16
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.19094810956790126,
+          "ci": [
+            0.17170621141975312,
+            0.20980420524691357
+          ],
+          "positive_bases": 16
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.030671296296296297,
+          "ci": [
+            0.02621045524691358,
+            0.03481867283950617
+          ],
+          "positive_bases": 16
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": -0.00435929011426989,
+          "ci": [
+            -0.0046123614590778475,
+            -0.004111739429521748
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": -0.00435940669610127,
+          "ci": [
+            -0.004612483441385646,
+            -0.004111816366744672
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": -57.159234314905596,
+          "ci": [
+            -59.78868303792768,
+            -54.628380363127825
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.012739455888478963,
+          "wall": 0.012740261846745314,
+          "proposals": 0.8442563657407407,
+          "nonempty": 0.4434558256172839,
+          "positive": 0.08099440586419752,
+          "gain": 0.001416239158561986,
+          "recipes": 5.87791763117284,
+          "repaired": 5.230661651234567,
+          "certificate": 0.0,
+          "attempts": 5.87791763117284,
+          "flow_percent_gain": -0.1762665959511176,
+          "bill_percent_gain": 0.09601534746607773
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": -0.005124896899787819,
+          "ci": [
+            -0.005431388672594183,
+            -0.004820576174176557
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": -0.005125070262569532,
+          "ci": [
+            -0.005431582512459567,
+            -0.004820692236822696
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": -67.1749207099664,
+          "ci": [
+            -70.26498884404998,
+            -64.06973630533575
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.007614558988691143,
+          "wall": 0.007615191584175782,
+          "proposals": 0.8442563657407407,
+          "nonempty": 0.4434558256172839,
+          "positive": 0.08099440586419752,
+          "gain": 0.001416239158561986,
+          "recipes": 5.87791763117284,
+          "repaired": 5.230661651234567,
+          "certificate": 0.0,
+          "attempts": 5.87791763117284,
+          "flow_percent_gain": -0.1762665959511176,
+          "bill_percent_gain": 0.09601534746607773
+        },
+        "gain_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 16,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_0": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.016074135513020834,
+          "wall": 0.01607523124999312,
+          "proposals": 1.6465928819444444,
+          "nonempty": 0.7086588541666667,
+          "positive": 0.1906467013888889,
+          "gain": 0.0022763991112785837,
+          "recipes": 5.587022569444445,
+          "repaired": 4.383897569444445,
+          "certificate": 0.0,
+          "attempts": 5.587022569444445,
+          "flow_percent_gain": -0.3230410731522898,
+          "bill_percent_gain": 0.2073127040461527
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0003700161023842167,
+          "ci": [
+            0.00027573896755589275,
+            0.00046537442214855315
+          ],
+          "positive_bases": 30
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1351996527777778,
+          "ci": [
+            0.11328125,
+            0.158203125
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.025716145833333336,
+          "ci": [
+            0.019205729166666664,
+            0.032443576388888895
+          ],
+          "positive_bases": 29
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0042575346624348955,
+          "ci": [
+            -0.004593689994642471,
+            -0.003924790546386712
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.00425779692523065,
+          "ci": [
+            -0.004593942189040313,
+            -0.003925069650651696
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -39.65869923047566,
+          "ci": [
+            -43.98060873735169,
+            -35.54851722377812
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.016901324432725698,
+          "wall": 0.016902345274906513,
+          "proposals": 1.1520182291666667,
+          "nonempty": 0.573459201388889,
+          "positive": 0.16493055555555555,
+          "gain": 0.0019063830088943672,
+          "recipes": 5.811414930555555,
+          "repaired": 4.559244791666667,
+          "certificate": 0.0,
+          "attempts": 5.811414930555555,
+          "flow_percent_gain": -0.2819362967768686,
+          "bill_percent_gain": 0.17003651374110357
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005084723582139758,
+          "ci": [
+            -0.005401130599720598,
+            -0.004771692885023328
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005084910950144048,
+          "ci": [
+            -0.005401212093839704,
+            -0.00477187762566397
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -48.09868636552308,
+          "ci": [
+            -53.36282677667589,
+            -42.94039856145416
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011816600850585939,
+          "wall": 0.011817434324762467,
+          "proposals": 1.1520182291666667,
+          "nonempty": 0.573459201388889,
+          "positive": 0.16493055555555555,
+          "gain": 0.0019063830088943672,
+          "recipes": 5.811414930555555,
+          "repaired": 4.559244791666667,
+          "certificate": 0.0,
+          "attempts": 5.811414930555555,
+          "flow_percent_gain": -0.2819362967768686,
+          "bill_percent_gain": 0.17003651374110357
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_1": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.01644736200206163,
+          "wall": 0.016448348149828637,
+          "proposals": 1.5715060763888888,
+          "nonempty": 0.6796875,
+          "positive": 0.24131944444444445,
+          "gain": 0.004707539167269816,
+          "recipes": 5.5859375,
+          "repaired": 4.344292534722222,
+          "certificate": 0.0,
+          "attempts": 5.5859375,
+          "flow_percent_gain": -0.431272465217278,
+          "bill_percent_gain": 0.2505043210093202
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0008423665746308645,
+          "ci": [
+            0.0006701431815158564,
+            0.0010278755393102123
+          ],
+          "positive_bases": 32
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.12901475694444448,
+          "ci": [
+            0.10666232638888891,
+            0.1521267361111111
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.03710937499999999,
+          "ci": [
+            0.03059895833333333,
+            0.04394531249999999
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.004438409082465266,
+          "ci": [
+            -0.00477129368066404,
+            -0.0041170471834716645
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.004438594946400877,
+          "ci": [
+            -0.00477146515614398,
+            -0.004117246226799883
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -40.64881498797402,
+          "ci": [
+            -44.50027503911572,
+            -36.85273725626122
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01729513750998262,
+          "wall": 0.017296128496329603,
+          "proposals": 1.0838758680555554,
+          "nonempty": 0.5506727430555556,
+          "positive": 0.20421006944444445,
+          "gain": 0.003865172592638952,
+          "recipes": 5.820746527777778,
+          "repaired": 4.511284722222222,
+          "certificate": 0.0,
+          "attempts": 5.820746527777778,
+          "flow_percent_gain": -0.36953704196043724,
+          "bill_percent_gain": 0.20606275034074667
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0052861845903862574,
+          "ci": [
+            -0.005622973574020684,
+            -0.004955927224408619
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005286375292901842,
+          "ci": [
+            -0.005623180702180737,
+            -0.004956124133764206
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -48.7914786425926,
+          "ci": [
+            -53.482283652468475,
+            -44.1311998489778
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.012008952919596362,
+          "wall": 0.012009753203427762,
+          "proposals": 1.0838758680555554,
+          "nonempty": 0.5506727430555556,
+          "positive": 0.20421006944444445,
+          "gain": 0.003865172592638952,
+          "recipes": 5.820746527777778,
+          "repaired": 4.511284722222222,
+          "certificate": 0.0,
+          "attempts": 5.820746527777778,
+          "flow_percent_gain": -0.36953704196043724,
+          "bill_percent_gain": 0.20606275034074667
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_2": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.016913260857421866,
+          "wall": 0.016914258462646912,
+          "proposals": 1.4572482638888888,
+          "nonempty": 0.6434461805555556,
+          "positive": 0.3740234375,
+          "gain": 0.011829707243152979,
+          "recipes": 5.618272569444445,
+          "repaired": 4.250108506944445,
+          "certificate": 0.0,
+          "attempts": 5.618272569444445,
+          "flow_percent_gain": -1.16575325458092,
+          "bill_percent_gain": 0.45001866469483176
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0027327595125504144,
+          "ci": [
+            0.0022262190564831417,
+            0.0033018315361611505
+          ],
+          "positive_bases": 32
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1545138888888889,
+          "ci": [
+            0.12977430555555555,
+            0.18055555555555552
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.08213975694444445,
+          "ci": [
+            0.07052951388888888,
+            0.09418402777777778
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.004912573062717012,
+          "ci": [
+            -0.005402884305512151,
+            -0.004488901459711366
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.004912694670262377,
+          "ci": [
+            -0.005403113015998113,
+            -0.004489018835677903
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -45.11375930050285,
+          "ci": [
+            -49.907668491364326,
+            -40.33425039896158
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.0177241216185981,
+          "wall": 0.017725157090656772,
+          "proposals": 0.9705946180555556,
+          "nonempty": 0.4889322916666667,
+          "positive": 0.2918836805555555,
+          "gain": 0.009096947730602562,
+          "recipes": 5.829210069444445,
+          "repaired": 4.406684027777778,
+          "certificate": 0.0,
+          "attempts": 5.829210069444445,
+          "flow_percent_gain": -0.8538692522795609,
+          "bill_percent_gain": 0.3278986806753803
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005723433823893248,
+          "ci": [
+            -0.0062261266056695295,
+            -0.005268185623239487
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005723593298272236,
+          "ci": [
+            -0.00622632792800333,
+            -0.005268245737842234
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -52.34442333072441,
+          "ci": [
+            -57.501427085241986,
+            -47.24222112020125
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.012000687794704853,
+          "wall": 0.012001563792384533,
+          "proposals": 0.9705946180555556,
+          "nonempty": 0.4889322916666667,
+          "positive": 0.2918836805555555,
+          "gain": 0.009096947730602562,
+          "recipes": 5.829210069444445,
+          "repaired": 4.406684027777778,
+          "certificate": 0.0,
+          "attempts": 5.829210069444445,
+          "flow_percent_gain": -0.8538692522795609,
+          "bill_percent_gain": 0.3278986806753803
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_3": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.01620770236024307,
+          "wall": 0.016208806415104644,
+          "proposals": 1.4929470486111112,
+          "nonempty": 0.6534288194444444,
+          "positive": 0.0341796875,
+          "gain": 9.099784083308764e-05,
+          "recipes": 5.594075520833334,
+          "repaired": 4.271050347222222,
+          "certificate": 0.0,
+          "attempts": 5.594075520833334,
+          "flow_percent_gain": -0.027710727300754877,
+          "bill_percent_gain": 0.03059349816500267
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 1.3738085517233428e-05,
+          "ci": [
+            5.106950346613158e-06,
+            2.251902315165534e-05
+          ],
+          "positive_bases": 23
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.14073350694444445,
+          "ci": [
+            0.11783854166666669,
+            0.1646050347222222
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0021701388888888886,
+          "ci": [
+            -0.00043402777777777743,
+            0.004774305555555555
+          ],
+          "positive_bases": 17
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.004593415514756971,
+          "ci": [
+            -0.005136439796652666,
+            -0.0040669979979438275
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.004593542760934119,
+          "ci": [
+            -0.005136612410673378,
+            -0.004067154841398709
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -41.375703503782745,
+          "ci": [
+            -44.80519427248075,
+            -38.03366230988023
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.017042283067599834,
+          "wall": 0.017043477662506728,
+          "proposals": 1.0152994791666665,
+          "nonempty": 0.5126953125,
+          "positive": 0.03200954861111111,
+          "gain": 7.725975531585421e-05,
+          "recipes": 5.827690972222222,
+          "repaired": 4.458441840277779,
+          "certificate": 0.0,
+          "attempts": 5.827690972222222,
+          "flow_percent_gain": -0.02463450451751719,
+          "bill_percent_gain": 0.02734068211953813
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005427996222113737,
+          "ci": [
+            -0.005935675842898248,
+            -0.004929468460145419
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005428214008336201,
+          "ci": [
+            -0.005936019823664335,
+            -0.004929607086506217
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -50.3054368440752,
+          "ci": [
+            -54.99522390959752,
+            -45.61530028414303
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011614286845486096,
+          "wall": 0.011615263654170524,
+          "proposals": 1.0152994791666665,
+          "nonempty": 0.5126953125,
+          "positive": 0.03200954861111111,
+          "gain": 7.725975531585421e-05,
+          "recipes": 5.827690972222222,
+          "repaired": 4.458441840277779,
+          "certificate": 0.0,
+          "attempts": 5.827690972222222,
+          "flow_percent_gain": -0.02463450451751719,
+          "bill_percent_gain": 0.02734068211953813
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_4": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017163739237847232,
+          "wall": 0.01716499471836465,
+          "proposals": 1.1674262152777777,
+          "nonempty": 0.5372178819444444,
+          "positive": 0.0791015625,
+          "gain": 0.0010647871839284246,
+          "recipes": 5.740668402777777,
+          "repaired": 4.201063368055555,
+          "certificate": 0.0,
+          "attempts": 5.740668402777777,
+          "flow_percent_gain": -0.09054501211225169,
+          "bill_percent_gain": 0.07251890803830373
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0002668933589874999,
+          "ci": [
+            0.00018743477141858393,
+            0.00035729535106545404
+          ],
+          "positive_bases": 30
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.14518229166666669,
+          "ci": [
+            0.12402343749999999,
+            0.1677517361111111
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.016276041666666664,
+          "ci": [
+            0.01117621527777778,
+            0.021484375
+          ],
+          "positive_bases": 26
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005465483979275205,
+          "ci": [
+            -0.005982653178225434,
+            -0.004996030466322189
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005465812902002654,
+          "ci": [
+            -0.005983274873435423,
+            -0.0049963099498856745
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -49.72862777975095,
+          "ci": [
+            -53.63785999122549,
+            -45.7175568252286
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01779835755523001,
+          "wall": 0.01779967057074019,
+          "proposals": 0.7347005208333333,
+          "nonempty": 0.3920355902777778,
+          "positive": 0.06282552083333334,
+          "gain": 0.0007978938249409246,
+          "recipes": 5.899522569444445,
+          "repaired": 4.315321180555555,
+          "certificate": 0.0,
+          "attempts": 5.899522569444445,
+          "flow_percent_gain": -0.07398858186620655,
+          "bill_percent_gain": 0.05473514021626581
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.00610010229665798,
+          "ci": [
+            -0.006591924938015453,
+            -0.0056536277333794046
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.006100488754378198,
+          "ci": [
+            -0.0065922742720532475,
+            -0.005653982110445416
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -56.40817286596146,
+          "ci": [
+            -61.50759387349382,
+            -51.2943017876437
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.01169825525857203,
+          "wall": 0.011699181816361993,
+          "proposals": 0.7347005208333333,
+          "nonempty": 0.3920355902777778,
+          "positive": 0.06282552083333334,
+          "gain": 0.0007978938249409246,
+          "recipes": 5.899522569444445,
+          "repaired": 4.315321180555555,
+          "certificate": 0.0,
+          "attempts": 5.899522569444445,
+          "flow_percent_gain": -0.07398858186620655,
+          "bill_percent_gain": 0.05473514021626581
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_5": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017826260348524324,
+          "wall": 0.017827539880878856,
+          "proposals": 0.9535590277777778,
+          "nonempty": 0.4594184027777778,
+          "positive": 0.12337239583333333,
+          "gain": 0.0020785297658441615,
+          "recipes": 5.814127604166667,
+          "repaired": 4.078125,
+          "certificate": 0.0,
+          "attempts": 5.814127604166667,
+          "flow_percent_gain": -0.28356382920580425,
+          "bill_percent_gain": 0.11788978600969655
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0006214663400555952,
+          "ci": [
+            0.00044550005841941616,
+            0.0008320052856893302
+          ],
+          "positive_bases": 31
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1484375,
+          "ci": [
+            0.1257595486111111,
+            0.1730685763888889
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.033203125,
+          "ci": [
+            0.02647569444444444,
+            0.04036458333333333
+          ],
+          "positive_bases": 31
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.006006216101562507,
+          "ci": [
+            -0.006483401584217673,
+            -0.005538829009733135
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.0060066774789851885,
+          "ci": [
+            -0.006484031616259422,
+            -0.00553913071896659
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -54.49083724067023,
+          "ci": [
+            -58.98621998669477,
+            -50.11502592386251
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.018353339710503423,
+          "wall": 0.018354573043527327,
+          "proposals": 0.5496961805555556,
+          "nonempty": 0.31098090277777773,
+          "positive": 0.09016927083333333,
+          "gain": 0.0014570634257885665,
+          "recipes": 5.9306640625,
+          "repaired": 4.155056423611111,
+          "certificate": 0.0,
+          "attempts": 5.9306640625,
+          "flow_percent_gain": -0.2008977893211415,
+          "bill_percent_gain": 0.07611518355876537
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.006533295463541608,
+          "ci": [
+            -0.007003049157839585,
+            -0.006070459069219238
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.006533710641633661,
+          "ci": [
+            -0.0070034831483730565,
+            -0.006070878964775753
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -59.6946275354276,
+          "ci": [
+            -64.75251406270577,
+            -54.671563810443196
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011820044246961816,
+          "wall": 0.011820862401893666,
+          "proposals": 0.5496961805555556,
+          "nonempty": 0.31098090277777773,
+          "positive": 0.09016927083333333,
+          "gain": 0.0014570634257885665,
+          "recipes": 5.9306640625,
+          "repaired": 4.155056423611111,
+          "certificate": 0.0,
+          "attempts": 5.9306640625,
+          "flow_percent_gain": -0.2008977893211415,
+          "bill_percent_gain": 0.07611518355876537
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_6": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017225772273329006,
+          "wall": 0.017226728921640542,
+          "proposals": 1.2904730902777777,
+          "nonempty": 0.5813802083333334,
+          "positive": 0.03786892361111111,
+          "gain": 0.00024888783968103156,
+          "recipes": 5.679470486111112,
+          "repaired": 4.360243055555555,
+          "certificate": 0.0,
+          "attempts": 5.679470486111112,
+          "flow_percent_gain": -0.02313588461272958,
+          "bill_percent_gain": 0.037144467630950355
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 4.571078658446928e-05,
+          "ci": [
+            1.5442421050473894e-05,
+            8.35547065949318e-05
+          ],
+          "positive_bases": 21
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1431206597222222,
+          "ci": [
+            0.1174045138888889,
+            0.1703559027777778
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0032552083333333335,
+          "ci": [
+            0.000651041666666667,
+            0.006184895833333334
+          ],
+          "positive_bases": 16
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.00521104616970492,
+          "ci": [
+            -0.005702767679375562,
+            -0.004736265071652649
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005211273316692517,
+          "ci": [
+            -0.005703040424365705,
+            -0.004736484943792777
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -46.43576864500098,
+          "ci": [
+            -51.07476842612188,
+            -42.13867402912991
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.017934287600260435,
+          "wall": 0.017935210099191558,
+          "proposals": 0.8279079861111112,
+          "nonempty": 0.43825954861111105,
+          "positive": 0.034613715277777776,
+          "gain": 0.00020317705309656233,
+          "recipes": 5.864691840277779,
+          "repaired": 4.510525173611111,
+          "certificate": 0.0,
+          "attempts": 5.864691840277779,
+          "flow_percent_gain": -0.018110766010469417,
+          "bill_percent_gain": 0.029094126777378434
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.00591956149663635,
+          "ci": [
+            -0.00639703526309679,
+            -0.005446770030363
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005919754494243534,
+          "ci": [
+            -0.006397253502963294,
+            -0.005446966315235437
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -53.59105748693915,
+          "ci": [
+            -59.12502280852302,
+            -48.289458018777786
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.012014726103624085,
+          "wall": 0.012015455604948025,
+          "proposals": 0.8279079861111112,
+          "nonempty": 0.43825954861111105,
+          "positive": 0.034613715277777776,
+          "gain": 0.00020317705309656233,
+          "recipes": 5.864691840277779,
+          "repaired": 4.510525173611111,
+          "certificate": 0.0,
+          "attempts": 5.864691840277779,
+          "flow_percent_gain": -0.018110766010469417,
+          "bill_percent_gain": 0.029094126777378434
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_7": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017451321113606817,
+          "wall": 0.01745233802648727,
+          "proposals": 1.0724826388888888,
+          "nonempty": 0.49446614583333337,
+          "positive": 0.0866970486111111,
+          "gain": 0.001270739002292261,
+          "recipes": 5.775824652777778,
+          "repaired": 4.215060763888889,
+          "certificate": 0.0,
+          "attempts": 5.775824652777778,
+          "flow_percent_gain": -0.12221959309611435,
+          "bill_percent_gain": 0.0758046469371565
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.00021539038341215124,
+          "ci": [
+            0.00012913718174207618,
+            0.000300842115798963
+          ],
+          "positive_bases": 29
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1391059027777778,
+          "ci": [
+            0.1120876736111111,
+            0.17024739583333331
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.015733506944444444,
+          "ci": [
+            0.010308159722222224,
+            0.021701388888888888
+          ],
+          "positive_bases": 27
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.00569126182052956,
+          "ci": [
+            -0.006139042527574287,
+            -0.005281753971473621
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005691554355002558,
+          "ci": [
+            -0.006139509285816934,
+            -0.005282013680766794
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -52.124218294473664,
+          "ci": [
+            -56.761163711621435,
+            -47.589187067757464
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01800899519097223,
+          "wall": 0.01801004106063273,
+          "proposals": 0.6434461805555556,
+          "nonempty": 0.3553602430555555,
+          "positive": 0.07096354166666666,
+          "gain": 0.0010553486188801097,
+          "recipes": 5.924370659722221,
+          "repaired": 4.319986979166667,
+          "certificate": 0.0,
+          "attempts": 5.924370659722221,
+          "flow_percent_gain": -0.10548419401027634,
+          "bill_percent_gain": 0.05996227460772137
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0062489358978949725,
+          "ci": [
+            -0.00666473181148266,
+            -0.005860008364002813
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.006249257389148018,
+          "ci": [
+            -0.006664994762468268,
+            -0.005860368899465762
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -57.982253233531615,
+          "ci": [
+            -63.609737097771195,
+            -52.355340842127646
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.01176005929307726,
+          "wall": 0.01176078367148471,
+          "proposals": 0.6434461805555556,
+          "nonempty": 0.3553602430555555,
+          "positive": 0.07096354166666666,
+          "gain": 0.0010553486188801097,
+          "recipes": 5.924370659722221,
+          "repaired": 4.319986979166667,
+          "certificate": 0.0,
+          "attempts": 5.924370659722221,
+          "flow_percent_gain": -0.10548419401027634,
+          "bill_percent_gain": 0.05996227460772137
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "panel_8": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.017827593247504332,
+          "wall": 0.017828546839559242,
+          "proposals": 0.814453125,
+          "nonempty": 0.3862847222222222,
+          "positive": 0.18272569444444448,
+          "gain": 0.0034748627400678377,
+          "recipes": 5.811306423611111,
+          "repaired": 3.990234375,
+          "certificate": 0.0,
+          "attempts": 5.811306423611111,
+          "flow_percent_gain": -0.5671444260828766,
+          "bill_percent_gain": 0.17126182919855906
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0010532320489290783,
+          "ci": [
+            0.0008781529368952738,
+            0.0012342940418263964
+          ],
+          "positive_bases": 32
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.1322699652777778,
+          "ci": [
+            0.10872395833333334,
+            0.15668674045138867
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.053276909722222224,
+          "ci": [
+            0.04481336805555555,
+            0.06174045138888889
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0061035734267578,
+          "ci": [
+            -0.00656109439053809,
+            -0.0056705675163656565
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.006103744902652074,
+          "ci": [
+            -0.006561314999428053,
+            -0.005670770449693113
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -56.1059047808901,
+          "ci": [
+            -61.04029437218828,
+            -51.213783339234034
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01833555446625433,
+          "wall": 0.018336511663316436,
+          "proposals": 0.44802517361111116,
+          "nonempty": 0.2540147569444445,
+          "positive": 0.1294487847222222,
+          "gain": 0.002421630691138759,
+          "recipes": 5.94140625,
+          "repaired": 4.075629340277779,
+          "certificate": 0.0,
+          "attempts": 5.94140625,
+          "flow_percent_gain": -0.3447611137934168,
+          "bill_percent_gain": 0.11086397897157038
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0066115346455078,
+          "ci": [
+            -0.007090621311314456,
+            -0.006157401417472324
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.006611709726409268,
+          "ci": [
+            -0.0070907763753767636,
+            -0.006157499932611345
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -60.89902261439872,
+          "ci": [
+            -66.23393382638814,
+            -55.52035283615283
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011724019820746532,
+          "wall": 0.01172480193690717,
+          "proposals": 0.44802517361111116,
+          "nonempty": 0.2540147569444445,
+          "positive": 0.1294487847222222,
+          "gain": 0.002421630691138759,
+          "recipes": 5.94140625,
+          "repaired": 4.075629340277779,
+          "certificate": 0.0,
+          "attempts": 5.94140625,
+          "flow_percent_gain": -0.3447611137934168,
+          "bill_percent_gain": 0.11086397897157038
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "tariff_H": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.016987251065321198,
+          "wall": 0.01698837616135683,
+          "proposals": 1.284601658950617,
+          "nonempty": 0.5714699074074074,
+          "positive": 0.14807581018518517,
+          "gain": 0.0029993344072722396,
+          "recipes": 5.675250771604938,
+          "repaired": 4.2299623842592595,
+          "certificate": 0.0,
+          "attempts": 5.675250771604938,
+          "flow_percent_gain": -0.31869201285316495,
+          "bill_percent_gain": 0.1536836913593724
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0006849854288272718,
+          "ci": [
+            0.0005730533365781315,
+            0.0008143371769421686
+          ],
+          "positive_bases": 32
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.13994984567901236,
+          "ci": [
+            0.11947820216049383,
+            0.16056616512345678
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.029562114197530864,
+          "ci": [
+            0.026668595679012343,
+            0.03272087191358025
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005179576035132161,
+          "ci": [
+            -0.005502343699253716,
+            -0.0048514755712161396
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.0051798190434954134,
+          "ci": [
+            -0.005502693782435376,
+            -0.004851722964477396
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -47.6903537704531,
+          "ci": [
+            -51.927199838488505,
+            -43.59260414422749
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.01770288286617477,
+          "wall": 0.017704026293291396,
+          "proposals": 0.833936149691358,
+          "nonempty": 0.4315200617283951,
+          "positive": 0.11851369598765432,
+          "gain": 0.0023143489784449678,
+          "recipes": 5.866825810185185,
+          "repaired": 4.3747588734567895,
+          "certificate": 0.0,
+          "attempts": 5.866825810185185,
+          "flow_percent_gain": -0.2339455518410203,
+          "bill_percent_gain": 0.11619293907757262
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005895207835985735,
+          "ci": [
+            -0.006220001291971082,
+            -0.005561582580474186
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005895469175429977,
+          "ci": [
+            -0.006220375675249311,
+            -0.005561815567917048
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -54.87895367535535,
+          "ci": [
+            -60.18055560390535,
+            -49.665915649961214
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011807675030189037,
+          "wall": 0.01180855711786142,
+          "proposals": 0.833936149691358,
+          "nonempty": 0.4315200617283951,
+          "positive": 0.11851369598765432,
+          "gain": 0.0023143489784449678,
+          "recipes": 5.866825810185185,
+          "repaired": 4.3747588734567895,
+          "certificate": 0.0,
+          "attempts": 5.866825810185185,
+          "flow_percent_gain": -0.2339455518410203,
+          "bill_percent_gain": 0.11619293907757262
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    },
+    "tariff_T": {
+      "PEAK_RANK": {
+        "means": {
+          "cpu": 0.01704322603546972,
+          "wall": 0.01704424443075514,
+          "proposals": 1.2635513117283952,
+          "nonempty": 0.5716386959876544,
+          "positive": 0.1519097222222222,
+          "gain": 0.0030100989025829113,
+          "recipes": 5.704017168209877,
+          "repaired": 4.235387731481481,
+          "certificate": 0.0,
+          "attempts": 5.704017168209877,
+          "flow_percent_gain": -0.35561604611595043,
+          "bill_percent_gain": 0.16032715880284393
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0006842530585175108,
+          "ci": [
+            0.000567389813792424,
+            0.0008053977338685222
+          ],
+          "positive_bases": 31
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.14173418209876543,
+          "ci": [
+            0.12111725983796295,
+            0.16418306327160495
+          ],
+          "positive_bases": 32
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.030189043209876542,
+          "ci": [
+            0.025945216049382717,
+            0.034408757716049385
+          ],
+          "positive_bases": 32
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.005193649258246539,
+          "ci": [
+            -0.0056025862028067095,
+            -0.004788806165877588
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005193890347207478,
+          "ci": [
+            -0.005602852413060499,
+            -0.004788979766653153
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -47.04879008662144,
+          "ci": [
+            -50.90051394673885,
+            -43.2760825514116
+          ],
+          "positive_bases": 0
+        }
+      },
+      "RANDOM_SCORED": {
+        "means": {
+          "cpu": 0.017717872945408934,
+          "wall": 0.01771888814266591,
+          "proposals": 0.8161892361111112,
+          "nonempty": 0.42990451388888884,
+          "positive": 0.12172067901234568,
+          "gain": 0.002325845844065401,
+          "recipes": 5.8775559413580245,
+          "repaired": 4.361279899691358,
+          "certificate": 0.0,
+          "attempts": 5.8775559413580245,
+          "flow_percent_gain": -0.27121434605584516,
+          "bill_percent_gain": 0.11983135670208742
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": -0.0058682961681857555,
+          "ci": [
+            -0.006266234697853354,
+            -0.005477874596528964
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": -0.005868534059118247,
+          "ci": [
+            -0.006266494853331478,
+            -0.0054781194793184045
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": -53.72183200766465,
+          "ci": [
+            -58.26400108894523,
+            -49.23017147004387
+          ],
+          "positive_bases": 0
+        }
+      },
+      "REFERENCE": {
+        "means": {
+          "cpu": 0.011849576777223179,
+          "wall": 0.01185035408354766,
+          "proposals": 0.8161892361111112,
+          "nonempty": 0.42990451388888884,
+          "positive": 0.12172067901234568,
+          "gain": 0.002325845844065401,
+          "recipes": 5.8775559413580245,
+          "repaired": 4.361279899691358,
+          "certificate": 0.0,
+          "attempts": 5.8775559413580245,
+          "flow_percent_gain": -0.27121434605584516,
+          "bill_percent_gain": 0.11983135670208742
+        },
+        "gain_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "nonempty_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "positive_delta": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "wall_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        },
+        "cpu_percent_saving": {
+          "bases": 32,
+          "mean": 0.0,
+          "ci": [
+            0.0,
+            0.0
+          ],
+          "positive_bases": 0
+        }
+      }
+    }
+  },
+  "inference": "32 previously observed parent bases; developmental, not held-out confirmation",
+  "timing": "Construction only, diagnose=False, tracing/exact outside; shared D3 load; not idle/cold-start benchmark",
+  "interval": "20000 base-cluster bootstrap, seed 2026100703; unadjusted descriptive 95% intervals; no new frozen significance gate"
+}

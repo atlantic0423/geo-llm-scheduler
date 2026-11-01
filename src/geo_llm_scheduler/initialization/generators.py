@@ -28,6 +28,7 @@ def generate(
         order.sort(key=lambda j: (problem.jobs[j].release, j))
     ms = [0] * (2 * n)
     loads = [0.0] * len(problem.instances)
+    prices: dict[int, float] = {}
     for job in order:
         eligible = paths(problem, job)
         if mode < 8 and mode % 2 == 1 or rng.random() < perturbation:
@@ -40,12 +41,14 @@ def generate(
                 if mode == 8:
                     return (float(p != d) * problem.jobs[job].kv_delay, load, p, d)
                 if mode == 9:
-                    region = problem.regions[problem.instances[p].region]
-                    price = (
-                        sum((t.end - t.start) * t.price for t in region.tariffs)
-                        / region.tariffs[-1].end
-                    )
-                    return (price, load, p, d)
+                    r = problem.instances[p].region
+                    if r not in prices:
+                        region = problem.regions[r]
+                        prices[r] = (
+                            sum((t.end - t.start) * t.price for t in region.tariffs)
+                            / region.tariffs[-1].end
+                        )
+                    return (prices[r], load, p, d)
                 return (load, p, d)
 
             pair = min(eligible, key=score)
