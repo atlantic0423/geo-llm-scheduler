@@ -24,6 +24,7 @@ def run_policy(
     parameters: dict | None = None,
     initial_order: Callable[[list[Candidate]], list[Candidate]] | None = None,
     interleave: Callable[..., None] | None = None,
+    initialization_arm: str | None = None,
 ) -> RunResult:
     """Charge common BILL4 initialization; keep study policies outside engine defaults.
 
@@ -31,6 +32,8 @@ def run_policy(
     subproblem slots. It runs inside the charged clock after the unchanged
     initializer, so the initial member set and every RNG draw stay identical.
     Omitting it preserves the original random slot correspondence.
+    ``initialization_arm`` selects an existing charged initializer for explicit
+    single-factor studies. None preserves the historical initialization policy.
     ``interleave`` is forwarded to the engine's opt-in charged research seam;
     omitting it preserves the reference path.
     """
@@ -48,7 +51,10 @@ def run_policy(
     reference = parameters["time_reference_seconds"].get(str(len(problem.jobs)), 1.0)
     study = StudyPolicy(arm, float(reference))
     factory = charged_initializer(
-        problem, config, "BILL_MOEAD" if arm.startswith("BILL_") else "FULL_CURRENT_I4", evidence
+        problem,
+        config,
+        initialization_arm or ("BILL_MOEAD" if arm.startswith("BILL_") else "FULL_CURRENT_I4"),
+        evidence,
     )
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
