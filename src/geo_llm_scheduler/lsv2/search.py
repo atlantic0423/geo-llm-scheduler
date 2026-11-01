@@ -136,9 +136,17 @@ class LSV2Config:
             raise ValueError("LS time share must lie in (0, 1)")
         if self.seed_rule not in ("gap", "flow_end"):
             raise ValueError("Unknown LSV2 seed rule")
-        if self.selector not in ("bandit", "uniform"):
+        direct = self.selector == "direct_shift"
+        if direct and (
+            self.operators
+            or self.trajectory_steps != 0
+            or self.polish_selection != "endpoint"
+            or self.polish_region != "all"
+        ):
+            raise ValueError("Direct shift requires zero operator steps and polishing its own seed")
+        if self.selector not in ("bandit", "uniform", "direct_shift"):
             raise ValueError("Unknown LSV2 operator selector")
-        if not self.operators or set(self.operators) - set(OPERATORS):
+        if (not self.operators and not direct) or set(self.operators) - set(OPERATORS):
             raise ValueError("Unknown LSV2 operator")
         if len(set(self.operators)) != len(self.operators):
             raise ValueError("LSV2 operators must be unique")
@@ -170,7 +178,7 @@ class LSV2Config:
         if self.polish_region != "off" and "P3" in self.operators:
             raise ValueError("External right shift requires removing P3 from the action pool")
         counts = (
-            self.trajectory_steps,
+            1 if direct else self.trajectory_steps,
             self.budget,
             self.frame_steps,
             self.bandit_window,
@@ -446,6 +454,22 @@ class LSV2Search:
         frame = self.frame
         index = self.sampler.pick(frame, front)
         seed_point = front[index]
+        if self.config.selector == "direct_shift":
+            # Same admission and front seed sampler. The seed itself receives
+            # one polish call, with no operator draw, TD credit or pool redraw.
+            self.trajectories += 1
+            gain = self._polish(
+                by_objective[seed_point],
+                frame,
+                self.trajectories - 1,
+                population,
+                gateway,
+                streams,
+                budget_elapsed,
+            )
+            self.sampler.report(seed_point, bool(gain and gain > 0))
+            self.steps_since_frame += 1
+            return
         front_norm = [frame.normalize(p) for p in front]
         seed_gap = gap_scores(front_norm, self.config.end_bonus)[index]
         box = local_box(front_norm, front_norm[index])
@@ -494,8 +518,8 @@ class LSV2Search:
         gateway: EvaluationGateway,
         streams: RNGManager,
         budget_elapsed: Callable[[], float],
-    ) -> None:
-        """Select and polish one input after terminal Q credit, within shared LS time."""
+    ) -> float | None:
+        """Polish one input within shared LS time; report achieved HV gain if evaluated."""
         started = self.timer()
         service_started: float | None = None
         opportunity = self.config.polish_selection in OPPORTUNITY_POLICIES
@@ -515,11 +539,11 @@ class LSV2Search:
         )
         try:
             if self.config.polish_region not in ("all", segment):
-                return
+                return None
             elapsed = budget_elapsed()
             if self._deadline(elapsed):
                 row["status"] = "deadline_skip"
-                return
+                return None
             if self.config.polish_diagnostics or self.config.polish_selection != "endpoint":
                 row.update(
                     selection=self.config.polish_selection,
@@ -558,7 +582,7 @@ class LSV2Search:
                             row.update(
                                 status="no_opportunity", seconds_selection=self.timer() - started
                             )
-                            return
+                            return None
                     else:
                         selected = self.polish_selector.choose(
                             *selection_args, diagnose_directions=self.config.polish_pool_directions
@@ -595,7 +619,7 @@ class LSV2Search:
                 row["seconds_input_diagnostics"] = diagnosed_at - selected_at
                 if self._deadline(budget_elapsed()):
                     row["status"] = "deadline_after_selection"
-                    return
+                    return None
                 service_started = diagnosed_at
             # The outer scheduler admits the whole Q+polish episode under one
             # cumulative share. Rechecking that share here would starve polish:
@@ -715,6 +739,7 @@ class LSV2Search:
             self._count("polish:" + row["status"])
             if self.retain_steps:
                 self.polish_steps.append(row)
+        return float(row["hv_gain"])
 
     def _propose(
         self,

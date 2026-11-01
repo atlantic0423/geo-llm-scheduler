@@ -1,8 +1,9 @@
-"""Local CLI for four S4 arms and four attributed native-method P/D adaptations."""
+"""Run one S4 arm, Transactions adaptation or historical enhanced baseline."""
 
 from __future__ import annotations
 
 import argparse
+import gzip
 import hashlib
 import json
 import subprocess
@@ -11,8 +12,9 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from time import perf_counter
 
+from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
-from geo_llm_scheduler.experiments import s4_ablation
+from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation
 from geo_llm_scheduler.experiments.trans_cmoeaaop import run_cmoeaaop
 from geo_llm_scheduler.experiments.trans_cmoeacd import run_cmoeacd
 from geo_llm_scheduler.experiments.trans_cmoflcs import run_cmoflcs
@@ -28,7 +30,7 @@ NATIVE: dict[str, Callable[[SearchContext, int], list[Individual]]] = {
     "CMOFLCS_PD": run_cmoflcs,
     "PSLGP_H_PD": run_pslgp,
 }
-ALGORITHMS = (*s4_ablation.ARMS, *NATIVE)
+ALGORITHMS = (*s4_ablation.ARMS, *NATIVE, *ext_hybrid.ARMS)
 
 
 def digest(path: Path) -> str:
@@ -76,6 +78,7 @@ def run_case(
     population_size: int | None = None,
     max_generations: int | None = None,
     wait_genes: bool = True,
+    campaign_output: bool = False,
 ) -> dict:
     """Run a single non-overwriting case, persist exact schedules and independent audit.
 
@@ -93,8 +96,8 @@ def run_case(
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
         raise ValueError("Supply an explicit frozen S4 calibration record")
-    if algorithm in s4_ablation.ARMS and population_size is not None:
-        raise ValueError("S4 ablations retain their population of 100")
+    if algorithm not in NATIVE and population_size is not None:
+        raise ValueError("S4 and enhanced baselines retain their population of 100")
     output.mkdir(parents=True, exist_ok=False)
     record: dict = {
         "protocol": "s4-trans-python/v1",
@@ -112,12 +115,46 @@ def run_case(
         if algorithm == "PSLGP_H_PD"
         else f"{'4N' if wait_genes else '3N'}_keys"
         if algorithm in NATIVE
+        else "enhanced_hybrid_MS_OS"
+        if algorithm in ext_hybrid.ARMS
         else "S4_MS_OS_timing",
         "archive_policy": "all_complete_feasible_exact_candidates; passive for native ports",
         "source": source_record(),
     }
     write_json(output / "config.json", record)
     write_json(output / "status.json", {"status": "running"})
+    last_beat: float | None = None
+    started = perf_counter()
+
+    def report(gw: EvaluationGateway) -> None:
+        nonlocal last_beat
+        now = perf_counter()
+        if last_beat is not None and now - last_beat < 30:
+            return
+        last_beat = now
+        data = dict(
+            elapsed=now - started,
+            exact=gw.counts["exact"],
+            front=[c.evaluation.objectives for c in gw.archive.members],
+        )
+        write_json(output / "heartbeat.json", data)
+        with (output / "checkpoints.jsonl").open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(data, allow_nan=False) + "\n")
+
+    def observe(event: str, data: dict) -> None:
+        if "gateway" in data:
+            report(data["gateway"])
+
+    def artifact(name: str, data: object) -> None:
+        if not campaign_output:
+            write_json(output / (name + ".json"), data)
+            return
+        target = output / (name + ".json.gz")
+        temporary = target.with_suffix(".tmp")
+        with gzip.open(temporary, "wt", encoding="utf-8", compresslevel=1) as stream:
+            json.dump(data, stream, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+        temporary.replace(target)
+
     try:
         evidence: dict = {}
         if algorithm in s4_ablation.ARMS:
@@ -131,7 +168,13 @@ def run_case(
             )
             searches: list[LSV2Search] = []
             result = s4_ablation.run_arm(
-                problem, algorithm, cfg, calibration, evidence, search_sink=searches.append
+                problem,
+                algorithm,
+                cfg,
+                calibration,
+                evidence,
+                search_sink=searches.append,
+                observer=observe if campaign_output else None,
             )
             gateway, population, trace, elapsed = (
                 result.gateway,
@@ -145,17 +188,34 @@ def run_case(
                 output / "q_table.json",
                 asdict(search.table) if isinstance(search, QLearningSearch) else None,
             )
-            write_json(
-                output / "local_search.json",
+            artifact(
+                "local_search",
                 {
                     "steps": search.steps,
                     "polish": search.polish_steps,
                 },
             )
+        elif algorithm in ext_hybrid.ARMS:
+            cfg = ext_hybrid.arm_config(algorithm, seed, budget)
+            if max_generations is not None:
+                cfg = replace(cfg, generations=max_generations)
+            write_json(output / "algorithm_config.json", asdict(cfg))
+            result = ext_hybrid.run_arm(
+                problem, cfg, algorithm, evidence, observer=observe if campaign_output else None
+            )
+            gateway, population, trace, elapsed = (
+                result.gateway,
+                result.population,
+                result.trace,
+                result.elapsed,
+            )
+            write_json(output / "initialization.json", evidence)
         else:
             ctx = SearchContext(
                 problem, seed, budget, wait_genes=wait_genes, max_generations=max_generations
             )
+            if campaign_output:
+                ctx.gateway.candidate_sink = lambda _: report(ctx.gateway)
             returned = NATIVE[algorithm](ctx, int(record["population"]))
             elapsed = perf_counter() - ctx.started
             gateway, population, trace = ctx.gateway, [x.candidate for x in returned], ctx.trace
@@ -165,9 +225,9 @@ def run_case(
             checked = evaluate(problem, candidate.genotype, candidate.schedule)
             if not checked.feasible or checked != candidate.evaluation:
                 raise AssertionError("Independent exact audit failed")
-        write_json(output / "archive.json", [asdict(c) for c in gateway.archive.members])
-        write_json(output / "native_population.json", [asdict(c) for c in population])
-        write_json(output / "trace.json", trace)
+        artifact("archive", [asdict(c) for c in gateway.archive.members])
+        artifact("native_population", [asdict(c) for c in population])
+        artifact("trace", trace)
         summary = {
             "status": "complete",
             "algorithm": algorithm,
@@ -188,7 +248,8 @@ def run_case(
             output / "manifest.json",
             [
                 {"path": p.name, "bytes": p.stat().st_size, "sha256": digest(p)}
-                for p in sorted(output.glob("*.json"))
+                for p in sorted(output.iterdir())
+                if p.is_file()
             ],
         )
         return summary

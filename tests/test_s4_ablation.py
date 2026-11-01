@@ -12,7 +12,7 @@ from geo_llm_scheduler.lsv2.qlearning import QLearningSearch
 
 
 def test_single_module_configuration_and_empty_learner_per_run():
-    assert len(study.ARMS) == 4 and len(study.PRIMARY_CONTRASTS) == 3
+    assert len(study.ARMS) == 5 and len(study.PRIMARY_CONTRASTS) == 4
     cfg = study.arm_config(study.ARMS[0], 16901, 1200)
     assert study.search_config(study.ARMS[0]) == reference.search_config("S4_FRESH")
     assert study.search_config("A1_NO_SHIFT") == reference.search_config("S0_NONE")
@@ -46,6 +46,37 @@ def test_full_replays_reference_and_no_shift_never_calls_module():
     assert len(b.polish_steps) == before
     for candidate in bp + bg.archive.members:
         assert evaluate(bg.problem, candidate.genotype, candidate.schedule) == candidate.evaluation
+
+
+def test_direct_shift_uses_each_admitted_seed_once_and_no_secondary_selection(monkeypatch):
+    _, pop, gw, rng = _prepared(NO_P3)
+    cfg = replace(study.arm_config(study.DIRECT, 1, 100), population=6, neighborhood=4)
+    direct = study.make_search(study.DIRECT, cfg, CAL)
+    assert not hasattr(direct, "table") and not direct.config.operators
+    direct(pop, gw, rng, lambda: 0)
+    assert direct.trajectories == 0 and direct.sampler is not None
+    seeds = []
+
+    def pick(frame, front):
+        seeds.append(front[-1])
+        return len(front) - 1
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("direct shift must not draw an operator or a replacement input")
+
+    monkeypatch.setattr(direct.sampler, "pick", pick)
+    monkeypatch.setattr(direct, "_step", forbidden)
+    monkeypatch.setattr(direct.opportunity_selector, "choose", forbidden)
+    for _ in range(3):
+        direct._trajectory(pop, gw, rng, lambda: 10)
+    assert direct.trajectories == len(direct.polish_steps) == len(seeds) == 3
+    assert not direct.steps
+    assert [tuple(row["start_objectives"]) for row in direct.polish_steps] == seeds
+    assert all(
+        row["selection"] == "endpoint" and row["pool_size"] == 1 for row in direct.polish_steps
+    )
+    for candidate in gw.archive.members:
+        assert evaluate(gw.problem, candidate.genotype, candidate.schedule) == candidate.evaluation
 
 
 @pytest.mark.parametrize("arm", study.ARMS)

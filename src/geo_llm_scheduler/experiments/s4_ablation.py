@@ -12,7 +12,8 @@ from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.qlearning import QTable
 from geo_llm_scheduler.lsv2.search import LSV2Config, LSV2Search
 
-ARMS = ("A0_FULL_S4", "A1_NO_SHIFT", "A2_RANDOM_OPERATOR", "A3_RANDOM_INIT")
+DIRECT = "A4_DIRECT_SHIFT"
+ARMS = ("A0_FULL_S4", "A1_NO_SHIFT", "A2_RANDOM_OPERATOR", "A3_RANDOM_INIT", DIRECT)
 BUDGETS = {50: 600, 100: 1200, 200: 2400}
 PRIMARY_CONTRASTS = tuple((ARMS[0], arm) for arm in ARMS[1:])
 
@@ -30,13 +31,21 @@ def search_config(arm: str) -> LSV2Config:
     if arm == "A1_NO_SHIFT":
         return reference.search_config("S0_NONE")
     base = reference.search_config("S4_FRESH")
+    if arm == DIRECT:
+        return replace(
+            base,
+            selector="direct_shift",
+            operators=(),
+            trajectory_steps=0,
+            polish_selection="endpoint",
+        )
     return replace(base, selector="uniform") if arm == "A2_RANDOM_OPERATOR" else base
 
 
 def make_search(arm: str, config: Config, calibration: dict) -> LSV2Search:
     """Use empty online Q per run, or genuinely remove Q in the random arm."""
     ls = search_config(arm)
-    if arm == "A2_RANDOM_OPERATOR":
+    if arm in ("A2_RANDOM_OPERATOR", DIRECT):
         return LSV2Search(
             ls, config, operator_config(config.seed, config.seconds or 1), retain_steps=True
         )
@@ -54,9 +63,11 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         "engine": asdict(config),
         "lsv2": asdict(search_config(arm)),
         "initialization": "random" if arm == "A3_RANDOM_INIT" else "bill4",
-        "controller": "uniform" if arm == "A2_RANDOM_OPERATOR" else "Q1_NET_G9",
+        "controller": {DIRECT: "direct_shift", "A2_RANDOM_OPERATOR": "uniform"}.get(
+            arm, "Q1_NET_G9"
+        ),
         "calibration": calibration,
-        "learning_mode": "none" if arm == "A2_RANDOM_OPERATOR" else "online_from_zero",
+        "learning_mode": "none" if arm in ("A2_RANDOM_OPERATOR", DIRECT) else "online_from_zero",
     }
 
 

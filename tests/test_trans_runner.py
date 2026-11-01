@@ -5,7 +5,7 @@ import json
 import pytest
 from test_lsv2_fast_rightshift import CAL, synthetic
 
-from geo_llm_scheduler.experiments.trans_runner import ALGORITHMS, digest, main, run_case
+from geo_llm_scheduler.experiments.trans_runner import ALGORITHMS, NATIVE, digest, main, run_case
 from geo_llm_scheduler.io.loaders import save_instance
 
 
@@ -21,7 +21,7 @@ def test_eight_entries_persist_valid_complete_artifacts(tmp_path, algorithm):
         output,
         seconds=10,
         calibration=CAL,
-        population_size=6 if not algorithm.startswith("A") else None,
+        population_size=6 if algorithm in NATIVE else None,
         max_generations=1,
     )
     assert summary["independent_exact_audit"] == "passed" and summary["archive_size"] > 0
@@ -31,7 +31,7 @@ def test_eight_entries_persist_valid_complete_artifacts(tmp_path, algorithm):
     assert config["source"]["files"]
     if algorithm.startswith("A"):
         table = json.loads((output / "q_table.json").read_text())
-        assert (table is None) == (algorithm == "A2_RANDOM_OPERATOR")
+        assert (table is None) == (algorithm in ("A2_RANDOM_OPERATOR", "A4_DIRECT_SHIFT"))
         if table is not None:
             assert "values" in table and "visits" in table
     for artifact in json.loads((output / "manifest.json").read_text()):
