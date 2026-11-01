@@ -1,0 +1,236 @@
+{
+  "status": "independent_csv_aggregation_and_cluster_intervals_passed",
+  "base_arm_counts": {
+    "i885001:REFERENCE": 1296,
+    "i885001:GUARD_SINGLE": 1296,
+    "i885001:GUARD_ALL": 1296,
+    "i885001:LEGACY": 1296,
+    "i885012:LEGACY": 1296,
+    "i885012:REFERENCE": 1296,
+    "i885012:GUARD_SINGLE": 1296,
+    "i885012:GUARD_ALL": 1296,
+    "i875009:GUARD_SINGLE": 1296,
+    "i875009:GUARD_ALL": 1296,
+    "i875009:LEGACY": 1296,
+    "i875009:REFERENCE": 1296,
+    "i875014:REFERENCE": 1296,
+    "i875014:LEGACY": 1296,
+    "i875014:GUARD_ALL": 1296,
+    "i875014:GUARD_SINGLE": 1296,
+    "i885002:REFERENCE": 1296,
+    "i885002:GUARD_SINGLE": 1296,
+    "i885002:GUARD_ALL": 1296,
+    "i885002:LEGACY": 1296,
+    "i885003:REFERENCE": 1296,
+    "i885003:GUARD_SINGLE": 1296,
+    "i885003:GUARD_ALL": 1296,
+    "i885003:LEGACY": 1296,
+    "i885005:LEGACY": 1296,
+    "i885005:GUARD_SINGLE": 1296,
+    "i885005:GUARD_ALL": 1296,
+    "i885005:REFERENCE": 1296,
+    "i885010:LEGACY": 1296,
+    "i885010:GUARD_SINGLE": 1296,
+    "i885010:GUARD_ALL": 1296,
+    "i885010:REFERENCE": 1296,
+    "i885016:REFERENCE": 1296,
+    "i885016:GUARD_SINGLE": 1296,
+    "i885016:LEGACY": 1296,
+    "i885016:GUARD_ALL": 1296,
+    "i885013:LEGACY": 1296,
+    "i885013:GUARD_ALL": 1296,
+    "i885013:GUARD_SINGLE": 1296,
+    "i885013:REFERENCE": 1296,
+    "i875004:REFERENCE": 1296,
+    "i875004:GUARD_SINGLE": 1296,
+    "i875004:LEGACY": 1296,
+    "i875004:GUARD_ALL": 1296,
+    "i875006:GUARD_SINGLE": 1296,
+    "i875006:LEGACY": 1296,
+    "i875006:REFERENCE": 1296,
+    "i875006:GUARD_ALL": 1296,
+    "i875016:GUARD_ALL": 1296,
+    "i875016:GUARD_SINGLE": 1296,
+    "i875016:LEGACY": 1296,
+    "i875016:REFERENCE": 1296,
+    "i885006:LEGACY": 1296,
+    "i885006:REFERENCE": 1296,
+    "i885006:GUARD_SINGLE": 1296,
+    "i885006:GUARD_ALL": 1296,
+    "i885009:GUARD_ALL": 1296,
+    "i885009:LEGACY": 1296,
+    "i885009:REFERENCE": 1296,
+    "i885009:GUARD_SINGLE": 1296,
+    "i885004:GUARD_SINGLE": 1296,
+    "i885004:LEGACY": 1296,
+    "i885004:GUARD_ALL": 1296,
+    "i885004:REFERENCE": 1296,
+    "i875012:LEGACY": 1296,
+    "i875012:REFERENCE": 1296,
+    "i875012:GUARD_ALL": 1296,
+    "i875012:GUARD_SINGLE": 1296,
+    "i875015:GUARD_ALL": 1296,
+    "i875015:LEGACY": 1296,
+    "i875015:GUARD_SINGLE": 1296,
+    "i875015:REFERENCE": 1296,
+    "i875010:LEGACY": 1296,
+    "i875010:GUARD_SINGLE": 1296,
+    "i875010:REFERENCE": 1296,
+    "i875010:GUARD_ALL": 1296,
+    "i885015:GUARD_SINGLE": 1296,
+    "i885015:LEGACY": 1296,
+    "i885015:REFERENCE": 1296,
+    "i885015:GUARD_ALL": 1296,
+    "i885007:REFERENCE": 1296,
+    "i885007:LEGACY": 1296,
+    "i885007:GUARD_SINGLE": 1296,
+    "i885007:GUARD_ALL": 1296,
+    "i885011:GUARD_SINGLE": 1296,
+    "i885011:GUARD_ALL": 1296,
+    "i885011:LEGACY": 1296,
+    "i885011:REFERENCE": 1296,
+    "i885008:GUARD_SINGLE": 1296,
+    "i885008:GUARD_ALL": 1296,
+    "i885008:LEGACY": 1296,
+    "i885008:REFERENCE": 1296,
+    "i875013:GUARD_ALL": 1296,
+    "i875013:LEGACY": 1296,
+    "i875013:GUARD_SINGLE": 1296,
+    "i875013:REFERENCE": 1296,
+    "i875007:GUARD_ALL": 1296,
+    "i875007:LEGACY": 1296,
+    "i875007:REFERENCE": 1296,
+    "i875007:GUARD_SINGLE": 1296,
+    "i875002:GUARD_ALL": 1296,
+    "i875002:LEGACY": 1296,
+    "i875002:GUARD_SINGLE": 1296,
+    "i875002:REFERENCE": 1296,
+    "i875011:REFERENCE": 1296,
+    "i875011:LEGACY": 1296,
+    "i875011:GUARD_ALL": 1296,
+    "i875011:GUARD_SINGLE": 1296,
+    "i875005:GUARD_SINGLE": 1296,
+    "i875005:GUARD_ALL": 1296,
+    "i875005:LEGACY": 1296,
+    "i875005:REFERENCE": 1296,
+    "i885014:GUARD_ALL": 1296,
+    "i885014:GUARD_SINGLE": 1296,
+    "i885014:REFERENCE": 1296,
+    "i885014:LEGACY": 1296,
+    "i875001:GUARD_ALL": 1296,
+    "i875001:LEGACY": 1296,
+    "i875001:REFERENCE": 1296,
+    "i875001:GUARD_SINGLE": 1296,
+    "i875008:LEGACY": 1296,
+    "i875008:GUARD_ALL": 1296,
+    "i875008:GUARD_SINGLE": 1296,
+    "i875008:REFERENCE": 1296,
+    "i875003:REFERENCE": 1296,
+    "i875003:GUARD_SINGLE": 1296,
+    "i875003:LEGACY": 1296,
+    "i875003:GUARD_ALL": 1296
+  },
+  "tests": {
+    "GUARD_ALL:cpu_saving": {
+      "mean": 0.0018471091052818809,
+      "ci": [
+        0.0015078965451869595,
+        0.002192199681892009
+      ]
+    },
+    "GUARD_ALL:gain_delta": {
+      "mean": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ]
+    },
+    "GUARD_SINGLE:cpu_saving": {
+      "mean": 0.0018578285235882125,
+      "ci": [
+        0.001518431895578641,
+        0.0022029975312194317
+      ]
+    },
+    "GUARD_SINGLE:gain_delta": {
+      "mean": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ]
+    },
+    "LEGACY:cpu_saving": {
+      "mean": 5.949838916016989e-05,
+      "ci": [
+        1.3286094923988509e-06,
+        0.00011208623631067021
+      ]
+    },
+    "LEGACY:gain_delta": {
+      "mean": 2.2230768285869354e-05,
+      "ci": [
+        -5.081507985851685e-05,
+        9.558970191041858e-05
+      ]
+    },
+    "REFERENCE:cpu_saving": {
+      "mean": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ]
+    },
+    "REFERENCE:gain_delta": {
+      "mean": 0.0,
+      "ci": [
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "additional": {
+    "GUARD_ALL_base_equal_deny": {
+      "mean": 0.16207020580376458,
+      "ci": [
+        0.1521687822136905,
+        0.1715431965951672
+      ]
+    },
+    "GUARD_SINGLE_base_equal_deny": {
+      "mean": 0.16120421522900263,
+      "ci": [
+        0.1516075872511975,
+        0.17032196598131297
+      ]
+    },
+    "SINGLE_vs_ALL_cpu_saving": {
+      "mean": 1.0719418306331648e-05,
+      "ci": [
+        6.901762685521709e-06,
+        1.3891563234681393e-05
+      ]
+    }
+  },
+  "cpu_call_distribution": {
+    "REFERENCE": {
+      "p50": 0.00901398187499991,
+      "p90": 0.021669801774999446,
+      "p99": 0.025762012102499805
+    },
+    "GUARD_SINGLE": {
+      "p50": 0.007837041999999905,
+      "p90": 0.019963659174999825,
+      "p99": 0.024506289767499183
+    },
+    "GUARD_ALL": {
+      "p50": 0.007843499375000729,
+      "p90": 0.019968802174999745,
+      "p99": 0.02450384506249968
+    },
+    "LEGACY": {
+      "p50": 0.008973571499999,
+      "p90": 0.021524195299999428,
+      "p99": 0.025716940862501196
+    }
+  }
+}

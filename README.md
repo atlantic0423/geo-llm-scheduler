@@ -78,6 +78,9 @@ GitHub [`atlantic0423/geo-llm-scheduler`](https://github.com/atlantic0423/geo-ll
 
 ## Testing and CI
 
+S4 的完整法/三项模块消融及四篇近期 Trans 算法的 Python 问题适配入口见
+[实现与来源说明](docs/experiments/trans_python.md)。这些是独立研究候选；完整效果比较尚未完成。
+
 本地统一门禁：
 
 ```powershell

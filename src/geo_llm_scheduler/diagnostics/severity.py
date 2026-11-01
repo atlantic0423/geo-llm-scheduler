@@ -1,8 +1,10 @@
 """State severities implementing docs/specifications/state_severity.md exactly."""
 
+from bisect import bisect_right
+
 from geo_llm_scheduler.diagnostics.workload import imbalance, region_loads
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
-from geo_llm_scheduler.scheduling.resources import intervals
+from geo_llm_scheduler.scheduling.resources import ResourceView
 from geo_llm_scheduler.scheduling.timing import packing_moves
 from geo_llm_scheduler.utils.numeric import EPS_RATIO
 
@@ -12,6 +14,7 @@ def severities(problem: ProblemInstance, candidate: Candidate) -> tuple[float, .
     if not problem.jobs:
         return (0.0,) * 6
     g, s = candidate.genotype, candidate.schedule
+    resources = ResourceView(problem, g, s)
     total = sum(problem.profile(o).duration for o in range(problem.operation_count))
     resource = min(1, sum(s.resource_wait) / (total + EPS_RATIO))
     kv = sum(j.kv_delay * (g.ms[2 * i] != g.ms[2 * i + 1]) for i, j in enumerate(problem.jobs)) / (
@@ -24,10 +27,10 @@ def severities(problem: ProblemInstance, candidate: Candidate) -> tuple[float, .
         tariffs = [t for t in problem.regions[server.region].tariffs if t.start < end and t.end > 0]
         prices = [t.price for t in tariffs]
         low, high = min(prices, default=0), max(prices, default=0)
-        ops = intervals(problem, g, s, m)
-        events = sorted({t for _, a, b in ops for t in (a, b)})
+        events = resources.events(m)
+        starts, ends = resources.activity_bounds(m)
         for a, b in zip(events, events[1:]):
-            if not any(start <= a < finish for _, start, finish in ops):
+            if bisect_right(starts, a) <= bisect_right(ends, a):
                 continue
             energy += server.active_kw * (b - a)
             if high > low:
@@ -43,7 +46,7 @@ def severities(problem: ProblemInstance, candidate: Candidate) -> tuple[float, .
             demand += r.demand_rate * (peak - sum(averages) / len(averages)) / peak
     demand = demand / rates if rates > 0 else 0.0
     gains = [0.0] * problem.operation_count
-    for o, _, gain, _ in packing_moves(problem, g, s):
+    for o, _, gain, _ in packing_moves(problem, g, s, resources=resources):
         gains[o] = max(gains[o], gain)
     compress = sum(gains) / (total + EPS_RATIO)
     return resource, kv, region, tou, demand, compress
