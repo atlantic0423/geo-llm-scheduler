@@ -7,6 +7,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import ProblemInstance
 from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import lsv2_eligibility_selection as reference
+from geo_llm_scheduler.experiments.initial_pool_retention import POLICIES, pool_initializer
 from geo_llm_scheduler.experiments.lsv2_study import operator_config
 from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.qlearning import QTable
@@ -54,10 +55,13 @@ def make_search(arm: str, config: Config, calibration: dict) -> LSV2Search:
     return search
 
 
-def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
+def configuration_record(
+    arm: str, config: Config, calibration: dict, *, initial_retention: str = "legacy"
+) -> dict:
     """Record exact ablation boundaries without implying a completed experiment."""
     search_config(arm)
-    return {
+    _validate_retention(arm, initial_retention)
+    record = {
         "protocol": "s4-whole-module-ablation/v1",
         "arm": arm,
         "engine": asdict(config),
@@ -69,6 +73,14 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         "calibration": calibration,
         "learning_mode": "none" if arm in ("A2_RANDOM_OPERATOR", DIRECT) else "online_from_zero",
     }
+    if initial_retention != "legacy":
+        record.update(protocol="s4-initial-retention/v1", initial_retention=initial_retention)
+    return record
+
+
+def _validate_retention(arm: str, policy: str) -> None:
+    if policy not in POLICIES or (arm == "A3_RANDOM_INIT" and policy != "legacy"):
+        raise ValueError("Unknown retention policy or conflict with random-initialization ablation")
 
 
 def run_arm(
@@ -80,8 +92,10 @@ def run_arm(
     *,
     observer: Callable[[str, dict], None] | None = None,
     search_sink: Callable[[LSV2Search], None] | None = None,
+    initial_retention: str = "legacy",
 ) -> RunResult:
     """Charge initialization, learning, selection and external shift to one run."""
+    _validate_retention(arm, initial_retention)
     search = make_search(arm, config, calibration)
     if search_sink is not None:
         search_sink(search)
@@ -93,4 +107,7 @@ def run_arm(
         observer=observer,
         interleave=search,
         initialization_arm="EXT_MOEAD" if arm == "A3_RANDOM_INIT" else None,
+        initializer_override=pool_initializer(problem, config, evidence)
+        if initial_retention == "global_pool"
+        else None,
     )

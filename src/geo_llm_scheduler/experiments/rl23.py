@@ -25,6 +25,7 @@ def run_policy(
     initial_order: Callable[[list[Candidate]], list[Candidate]] | None = None,
     interleave: Callable[..., None] | None = None,
     initialization_arm: str | None = None,
+    initializer_override: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
 ) -> RunResult:
     """Charge common BILL4 initialization; keep study policies outside engine defaults.
 
@@ -36,6 +37,8 @@ def run_policy(
     single-factor studies. None preserves the historical initialization policy.
     ``interleave`` is forwarded to the engine's opt-in charged research seam;
     omitting it preserves the reference path.
+    ``initializer_override`` supplies an explicit charged research initializer;
+    it is mutually exclusive with ``initialization_arm``.
     """
     expected = study_config(arm, config.seed, config.seconds or 1.0)
     # decode_cache_size is a semantics-preserving engineering option, not a study parameter.
@@ -50,7 +53,9 @@ def run_policy(
     parameters = parameters or {"time_reference_seconds": {str(n): 1.0 for n in (20, 50, 100, 200)}}
     reference = parameters["time_reference_seconds"].get(str(len(problem.jobs)), 1.0)
     study = StudyPolicy(arm, float(reference))
-    factory = charged_initializer(
+    if initializer_override is not None and initialization_arm is not None:
+        raise ValueError("Choose an initialization arm or an initializer override")
+    factory = initializer_override or charged_initializer(
         problem,
         config,
         initialization_arm or ("BILL_MOEAD" if arm.startswith("BILL_") else "FULL_CURRENT_I4"),
