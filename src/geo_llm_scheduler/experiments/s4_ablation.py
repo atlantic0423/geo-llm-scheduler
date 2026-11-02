@@ -7,6 +7,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import ProblemInstance
 from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import lsv2_eligibility_selection as reference
+from geo_llm_scheduler.experiments.initial_gap_construction import CONSTRUCTIONS, gap_initializer
 from geo_llm_scheduler.experiments.initial_pool_retention import POLICIES, pool_initializer
 from geo_llm_scheduler.experiments.lsv2_study import operator_config
 from geo_llm_scheduler.experiments.rl23 import run_policy
@@ -56,11 +57,16 @@ def make_search(arm: str, config: Config, calibration: dict) -> LSV2Search:
 
 
 def configuration_record(
-    arm: str, config: Config, calibration: dict, *, initial_retention: str = "legacy"
+    arm: str,
+    config: Config,
+    calibration: dict,
+    *,
+    initial_retention: str = "legacy",
+    initial_construction: str = "bill4",
 ) -> dict:
     """Record exact ablation boundaries without implying a completed experiment."""
     search_config(arm)
-    _validate_retention(arm, initial_retention)
+    _validate_initialization(arm, initial_retention, initial_construction)
     record = {
         "protocol": "s4-whole-module-ablation/v1",
         "arm": arm,
@@ -75,12 +81,21 @@ def configuration_record(
     }
     if initial_retention != "legacy":
         record.update(protocol="s4-initial-retention/v1", initial_retention=initial_retention)
+    if initial_construction == "g1":
+        record.update(
+            protocol="s4-initial-g1/v1",
+            initialization="g1",
+            initial_retention=initial_retention,
+            construction_protocol="bill-gap-tchebycheff/v1",
+        )
     return record
 
 
-def _validate_retention(arm: str, policy: str) -> None:
+def _validate_initialization(arm: str, policy: str, construction: str) -> None:
     if policy not in POLICIES or (arm == "A3_RANDOM_INIT" and policy != "legacy"):
         raise ValueError("Unknown retention policy or conflict with random-initialization ablation")
+    if construction not in CONSTRUCTIONS or (arm == "A3_RANDOM_INIT" and construction != "bill4"):
+        raise ValueError("Unknown construction or conflict with random-initialization ablation")
 
 
 def run_arm(
@@ -93,9 +108,15 @@ def run_arm(
     observer: Callable[[str, dict], None] | None = None,
     search_sink: Callable[[LSV2Search], None] | None = None,
     initial_retention: str = "legacy",
+    initial_construction: str = "bill4",
 ) -> RunResult:
     """Charge initialization, learning, selection and external shift to one run."""
-    _validate_retention(arm, initial_retention)
+    _validate_initialization(arm, initial_retention, initial_construction)
+    override = None
+    if initial_construction == "g1":
+        override = gap_initializer(problem, config, evidence, retention=initial_retention)
+    elif initial_retention == "global_pool":
+        override = pool_initializer(problem, config, evidence)
     search = make_search(arm, config, calibration)
     if search_sink is not None:
         search_sink(search)
@@ -107,7 +128,5 @@ def run_arm(
         observer=observer,
         interleave=search,
         initialization_arm="EXT_MOEAD" if arm == "A3_RANDOM_INIT" else None,
-        initializer_override=pool_initializer(problem, config, evidence)
-        if initial_retention == "global_pool"
-        else None,
+        initializer_override=override,
     )

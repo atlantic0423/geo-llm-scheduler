@@ -22,6 +22,7 @@ from geo_llm_scheduler.initialization.generators import generate
 from geo_llm_scheduler.moead.variation import paths
 from geo_llm_scheduler.scheduling.resources import earliest
 from geo_llm_scheduler.scheduling.ssgs import decode
+from geo_llm_scheduler.utils.numeric import EPS_NORM
 
 FAMILIES = ("RESAMPLE", "TOU", "DEMAND", "BILL", "PORTFOLIO")
 ARMS = tuple(f"{name}{share}" for name in FAMILIES for share in (10, 20))
@@ -120,6 +121,7 @@ def guided_genotype(
     flow_weight: float,
     *,
     accelerated: bool = False,
+    tchebycheff: bool = False,
 ) -> tuple[Genotype, dict]:
     """Build an MS/OS seed by randomized, resource-feasible prefix path choice.
 
@@ -127,6 +129,8 @@ def guided_genotype(
     term. BILL uses total prefix Bill and a declared diversified Flow weight.
     Randomized restricted lists contain only paths within 5% of the score range
     of the best path, so numerical ties do not force the same machine forever.
+    G1 optionally scores the largest weighted normalized regret across paths
+    for the current job. Price, capacity, timing and RNG mechanics are shared.
     """
     if family not in ("TOU", "DEMAND", "BILL") or not 0 <= flow_weight <= 1:
         raise ValueError("Unknown guide or invalid weight")
@@ -210,11 +214,20 @@ def guided_genotype(
         lo_c, lo_f = min(costs), min(flows)
         range_c, range_f = max(costs) - lo_c, max(flows) - lo_f
         weight = flow_weight if family == "BILL" else 0.1
-        scores = [
-            (1 - weight) * (row[0] - lo_c) / (range_c or 1.0)
-            + weight * (row[1] - lo_f) / (range_f or 1.0)
-            for row in rows
-        ]
+        if tchebycheff:
+            scores = [
+                max(
+                    (1 - weight) * (row[0] - lo_c) / range_c if range_c > EPS_NORM else 0.0,
+                    weight * (row[1] - lo_f) / range_f if range_f > EPS_NORM else 0.0,
+                )
+                for row in rows
+            ]
+        else:
+            scores = [
+                (1 - weight) * (row[0] - lo_c) / (range_c or 1.0)
+                + weight * (row[1] - lo_f) / (range_f or 1.0)
+                for row in rows
+            ]
         threshold = min(scores) + 0.05 * (max(scores) - min(scores)) + 1e-12
         selected = rng.choice(
             [row for row, score in zip(rows, scores, strict=True) if score <= threshold]

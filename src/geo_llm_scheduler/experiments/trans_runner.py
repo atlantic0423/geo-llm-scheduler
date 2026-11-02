@@ -79,6 +79,8 @@ def run_case(
     max_generations: int | None = None,
     wait_genes: bool = True,
     campaign_output: bool = False,
+    initial_retention: str = "legacy",
+    initial_construction: str = "bill4",
 ) -> dict:
     """Run a single non-overwriting case, persist exact schedules and independent audit.
 
@@ -88,6 +90,11 @@ def run_case(
     """
     if algorithm not in ALGORITHMS:
         raise ValueError("Unknown algorithm")
+    if (initial_retention, initial_construction) != (
+        "legacy",
+        "bill4",
+    ) and algorithm not in s4_ablation.ARMS:
+        raise ValueError("Initialization factors require an S4 arm")
     problem = load_instance(instance)
     budget = seconds if seconds is not None else s4_ablation.BUDGETS[len(problem.jobs)]
     if budget <= 0 or not float("-inf") < budget < float("inf"):
@@ -164,7 +171,13 @@ def run_case(
             assert calibration is not None
             write_json(
                 output / "algorithm_config.json",
-                s4_ablation.configuration_record(algorithm, cfg, calibration),
+                s4_ablation.configuration_record(
+                    algorithm,
+                    cfg,
+                    calibration,
+                    initial_retention=initial_retention,
+                    initial_construction=initial_construction,
+                ),
             )
             searches: list[LSV2Search] = []
             result = s4_ablation.run_arm(
@@ -175,6 +188,8 @@ def run_case(
                 evidence,
                 search_sink=searches.append,
                 observer=observe if campaign_output else None,
+                initial_retention=initial_retention,
+                initial_construction=initial_construction,
             )
             gateway, population, trace, elapsed = (
                 result.gateway,

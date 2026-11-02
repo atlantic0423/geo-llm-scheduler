@@ -6,6 +6,7 @@ import json
 from dataclasses import replace
 from pathlib import Path
 
+from geo_llm_scheduler.experiments.initial_gap_construction import CONSTRUCTIONS
 from geo_llm_scheduler.experiments.initial_pool_retention import POLICIES
 from geo_llm_scheduler.experiments.runner import solution
 from geo_llm_scheduler.experiments.s4_ablation import arm_config, configuration_record, run_arm
@@ -24,6 +25,7 @@ def main() -> None:
     parser.add_argument("--key", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--retention", choices=POLICIES, default="global_pool")
+    parser.add_argument("--construction", choices=CONSTRUCTIONS, default="bill4")
     parser.add_argument("--seconds", type=float, help="Explicit local diagnostic override")
     parser.add_argument("--generations", type=int, help="Optional local smoke limit")
     args = parser.parse_args()
@@ -44,15 +46,12 @@ def main() -> None:
     if args.generations is not None:
         cfg = replace(cfg, generations=args.generations)
     evidence = {}
-    result = run_arm(
-        load_instance(path), "A0_FULL_S4", cfg, cal, evidence, initial_retention=args.retention
-    )
+    options = dict(initial_retention=args.retention, initial_construction=args.construction)
+    result = run_arm(load_instance(path), "A0_FULL_S4", cfg, cal, evidence, **options)
     record = dict(
         key=args.key,
         input_sha256=spec["input_sha256"],
-        configuration=configuration_record(
-            "A0_FULL_S4", cfg, cal, initial_retention=args.retention
-        ),
+        configuration=configuration_record("A0_FULL_S4", cfg, cal, **options),
         evidence=evidence,
         elapsed=result.elapsed,
         termination=result.termination_reason,
@@ -71,6 +70,7 @@ def main() -> None:
                 elapsed=result.elapsed,
                 offspring=result.offspring_count,
                 retention=args.retention,
+                construction=args.construction,
             )
         )
     )
