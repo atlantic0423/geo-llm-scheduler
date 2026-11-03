@@ -2,12 +2,13 @@
 
 import math
 import random
+from time import perf_counter
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.evaluation.exact import power_segments, regional_windows, violations
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
-from geo_llm_scheduler.scheduling.resources import fits, intervals
+from geo_llm_scheduler.scheduling.resources import ResourceView, _fits_intervals, intervals
 from geo_llm_scheduler.utils.numeric import TOL
 
 
@@ -20,10 +21,11 @@ def support_segments(
 ) -> list[tuple[int, frozenset[int], float]]:
     """Original peak elementary active sets and removable average-power increments."""
     result = []
+    resources = ResourceView(problem, genotype, schedule)
     for m, server in enumerate(problem.instances):
         if server.region != region:
             continue
-        ops = intervals(problem, genotype, schedule, m)
+        ops = resources.items[m]
         for b in peaks:
             left, right = 900 * b, 900 * (b + 1)
             points = sorted(
@@ -54,7 +56,8 @@ def coalition(
     groups = list(dict.fromkeys(active for _, active, _ in segments))
     rng.shuffle(groups)
     while True:
-        deficient = [b for b in peaks if removal_potential(segments, chosen, b) <= TOL.power]
+        baseline = {b: removal_potential(segments, chosen, b) for b in peaks}
+        deficient = [b for b in peaks if baseline[b] <= TOL.power]
         if not deficient:
             return chosen
         options = []
@@ -65,8 +68,7 @@ def coalition(
             gain = sum(
                 max(
                     0,
-                    removal_potential(segments, extended, b)
-                    - removal_potential(segments, chosen, b),
+                    removal_potential(segments, extended, b) - baseline[b],
                 )
                 for b in deficient
             )
@@ -145,6 +147,7 @@ def repair(
     region: int,
     positions: int,
     rng: random.Random,
+    diagnostics: dict | None = None,
 ) -> Schedule | None:
     """One greedy path; first feasible position; any failure rolls back whole recipe."""
     g = x.genotype
@@ -152,27 +155,42 @@ def repair(
     for o in members:
         starts[o] = -1.0
     pending = set(members)
+    horizon = x.schedule.horizon(problem)
     while pending:
         ready = sorted(o for o in pending if o % 2 == 0 or o - 1 not in pending)
-        bounds = {
-            o: repair_bounds(problem, g, starts, o, x.schedule.horizon(problem)) for o in ready
-        }
+        bounds = {o: repair_bounds(problem, g, starts, o, horizon) for o in ready}
         rng.shuffle(ready)
         o = min(ready, key=lambda k: bounds[k][1] - bounds[k][0])
         partial = Schedule(tuple(starts))
         times = repair_times(problem, g, x.schedule, partial, members, o, region, bounds[o])
         rng.shuffle(times)
         found = False
+        machine = g.ms[o]
+        others = intervals(problem, g, partial, machine, frozenset({o}))
         for t in times[:positions]:
-            if fits(problem, g, partial, o, t):
+            if _fits_intervals(problem, machine, o, t, others):
                 starts[o] = t
                 found = True
                 break
         if not found:
+            if diagnostics is not None:
+                diagnostics.update(
+                    stage="precedence_bounds"
+                    if bounds[o][1] < bounds[o][0]
+                    else "empty_positions"
+                    if not times[:positions]
+                    else "resource_positions",
+                    operation=o,
+                    bounds=bounds[o],
+                    positions_checked=min(len(times), positions),
+                )
             return None
         pending.remove(o)
     schedule = Schedule(tuple(starts))
-    return None if violations(problem, g, schedule) else schedule
+    errors = violations(problem, g, schedule)
+    if errors and diagnostics is not None:
+        diagnostics.update(stage="final_feasibility", violations=errors)
+    return None if errors else schedule
 
 
 def peak_reduced(
@@ -196,6 +214,10 @@ class PeakCoalition:
     """One target Region per invocation with independent same-incumbent recipes."""
 
     action = 8
+
+    def __init__(self, diagnose: bool = False) -> None:
+        """Enable offline recipe evidence without changing selection or RNG draws."""
+        self.diagnose = diagnose
 
     def propose(
         self,
@@ -230,17 +252,17 @@ class PeakCoalition:
         segments = support_segments(problem, g, incumbent.schedule, region, peaks)
         singletons = [o for o, m in enumerate(g.ms) if problem.instances[m].region == region]
         rng.shuffle(singletons)
-        singletons.sort(
-            key=lambda o: -sum(removal_potential(segments, frozenset({o}), b) > 0 for b in peaks)
-        )
-        singletons = [
-            o
+        support_counts = {
+            o: sum(removal_potential(segments, frozenset({o}), b) > 0 for b in peaks)
             for o in singletons
-            if any(removal_potential(segments, frozenset({o}), b) > 0 for b in peaks)
-        ]
+        }
+        singletons.sort(key=lambda o: -support_counts[o])
+        singletons = [o for o in singletons if support_counts[o] > 0]
         seen = {tuple(round(t / TOL.time) for t in incumbent.schedule.starts)}
         singleton_success = False
         result.diagnostics = {"region": region, "peaks": peaks, "recipes": []}
+        if self.diagnose:
+            result.diagnostics["trace"] = []
         result.instrumentation = {
             "target_region": region,
             "original_peak": peak,
@@ -264,19 +286,43 @@ class PeakCoalition:
             attempt_kind = "singleton_attempts" if use_singleton else "coalition_attempts"
             result.instrumentation[attempt_kind] += 1
             result.diagnostics["recipes"].append(tuple(sorted(members)))
+            record: dict | None = (
+                {"members": tuple(sorted(members)), "stage": "empty_members"}
+                if self.diagnose
+                else None
+            )
+            if self.diagnose:
+                result.diagnostics["trace"].append(record)
             if not members:
                 continue
-            schedule = repair(problem, incumbent, members, region, config.a8_position_limit, rng)
+            repair_started = perf_counter() if self.diagnose else 0.0
+            schedule = repair(
+                problem,
+                incumbent,
+                members,
+                region,
+                config.a8_position_limit,
+                rng,
+                record if self.diagnose else None,
+            )
+            if record is not None:
+                record["repair_seconds"] = perf_counter() - repair_started
             if schedule is None:
                 continue
             result.instrumentation["repair_successes"] += 1
+            if record is not None:
+                record.update(stage="peak_gate", repaired_starts=schedule.starts)
             if not peak_reduced(problem, g, schedule, region, peak):
                 continue
             result.instrumentation["strict_peak_reductions"] += 1
             schedule_key = tuple(round(t / TOL.time) for t in schedule.starts)
             if schedule_key in seen:
+                if record is not None:
+                    record["stage"] = "duplicate"
                 continue
             seen.add(schedule_key)
             singleton_success |= len(members) == 1
             result.proposals.append(Proposal(g, schedule, tuple(sorted(members))))
+            if record is not None:
+                record["stage"] = "proposal"
         return result
