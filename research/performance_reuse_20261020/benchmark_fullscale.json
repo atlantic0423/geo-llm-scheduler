@@ -1,0 +1,61 @@
+{
+  "reference_commit": "b148c4addd207fe30a6b2a43d953a04afc35d3a1",
+  "optimized_canonical_source_hash": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+  "python": "3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 16:37:03) [MSC v.1929 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "jobs": 200,
+  "regions": 3,
+  "instances": 12,
+  "instance_seed": 20261020,
+  "algorithm_seed": 20261020,
+  "initialization_seed": 220261020,
+  "pressure": "kv",
+  "version": 1,
+  "population": 100,
+  "generations": 1,
+  "initializer": "BILL4",
+  "fixed_work_includes_initialization": true,
+  "attempts": [
+    {
+      "reference": {
+        "wall": 494.6864264999749,
+        "cpu": 475.25,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      },
+      "optimized": {
+        "wall": 225.30059870000696,
+        "cpu": 215.5,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      }
+    },
+    {
+      "optimized": {
+        "wall": 225.63269259996014,
+        "cpu": 215.28125,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      },
+      "reference": {
+        "wall": 515.6081802000408,
+        "cpu": 492.375,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      }
+    },
+    {
+      "reference": {
+        "wall": 510.071177100006,
+        "cpu": 491.0,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      },
+      "optimized": {
+        "wall": 219.15018019999843,
+        "cpu": 209.34375,
+        "digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953"
+      }
+    }
+  ],
+  "status": "complete",
+  "reference_wall_median": 510.071177100006,
+  "optimized_wall_median": 225.30059870000696,
+  "wall_reduction": 0.5582957657381338,
+  "speedup": 2.2639583740262395
+}

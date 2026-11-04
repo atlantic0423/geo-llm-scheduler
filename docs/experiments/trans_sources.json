@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-01",
+  "papers": [
+    {
+      "id": "CMOEA-CD",
+      "title": "Constraint-Pareto Dominance and Diversity Enhancement Strategy-Based Evolutionary Algorithm for Solving Constrained Multiobjective Optimization Problems",
+      "authors": "Zhe Liu, Fei Han, Qinghua Ling, Henry Han, Jing Jiang",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "online_month": "2025-01",
+      "issue": "2025-12",
+      "doi": "10.1109/TEVC.2024.3525153",
+      "repo": "BIMK/PlatEMO",
+      "commit": "e2d58cb4850acf1af5c48dffb669e86e9a89da9e",
+      "files": [
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-CD/CMOEACD.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-CD/CMOEACD.m"
+        },
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-CD/DominationCal.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-CD/DominationCal.m"
+        },
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-CD/DiversityEnhancementArchive.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-CD/DiversityEnhancementArchive.m"
+        }
+      ]
+    },
+    {
+      "id": "CMOEA-AOP",
+      "title": "Deep Reinforcement Learning-Assisted Automated Operator Portfolio for Constrained Multi-Objective Optimization",
+      "authors": "Shuai Shao, Ye Tian, Shangshang Yang, Xingyi Zhang",
+      "journal": "IEEE Transactions on Emerging Topics in Computational Intelligence",
+      "online_month": "2026-03",
+      "issue": "2026-06",
+      "doi": "10.1109/TETCI.2026.3670673",
+      "repo": "BIMK/PlatEMO",
+      "commit": "e2d58cb4850acf1af5c48dffb669e86e9a89da9e",
+      "files": [
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-AOP/CMOEAAOP.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-AOP/CMOEAAOP.m"
+        },
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-AOP/OperatorConstrainedAOP.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-AOP/OperatorConstrainedAOP.m"
+        },
+        {
+          "path": "PlatEMO/Algorithms/Multi-objective optimization/CMOEA-AOP/GenerateSample.m",
+          "link": "https://github.com/BIMK/PlatEMO/blob/e2d58cb4850acf1af5c48dffb669e86e9a89da9e/PlatEMO/Algorithms/Multi-objective%20optimization/CMOEA-AOP/GenerateSample.m"
+        }
+      ]
+    },
+    {
+      "id": "CMOFLCS",
+      "title": "Fuzzy Logic Control System-Assisted Operator Selection for Constrained Multiobjective Optimization",
+      "journal": "IEEE Transactions on Fuzzy Systems",
+      "year": 2026,
+      "volume": 34,
+      "number": 6,
+      "pages": "1986-2000",
+      "doi": "10.1109/TFUZZ.2026.3684096",
+      "repo": "BIMK/PlatEMO",
+      "commit": "e2d58cb4850acf1af5c48dffb669e86e9a89da9e",
+      "source_path": "PlatEMO/Algorithms/Multi-objective optimization/CMOFLCS/",
+      "scope_read": "Complete upstream MATLAB implementation and publisher-deposited metadata; no claim of full paper access",
+      "objectives": "Native constrained multiobjective; direct M=2 use, not a single-objective conversion",
+      "replaces": "PBIGA",
+      "status": "source obtained; Python PD adaptation implemented and engineering-tested; formal comparison pending"
+    },
+    {
+      "id": "PSLGP",
+      "title": "Pareto Set Learning Through Genetic Programming for Multiobjective Dynamic Scheduling",
+      "authors": "Meng Xu, Yi Mei, Fangfang Zhang, Yew-Soon Ong, Mengjie Zhang",
+      "journal": "IEEE Transactions on Evolutionary Computation",
+      "online_month": "2025-05",
+      "issue": "2026-06",
+      "doi": "10.1109/TEVC.2025.3568375",
+      "repo": "MengXu95/GPDFJSS-MENG",
+      "commit": "ddebf35afafb44bda2bb5a4b1e0123c987fda2b7",
+      "files": [
+        {
+          "path": "src/mengxu/algorithm/multiobjective/ParetoSetLearning/multipletreegp-dynamic-PSLnichingBasedOnHV.params",
+          "link": "https://github.com/MengXu95/GPDFJSS-MENG/blob/ddebf35afafb44bda2bb5a4b1e0123c987fda2b7/src/mengxu/algorithm/multiobjective/ParetoSetLearning/multipletreegp-dynamic-PSLnichingBasedOnHV.params"
+        },
+        {
+          "path": "src/yimei/jss/gp/GPMain.java",
+          "link": "https://github.com/MengXu95/GPDFJSS-MENG/blob/ddebf35afafb44bda2bb5a4b1e0123c987fda2b7/src/yimei/jss/gp/GPMain.java"
+        }
+      ]
+    }
+  ],
+  "archives": [
+    {
+      "repo": "BIMK/PlatEMO",
+      "commit": "e2d58cb4850acf1af5c48dffb669e86e9a89da9e",
+      "url": "https://codeload.github.com/BIMK/PlatEMO/zip/e2d58cb4850acf1af5c48dffb669e86e9a89da9e",
+      "sha256": "e2a6290aedb4123ed8b026c3582b94cf044acacdb3b11696f1b51821eacbb777",
+      "bytes": 18702020
+    },
+    {
+      "repo": "MengXu95/GPDFJSS-MENG",
+      "commit": "ddebf35afafb44bda2bb5a4b1e0123c987fda2b7",
+      "url": "https://codeload.github.com/MengXu95/GPDFJSS-MENG/zip/ddebf35afafb44bda2bb5a4b1e0123c987fda2b7",
+      "sha256": "5262482eec2ecb58be53a88b83e3c5c320a72df202053fc17840ddd4173572d1",
+      "bytes": 36731334
+    }
+  ],
+  "replacement_reason": "PBIGA full text/source unavailable; user requested another paper. No PBIGA implementation claimed."
+}
