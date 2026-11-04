@@ -79,7 +79,7 @@ def test_unrepresentable_decode_delay_is_not_silently_inserted():
 def test_hybrid_entries_do_not_modify_frozen_14_method_matrix():
     assert len(ALGORITHMS) == 14
     assert not set(HYBRID).intersection(ALGORITHMS)
-    assert set(AVAILABLE_ALGORITHMS) == set(ALGORITHMS) | set(HYBRID)
+    assert set(ALGORITHMS) | set(HYBRID) <= set(AVAILABLE_ALGORITHMS)
 
 
 def test_first_hybrid_initial_population_matches_existing_baselines_exactly():

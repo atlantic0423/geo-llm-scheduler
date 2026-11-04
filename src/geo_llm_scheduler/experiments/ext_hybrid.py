@@ -34,7 +34,7 @@ from geo_llm_scheduler.engine.run import RunResult, run
 from geo_llm_scheduler.experiments import component_random
 from geo_llm_scheduler.experiments.classic_baselines import run_classic
 from geo_llm_scheduler.experiments.initial_bill_benchmark import traced_original
-from geo_llm_scheduler.experiments.initial_bill_mixture import guided_genotype
+from geo_llm_scheduler.experiments.initial_bill_mixture import guided_genotype, seed_bank
 from geo_llm_scheduler.experiments.nsga2 import run_nsga2
 from geo_llm_scheduler.experiments.runner import digest, solution
 from geo_llm_scheduler.moead.variation import paths
@@ -182,6 +182,63 @@ def hybrid_initializer(
     return initialize
 
 
+def balanced_initializer(
+    problem: ProblemInstance, config: Config, evidence: dict
+) -> Callable[[EvaluationGateway, RNGManager], list[Candidate]]:
+    """Construct 40 heuristic, 10 four-trial BILL and 50 random members."""
+    if config.population != 100:
+        raise ValueError("Balanced initializer requires P100")
+
+    def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:
+        started = perf_counter()
+        parents = traced_original(problem, config)
+        heuristic = [
+            gateway.evaluate(c.genotype, origin=c.origin) for c in retain_balanced(parents, 4)
+        ]
+        bank, stats = seed_bank(
+            problem,
+            parents,
+            random.Random(config.seed + 100000),
+            4,
+            families=("BILL",),
+            size=10,
+            accelerated=True,
+            evaluator=gateway.evaluate,
+            verify_trials=False,
+        )
+        costs = bank["BILL"]
+        seen = {c.genotype for c in parents} | {c.genotype for c in costs}
+        genes, draws = random_genotypes(
+            problem,
+            50,
+            streams.stream("hybrid_random_initialization"),
+            seen,
+            config.initialization_attempts,
+        )
+        randoms = [gateway.evaluate(g, origin="balanced_random_initialization") for g in genes]
+        members = heuristic + costs + randoms
+        if len({c.genotype for c in members}) != 100 or not all(
+            c.evaluation.feasible for c in members
+        ):
+            raise AssertionError("Balanced initializer invalid")
+        evidence.update(
+            policy="hybrid_h40_b10t4_r50",
+            heuristic=40,
+            bill=10,
+            bill_trials=4,
+            random=50,
+            random_draw_attempts=draws,
+            bank_stats=stats,
+            initial_population_sha256=digest([solution(c) for c in members]),
+            initial_archive_sha256=digest([solution(c) for c in gateway.archive.members]),
+            initialization_seconds=perf_counter() - started,
+            config=asdict(config),
+        )
+        return members
+
+    return initialize
+
+
 def polish_generation(
     problem: ProblemInstance,
     population: list[Candidate],
@@ -222,12 +279,13 @@ def run_arm(
     evidence: dict,
     *,
     observer: Callable[[str, dict], None] | None = None,
+    balanced: bool = False,
 ) -> RunResult:
     """Run a hybrid external arm, or replay a component33 reference arm unchanged."""
     if arm in REFERENCE_ARMS:
         return component_random.run_arm(problem, config, arm, evidence, observer=observer)
     method = base_arm(arm)
-    factory = hybrid_initializer(problem, config, evidence)
+    factory = (balanced_initializer if balanced else hybrid_initializer)(problem, config, evidence)
     begin = perf_counter()
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:

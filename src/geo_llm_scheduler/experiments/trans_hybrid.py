@@ -30,11 +30,13 @@ class HybridSearchContext(SearchContext):
         seconds: float,
         wait_genes: bool = True,
         max_generations: int | None = None,
+        balanced: bool = False,
     ) -> None:
         if not wait_genes:
             raise ValueError("Hybrid right-shift requires wait genes")
         super().__init__(problem, seed, seconds, wait_genes=True, max_generations=max_generations)
         self.seed = seed
+        self.balanced = balanced
         self.initialization_count = 0
         self.hybrid_evidence: list[dict] = []
         self.polish_rng: Random = RNGManager(seed).stream("trans_hybrid:polish")
@@ -57,9 +59,10 @@ class HybridSearchContext(SearchContext):
         self.initialization_count += 1
         config = ext_hybrid.arm_config("EXTH_MOEAD", seed, self.seconds)
         evidence: dict = {}
-        members = ext_hybrid.hybrid_initializer(self.problem, config, evidence)(
-            self.gateway, RNGManager(seed)
+        factory = (
+            ext_hybrid.balanced_initializer if self.balanced else ext_hybrid.hybrid_initializer
         )
+        members = factory(self.problem, config, evidence)(self.gateway, RNGManager(seed))
         self.hybrid_evidence.append(evidence)
         result = []
         for member in members[:size]:
