@@ -30,12 +30,16 @@ NATIVE: dict[str, Callable[[SearchContext, int], list[Individual]]] = {
     "CMOEA_AOP_PD": run_cmoeaaop,
     "CMOFLCS_PD": run_cmoflcs,
     "PSLGP_H_PD": run_pslgp,
+}
+ALGORITHMS = (*s4_ablation.ARMS, *NATIVE, *ext_hybrid.ARMS)
+HYBRID_NATIVE: dict[str, Callable[[SearchContext, int], list[Individual]]] = {
     "CMOEA_CD_HYBRID_PD": run_cmoeacd,
     "CMOEA_AOP_HYBRID_PD": run_cmoeaaop,
     "CMOFLCS_HYBRID_PD": run_cmoflcs,
 }
-HYBRID = ("CMOEA_CD_HYBRID_PD", "CMOEA_AOP_HYBRID_PD", "CMOFLCS_HYBRID_PD")
-ALGORITHMS = (*s4_ablation.ARMS, *NATIVE, *ext_hybrid.ARMS)
+HYBRID = tuple(HYBRID_NATIVE)
+AVAILABLE_ALGORITHMS = (*ALGORITHMS, *HYBRID)
+ALL_NATIVE = NATIVE | HYBRID_NATIVE
 
 
 def digest(path: Path) -> str:
@@ -91,7 +95,7 @@ def run_case(
     Native population defaults are retained (100; PSLGP 1000). Size overrides
     and generation limits are explicitly labeled engineering checks.
     """
-    if algorithm not in ALGORITHMS:
+    if algorithm not in AVAILABLE_ALGORITHMS:
         raise ValueError("Unknown algorithm")
     problem = load_instance(instance)
     budget = seconds if seconds is not None else s4_ablation.BUDGETS[len(problem.jobs)]
@@ -101,7 +105,7 @@ def run_case(
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
         raise ValueError("Supply an explicit frozen S4 calibration record")
-    if algorithm not in NATIVE and population_size is not None:
+    if algorithm not in ALL_NATIVE and population_size is not None:
         raise ValueError("S4 and enhanced baselines retain their population of 100")
     if algorithm in HYBRID and not wait_genes:
         raise ValueError("Enhanced methods require waiting genes for Polish replay")
@@ -121,7 +125,7 @@ def run_case(
         "representation": "two_tree_dispatch"
         if algorithm == "PSLGP_H_PD"
         else f"{'4N' if wait_genes else '3N'}_keys"
-        if algorithm in NATIVE
+        if algorithm in ALL_NATIVE
         else "enhanced_hybrid_MS_OS"
         if algorithm in ext_hybrid.ARMS
         else "S4_MS_OS_timing",
@@ -238,7 +242,7 @@ def run_case(
             )
             if campaign_output:
                 ctx.gateway.candidate_sink = lambda _: report(ctx.gateway)
-            returned = NATIVE[algorithm](ctx, int(record["population"]))
+            returned = ALL_NATIVE[algorithm](ctx, int(record["population"]))
             elapsed = perf_counter() - ctx.started
             gateway, population, trace = ctx.gateway, [x.candidate for x in returned], ctx.trace
             evidence = {"adapter_queries": ctx.evaluations, "generations": ctx.generations}
@@ -286,7 +290,7 @@ def run_case(
 def main() -> None:
     """Parse one experiment task; never launch an implicit matrix or server workload."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--algorithm", required=True, choices=ALGORITHMS)
+    parser.add_argument("--algorithm", required=True, choices=AVAILABLE_ALGORITHMS)
     parser.add_argument("--instance", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--seed", type=int, default=16901)

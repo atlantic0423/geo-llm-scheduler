@@ -15,7 +15,12 @@ from geo_llm_scheduler.experiments.comparison13 import case_problem
 from geo_llm_scheduler.experiments.trans_common import SearchContext
 from geo_llm_scheduler.experiments.trans_hybrid import HybridSearchContext
 from geo_llm_scheduler.experiments.trans_hybrid_encoding import encode_schedule
-from geo_llm_scheduler.experiments.trans_runner import HYBRID, run_case
+from geo_llm_scheduler.experiments.trans_runner import (
+    ALGORITHMS,
+    AVAILABLE_ALGORITHMS,
+    HYBRID,
+    run_case,
+)
 from geo_llm_scheduler.io.loaders import save_instance
 from geo_llm_scheduler.scheduling.ssgs import decode
 from geo_llm_scheduler.scheduling.timing import legal_bounds, move
@@ -69,6 +74,12 @@ def test_unrepresentable_decode_delay_is_not_silently_inserted():
         fixture, schedule=delayed, evaluation=evaluate(problem, fixture.genotype, delayed)
     )
     assert encode_schedule(problem, candidate) is None
+
+
+def test_hybrid_entries_do_not_modify_frozen_14_method_matrix():
+    assert len(ALGORITHMS) == 14
+    assert not set(HYBRID).intersection(ALGORITHMS)
+    assert set(AVAILABLE_ALGORITHMS) == set(ALGORITHMS) | set(HYBRID)
 
 
 def test_first_hybrid_initial_population_matches_existing_baselines_exactly():
