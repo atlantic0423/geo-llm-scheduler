@@ -115,6 +115,10 @@ class SearchContext:
             raise ValueError("At least four individuals required")
         return [self.evaluate(x) for x in self.rng.random((size, self.dimensions))]
 
+    def polish_population(self, population: list[Individual]) -> list[Individual]:
+        """No-op for original ports; opt-in hybrids override this generation hook."""
+        return population
+
     def offspring(self, genes: Array) -> list[Individual]:
         """Stop evaluation at complete-candidate boundaries when wall time expires."""
         result = []

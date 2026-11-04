@@ -104,6 +104,10 @@ def run_cmoeaaop(context: SearchContext, population_size: int = 100) -> list[Ind
                 else offspring[other]
             )
             populations[i], fitness[i], _ = select_spea(populations[i] + offspring[i] + injected, n)
+        polished = [context.polish_population(p) for p in populations]
+        if any(a is not b for a, b in zip(polished, populations, strict=True)):
+            populations = polished
+            fitness = [spea_fitness(objectives(p)) for p in populations]
         state, next_state, reward = sample(
             objectives(previous), objectives(populations[0]), context.progress()
         )

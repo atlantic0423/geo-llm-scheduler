@@ -95,8 +95,10 @@ def run_cmoflcs(context: SearchContext, population_size: int = 100) -> list[Indi
         second, fitness[1], _ = select_spea(populations[1] + offspring[0] + offspring[1], n)
         # Original reward counts selected offspring among the first population.
         rewards[operator] += sum(i >= n for i in selected) / sum(map(len, offspring))
-        populations = [first, second]
-        archive, _, _ = select_spea(archive + first + second, n)
+        populations = [context.polish_population(first), context.polish_population(second)]
+        if populations[0] is not first or populations[1] is not second:
+            fitness = [spea_fitness(objectives(p)) for p in populations]
+        archive, _, _ = select_spea(archive + populations[0] + populations[1], n)
         context.generations += 1
         context.trace.append(
             {

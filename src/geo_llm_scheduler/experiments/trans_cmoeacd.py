@@ -75,6 +75,7 @@ def run_cmoeacd(context: SearchContext, population_size: int = 100) -> list[Indi
         offspring = context.offspring(np.vstack(genes))
         if not offspring:
             break
+        offspring = context.polish_population(offspring)
         context.generations += 1
         context.trace.append(
             {

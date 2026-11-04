@@ -19,6 +19,7 @@ from geo_llm_scheduler.experiments.trans_cmoeaaop import run_cmoeaaop
 from geo_llm_scheduler.experiments.trans_cmoeacd import run_cmoeacd
 from geo_llm_scheduler.experiments.trans_cmoflcs import run_cmoflcs
 from geo_llm_scheduler.experiments.trans_common import Individual, SearchContext
+from geo_llm_scheduler.experiments.trans_hybrid import HybridSearchContext
 from geo_llm_scheduler.experiments.trans_pslgp import run_pslgp
 from geo_llm_scheduler.io.loaders import load_instance
 from geo_llm_scheduler.lsv2.qlearning import QLearningSearch
@@ -29,7 +30,11 @@ NATIVE: dict[str, Callable[[SearchContext, int], list[Individual]]] = {
     "CMOEA_AOP_PD": run_cmoeaaop,
     "CMOFLCS_PD": run_cmoflcs,
     "PSLGP_H_PD": run_pslgp,
+    "CMOEA_CD_HYBRID_PD": run_cmoeacd,
+    "CMOEA_AOP_HYBRID_PD": run_cmoeaaop,
+    "CMOFLCS_HYBRID_PD": run_cmoflcs,
 }
+HYBRID = ("CMOEA_CD_HYBRID_PD", "CMOEA_AOP_HYBRID_PD", "CMOFLCS_HYBRID_PD")
 ALGORITHMS = (*s4_ablation.ARMS, *NATIVE, *ext_hybrid.ARMS)
 
 
@@ -98,6 +103,8 @@ def run_case(
         raise ValueError("Supply an explicit frozen S4 calibration record")
     if algorithm not in NATIVE and population_size is not None:
         raise ValueError("S4 and enhanced baselines retain their population of 100")
+    if algorithm in HYBRID and not wait_genes:
+        raise ValueError("Enhanced methods require waiting genes for Polish replay")
     output.mkdir(parents=True, exist_ok=False)
     record: dict = {
         "protocol": "s4-trans-python/v1",
@@ -119,6 +126,11 @@ def run_case(
         if algorithm in ext_hybrid.ARMS
         else "S4_MS_OS_timing",
         "archive_policy": "all_complete_feasible_exact_candidates; passive for native ports",
+        "enhancement": (
+            "EXTH 20-heuristic + 1 BILL + 79 random; old single-Prefill Polish, 20% per generation"
+            if algorithm in HYBRID
+            else None
+        ),
         "source": source_record(),
     }
     write_json(output / "config.json", record)
@@ -211,8 +223,18 @@ def run_case(
             )
             write_json(output / "initialization.json", evidence)
         else:
-            ctx = SearchContext(
-                problem, seed, budget, wait_genes=wait_genes, max_generations=max_generations
+            ctx = (
+                HybridSearchContext(
+                    problem,
+                    seconds=budget,
+                    seed=seed,
+                    wait_genes=wait_genes,
+                    max_generations=max_generations,
+                )
+                if algorithm in HYBRID
+                else SearchContext(
+                    problem, seed, budget, wait_genes=wait_genes, max_generations=max_generations
+                )
             )
             if campaign_output:
                 ctx.gateway.candidate_sink = lambda _: report(ctx.gateway)
@@ -220,6 +242,9 @@ def run_case(
             elapsed = perf_counter() - ctx.started
             gateway, population, trace = ctx.gateway, [x.candidate for x in returned], ctx.trace
             evidence = {"adapter_queries": ctx.evaluations, "generations": ctx.generations}
+            if isinstance(ctx, HybridSearchContext):
+                evidence.update(initializations=ctx.hybrid_evidence, polish=ctx.polish_counts)
+                write_json(output / "initialization.json", ctx.hybrid_evidence)
         # Independent audit after the budget; no additional candidate search or selection.
         for candidate in gateway.archive.members + population:
             checked = evaluate(problem, candidate.genotype, candidate.schedule)
