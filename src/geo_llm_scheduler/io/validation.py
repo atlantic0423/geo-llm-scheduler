@@ -22,6 +22,10 @@ def validate_problem(problem: ProblemInstance) -> None:
             raise ValueError("Non-finite server profile")
         if m.vram <= 0 or m.idle_kw < 0 or m.active_kw < m.idle_kw:
             raise ValueError("Invalid server capacity/power")
+    model = problem.power_model
+    values = (model.beta, model.kappa_prefill, model.kappa_decode)
+    if not all(type(v) in (int, float) and math.isfinite(v) and 0 <= v <= 1 for v in values):
+        raise ValueError("Power model beta and kappas must be finite and within [0, 1]")
     if any(not any(m.region == r for m in problem.instances) for r in range(len(problem.regions))):
         raise ValueError("Each region requires positive compute and VRAM capacity")
     for r in problem.regions:

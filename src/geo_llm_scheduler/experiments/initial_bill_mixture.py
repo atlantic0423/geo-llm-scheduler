@@ -58,22 +58,37 @@ class PrefixPower:
     horizon: float = 0.0
     index: TariffIndex | None = None
 
-    def trial(self, additions: dict[int, list[tuple[float, float]]], horizon: float) -> tuple:
-        """Score an uncommitted feasible prefix, returning updates for commit."""
+    def trial(
+        self,
+        additions: dict[int, list[tuple[float, float]]],
+        horizon: float,
+        loads: tuple[tuple[int, float, float, float], ...] = (),
+    ) -> tuple:
+        """Score an uncommitted feasible prefix, returning updates for commit.
+
+        ``loads`` lists ``(machine, start, end, kW)`` per-operation load power of
+        the added operations; it is empty under the two-state power model.
+        """
         new_unions = {m: merged(self.unions.get(m, []) + items) for m, items in additions.items()}
         integral = self.index.integral if self.index is not None else tariff_integral
         delta_tou = 0.0
         delta_energy: dict[tuple[int, int], float] = {}
+
+        def add(region: int, a: float, b: float, power: float) -> float:
+            for w in range(int(a // 900), math.ceil(b / 900)):
+                key = (region, w)
+                overlap = max(0.0, min(b, (w + 1) * 900) - max(a, w * 900))
+                delta_energy[key] = delta_energy.get(key, 0.0) + power * overlap
+            return power * integral(self.problem, region, a, b) / 3600
+
         for m, union in new_unions.items():
-            server = self.problem.instances[m]
+            home = self.problem.instances[m].region
             for sign, items in ((1.0, union), (-1.0, self.unions.get(m, []))):
                 for a, b in items:
-                    power = sign * (server.active_kw - server.idle_kw)
-                    delta_tou += power * integral(self.problem, server.region, a, b) / 3600
-                    for w in range(int(a // 900), math.ceil(b / 900)):
-                        key = (server.region, w)
-                        overlap = max(0.0, min(b, (w + 1) * 900) - max(a, w * 900))
-                        delta_energy[key] = delta_energy.get(key, 0.0) + power * overlap
+                    delta_tou += add(home, a, b, sign * self.problem.floor_kw(m))
+        for m, a, b, kw in loads:
+            if kw:
+                delta_tou += add(self.problem.instances[m].region, a, b, kw)
         idle = (
             self.index.idle
             if self.index is not None
@@ -196,7 +211,12 @@ def guided_genotype(
                 (p_start, p_start + problem.jobs[job].prefill.duration)
             )
             additions.setdefault(d, []).append((d_start, d_end))
-            trial = power.trial(additions, max(power.horizon, d_end))
+            p_end = p_start + problem.jobs[job].prefill.duration
+            loads = (
+                (p, p_start, p_end, problem.load_kw(p_op, p)),
+                (d, d_start, d_end, problem.load_kw(d_op, d)),
+            )
+            trial = power.trial(additions, max(power.horizon, d_end), loads)
             cost = (
                 trial[0]
                 if family == "TOU"

@@ -59,15 +59,64 @@ def _power_segments(
     # Keeping *all* points (including hidden overlapping-operation boundaries)
     # preserves the original integral's floating-point addition order.
     bounds = {m: resources.activity_bounds(m) for m in machines}
+    if problem.power_model.legacy:
+        for a, b in zip(points, points[1:]):
+            power = sum(
+                problem.instances[m].active_kw
+                if bisect_right(bounds[m][0], a) > bisect_right(bounds[m][1], a)
+                else problem.instances[m].idle_kw
+                for m in machines
+            )
+            result.append((a, b, power))
+        return tuple(result)
+    steps = {m: _load_steps(problem, m, occupied[m]) for m in machines}
     for a, b in zip(points, points[1:]):
         power = sum(
-            problem.instances[m].active_kw
+            _machine_power(problem, m, steps[m], a)
             if bisect_right(bounds[m][0], a) > bisect_right(bounds[m][1], a)
             else problem.instances[m].idle_kw
             for m in machines
         )
         result.append((a, b, power))
     return tuple(result)
+
+
+def _load_steps(
+    problem: ProblemInstance, machine: int, items: tuple[tuple[int, float, float], ...]
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    """Per-machine load (kW above the busy floor) on each own elementary interval.
+
+    Each value is a fresh sum over the operations covering that interval, in
+    operation order, so no running total accumulates rounding drift.
+    """
+    begins: dict[float, list[int]] = {}
+    ends: dict[float, list[int]] = {}
+    for o, a, b in items:
+        if a < b:
+            begins.setdefault(a, []).append(o)
+            ends.setdefault(b, []).append(o)
+    times = sorted(begins.keys() | ends.keys())
+    active: set[int] = set()
+    loads = []
+    for t in times:
+        # Half-open [a, b): an operation ending at t is no longer running at t.
+        active.difference_update(ends.get(t, ()))
+        active.update(begins.get(t, ()))
+        loads.append(sum(problem.load_kw(o, machine) for o in sorted(active)))
+    return tuple(times), tuple(loads)
+
+
+def _machine_power(
+    problem: ProblemInstance,
+    machine: int,
+    steps: tuple[tuple[float, ...], tuple[float, ...]],
+    at: float,
+) -> float:
+    """Busy-machine power at a segment start: idle + floor + running load."""
+    times, loads = steps
+    server = problem.instances[machine]
+    load = loads[bisect_right(times, at) - 1]
+    return server.idle_kw + problem.floor_kw(machine) + load
 
 
 def regional_windows(

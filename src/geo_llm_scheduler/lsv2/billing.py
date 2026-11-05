@@ -1,10 +1,12 @@
 """Incremental Bill bookkeeping for scoring candidate moves; exact evaluation stays authoritative.
 
 The profile mirrors the exact model: every instance draws idle power on
-``[0, T_end)`` and active power on the union of its operation intervals; TOU is
-the price integral of regional power divided by 3600, and Demand is each Region's
-maximum fixed 900-second window mean times its rate. Scores computed here only
-rank moves. Final candidates are always re-evaluated by ``evaluation.exact``.
+``[0, T_end)``, the busy floor on the union of its operation intervals, and, under
+a load-dependent power model, each operation's own load power on its interval.
+TOU is the price integral of regional power divided by 3600, and Demand is each
+Region's maximum fixed 900-second window mean times its rate. Scores computed
+here only rank moves. Final candidates are always re-evaluated by
+``evaluation.exact``.
 """
 
 from __future__ import annotations
@@ -117,9 +119,45 @@ class PowerProfile:
             r = server.region
             self.tou += self._add_segment(r, 0.0, self.horizon, server.idle_kw, self.windows[r])
             for a, b in self.unions[m]:
-                self.tou += self._add_segment(
-                    r, a, b, server.active_kw - server.idle_kw, self.windows[r]
-                )
+                self.tou += self._add_segment(r, a, b, self.problem.floor_kw(m), self.windows[r])
+            # Zero under the two-state model, so its totals are unchanged.
+            for o, (a, b) in sorted(self.items[m].items()):
+                self.tou += self._add_segment(r, a, b, self.problem.load_kw(o, m), self.windows[r])
+
+    def _load_changes(
+        self, machine: int, edits: Mapping[int, tuple[float, float] | None], windows: list[float]
+    ) -> float:
+        """TOU change of the per-operation load power for one machine's edits."""
+        region = self.problem.instances[machine].region
+        tou = 0.0
+        for o, interval in edits.items():
+            kw = self.problem.load_kw(o, machine)
+            if kw == 0:
+                continue
+            old = self.items[machine].get(o)
+            if old is not None:
+                tou += self._add_segment(region, old[0], old[1], -kw, windows)
+            if interval is not None:
+                tou += self._add_segment(region, interval[0], interval[1], kw, windows)
+        return tou
+
+    def window_values(self, changes: Changes, region: int) -> list[float]:
+        """One Region's window means after edits, without changing this profile."""
+        values = list(self.windows[region])
+        for m, edits in changes.items():
+            if self.problem.instances[m].region != region:
+                continue
+            bucket = dict(self.items[m])
+            for o, interval in edits.items():
+                if interval is None:
+                    bucket.pop(o, None)
+                else:
+                    bucket[o] = interval
+            kw = self.problem.floor_kw(m)
+            for a, b, sign in difference(self.unions[m], merge(list(bucket.values()))):
+                self._add_segment(region, a, b, sign * kw, values)
+            self._load_changes(m, edits, values)
+        return values
 
     def demand(self) -> float:
         return sum(
@@ -145,9 +183,10 @@ class PowerProfile:
                 else:
                     bucket[o] = interval
             new_union = merge(list(bucket.values()))
-            kw = server.active_kw - server.idle_kw
+            kw = self.problem.floor_kw(m)
             for a, b, sign in difference(self.unions[m], new_union):
                 tou += self._add_segment(server.region, a, b, sign * kw, windows[server.region])
+            tou += self._load_changes(m, edits, windows[server.region])
         demand = sum(
             region.demand_rate * max(windows[r], default=0.0)
             for r, region in enumerate(self.problem.regions)
@@ -158,13 +197,15 @@ class PowerProfile:
         """Commit edits; rebuilds only the touched machines' unions and window sums."""
         for m, edits in changes.items():
             server = self.problem.instances[m]
+            # Load changes need the old intervals, so book them before the edit.
+            self.tou += self._load_changes(m, edits, self.windows[server.region])
             for o, interval in edits.items():
                 if interval is None:
                     self.items[m].pop(o, None)
                 else:
                     self.items[m][o] = interval
             new_union = merge(list(self.items[m].values()))
-            kw = server.active_kw - server.idle_kw
+            kw = self.problem.floor_kw(m)
             for a, b, sign in difference(self.unions[m], new_union):
                 self.tou += self._add_segment(
                     server.region, a, b, sign * kw, self.windows[server.region]

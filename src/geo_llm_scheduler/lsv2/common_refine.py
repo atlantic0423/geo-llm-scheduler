@@ -8,7 +8,6 @@ from random import Random
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Candidate, ProblemInstance, Schedule
-from geo_llm_scheduler.lsv2.billing import difference, merge
 from geo_llm_scheduler.lsv2.flowsafe import FlowSafeBillMoves, _PreparedFlow
 from geo_llm_scheduler.lsv2.group_polish import _Search
 from geo_llm_scheduler.lsv2.polish_selection import PhysicalKey, physical_key
@@ -63,20 +62,14 @@ class _PeakSearch(_Search):
             for delta in (low, high):
                 if delta in windows:
                     continue
-                edits = {
+                edits: dict[int, tuple[float, float] | None] = {
                     o: (
                         self.starts[o] + delta,
                         self.starts[o] + delta + self.problem.profile(o).duration,
                     )
                     for o in group
                 }
-                union = merge([edits.get(o, (a, b)) for o, a, b in self.view.items[machine]])
-                values = list(self.base.windows[server.region])
-                for a, b, sign in difference(self.base.unions[machine], union):
-                    self.base._add_segment(
-                        server.region, a, b, sign * (server.active_kw - server.idle_kw), values
-                    )
-                windows[delta] = values
+                windows[delta] = self.base.window_values({machine: edits}, server.region)
                 self.stats["peak_window_evaluations"] += 1
             for fraction in _peak_switches(windows[low], windows[high]):
                 delta = low + fraction * (high - low)

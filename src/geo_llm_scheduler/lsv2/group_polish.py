@@ -160,7 +160,9 @@ class _Search:
         if key in self.pool:
             self.stats["duplicate_candidates"] += 1
             return
-        if all(
+        # Only under the two-state model is an unchanged busy union a zero-Bill move;
+        # with load-dependent power every moved operation carries its own load.
+        if self.problem.power_model.legacy and all(
             merge([changes[m].get(o, (a, b)) for o, a, b in self.view.items[m]])
             == self.base.unions[m]
             for m in changes
