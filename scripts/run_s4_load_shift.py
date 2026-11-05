@@ -70,7 +70,22 @@ def plan(records: list[dict], folds: dict) -> list[dict]:
     return blocks
 
 
-def prepare(root: Path, panel: Path, calibration: Path, host: str) -> None:
+def shard_blocks(blocks: list[dict], shard: str = "0/1") -> list[tuple[int, dict]]:
+    """Deterministic balanced shard ``k/n`` of the full plan, with each block's global index.
+
+    Blocks are dealt round-robin after sorting by budget (longest first) and name, so
+    every shard gets nearly the same number of blocks of each size. ``0/1`` is the full
+    plan. The global index keeps the full design's alternating arm order.
+    """
+    k, n = (int(x) for x in shard.split("/"))
+    assert 0 <= k < n
+    dealt = sorted(
+        enumerate(blocks), key=lambda ib: (-s4_ablation.BUDGETS[ib[1]["n"]], ib[1]["block"])
+    )
+    return sorted((ib for j, ib in enumerate(dealt) if j % n == k), key=lambda ib: ib[0])
+
+
+def prepare(root: Path, panel: Path, calibration: Path, host: str, shard: str = "0/1") -> None:
     """Seal inputs, the declared power model, fold mapping, commands and arm settings."""
     assert digest(panel / "manifest.json") == PANEL and digest(calibration) == CAL
     panel_manifest = _read(panel / "manifest.json")
@@ -80,6 +95,7 @@ def prepare(root: Path, panel: Path, calibration: Path, host: str) -> None:
     folds = _read(calibration)
     blocks = plan(records, folds)
     assert 2 * len(blocks) == RUNS
+    selected = shard_blocks(blocks, shard)
     root.mkdir(parents=True, exist_ok=False)
     files = {}
     for p, name in [
@@ -88,7 +104,7 @@ def prepare(root: Path, panel: Path, calibration: Path, host: str) -> None:
     ]:
         shutil.copyfile(p, root / name)
         files[name] = digest(root / name)
-    for i, b in enumerate(blocks):
+    for i, b in selected:
         row = b["row"]
         target = root / row["path"]
         target.parent.mkdir(exist_ok=True)
@@ -121,14 +137,15 @@ def prepare(root: Path, panel: Path, calibration: Path, host: str) -> None:
         commit=_head(),
         files=files,
         arms=ARMS,
-        blocks=[b["block"] for b in blocks],
+        blocks=[b["block"] for _, b in selected],
         seeds=SEEDS,
-        runs=RUNS,
+        runs=2 * len(selected),
+        shard=shard,
         host=host,
         level="development screen",
         window_seconds=20 * 3600,
         power_model=panel_manifest["power_model"],
-        solver_seconds=sum(2 * s4_ablation.BUDGETS[b["n"]] for b in blocks),
+        solver_seconds=sum(2 * s4_ablation.BUDGETS[b["n"]] for _, b in selected),
     )
     atomic_json(root / "manifest.json", m)
     atomic_json(root / "manifest.sha256.json", dict(sha256=digest(root / "manifest.json")))
@@ -139,7 +156,7 @@ def validate_inputs(root: Path) -> dict:
     assert digest(root / "manifest.json") == _read(root / "manifest.sha256.json")["sha256"]
     m = _read(root / "manifest.json")
     assert m["commit"] == _head() and m["source"] == source_hash()
-    assert tuple(m["arms"]) == ARMS and m["runs"] == RUNS == 2 * len(set(m["blocks"]))
+    assert tuple(m["arms"]) == ARMS and m["runs"] == 2 * len(set(m["blocks"]))
     assert PowerModel(**m["power_model"]) == LOAD
     assert (
         digest(root / "panel_manifest.json") == PANEL and digest(root / "calibration.json") == CAL
@@ -147,8 +164,9 @@ def validate_inputs(root: Path) -> dict:
     for name, sha in m["files"].items():
         assert digest(root / name) == sha, name
     folds = _read(root / "calibration.json")
-    expected = {b["block"] for b in plan(_read(root / "panel_manifest.json")["instances"], folds)}
-    assert expected == set(m["blocks"])
+    full = plan(_read(root / "panel_manifest.json")["instances"], folds)
+    expected = {b["block"] for _, b in shard_blocks(full, m.get("shard", "0/1"))}
+    assert expected == set(m["blocks"]) and len(m["blocks"]) == len(expected)
     for key in m["blocks"]:
         s = _read(root / "specs" / (key + ".json"))
         assert s["seconds"] == s4_ablation.BUDGETS[s["n"]] and set(s["order"]) == set(ARMS)
@@ -281,9 +299,10 @@ def main() -> None:
     p.add_argument("--arm", choices=ARMS)
     p.add_argument("--cpu", type=int)
     p.add_argument("--cpus")
+    p.add_argument("--shard", default="0/1")
     a = p.parse_args()
     if a.action == "prepare":
-        prepare(a.root, a.panel, a.calibration, a.host)
+        prepare(a.root, a.panel, a.calibration, a.host, a.shard)
     elif a.action == "validate":
         print(validate_inputs(a.root)["runs"])
     elif a.action == "preflight":

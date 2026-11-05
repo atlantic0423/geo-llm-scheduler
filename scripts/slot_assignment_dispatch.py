@@ -67,8 +67,33 @@ def orphan_workers(root: Path) -> list[int]:
     return found
 
 
+CONTAINER_LIMIT = 32 * 1024**3
+
+
+def memory_gate(
+    host_available: int, disk_free: int, cgroup_current: int | None, cgroup_max: int | None
+) -> bool:
+    """Decide whether one more worker may start.
+
+    Shared host (no cgroup limit, or a unit limit above 32GiB): keep the original
+    rule, at least 220GiB host memory and disk free and the unit below 360GB.
+    Small container (cgroup ``memory.max`` at most 32GiB): the container limit is
+    the binding constraint, so dispatch only while the cgroup uses under 70% of it;
+    host memory must still exceed 8GiB and disk 50GiB.
+    """
+    if cgroup_max is not None and cgroup_max <= CONTAINER_LIMIT:
+        return (
+            cgroup_current is not None
+            and cgroup_current < 0.7 * cgroup_max
+            and host_available > 8 * 1024**3
+            and disk_free > 50 * 1024**3
+        )
+    unit_ok = cgroup_current is None or cgroup_current < 360000000000
+    return host_available > 220 * 1024**3 and disk_free > 220 * 1024**3 and unit_ok
+
+
 def resources_available(root: Path) -> bool:
-    """Retain at least 200GiB memory and disk with conservative dispatch guards and cap dispatch below cgroup high."""
+    """Read host memory, disk and this process's cgroup, then apply :func:`memory_gate`."""
     available = (
         int(
             next(
@@ -79,13 +104,16 @@ def resources_available(root: Path) -> bool:
         )
         * 1024
     )
-    memory_ok = True
+    current = limit = None
     for line in Path("/proc/self/cgroup").read_text().splitlines():
         if line.startswith("0::"):
-            p = Path("/sys/fs/cgroup" + line[3:]) / "memory.current"
-            if p.exists():
-                memory_ok = int(p.read_text()) < 360000000000
-    return available > 220 * 1024**3 and shutil.disk_usage(root).free > 220 * 1024**3 and memory_ok
+            base = Path("/sys/fs/cgroup" + line[3:])
+            if (base / "memory.current").exists():
+                current = int((base / "memory.current").read_text())
+            if (base / "memory.max").exists():
+                text = (base / "memory.max").read_text().strip()
+                limit = None if text == "max" else int(text)
+    return memory_gate(available, shutil.disk_usage(root).free, current, limit)
 
 
 def dispatch(
