@@ -239,6 +239,20 @@ def balanced_initializer(
     return initialize
 
 
+def s4_initializer(
+    problem: ProblemInstance, config: Config, evidence: dict
+) -> Callable[[EvaluationGateway, RNGManager], list[Candidate]]:
+    """Use the actual S4 BILL4 initializer, including its initial archive updates.
+
+    The baseline's search parameters remain unchanged. Only initialization uses
+    S4's frozen configuration, seed and candidate-evaluation order.
+    """
+    from geo_llm_scheduler.experiments import s4_ablation
+
+    s4_config = s4_ablation.arm_config("A0_FULL_S4", config.seed, config.seconds or 1.0)
+    return component_random.charged_initializer(problem, s4_config, "BILL_MOEAD", evidence)
+
+
 def polish_generation(
     problem: ProblemInstance,
     population: list[Candidate],
@@ -280,12 +294,18 @@ def run_arm(
     *,
     observer: Callable[[str, dict], None] | None = None,
     balanced: bool = False,
+    s4_init: bool = False,
 ) -> RunResult:
     """Run a hybrid external arm, or replay a component33 reference arm unchanged."""
+    if balanced and s4_init:
+        raise ValueError("Choose one initialization policy")
     if arm in REFERENCE_ARMS:
         return component_random.run_arm(problem, config, arm, evidence, observer=observer)
     method = base_arm(arm)
-    factory = (balanced_initializer if balanced else hybrid_initializer)(problem, config, evidence)
+    factory_fn = (
+        s4_initializer if s4_init else balanced_initializer if balanced else hybrid_initializer
+    )
+    factory = factory_fn(problem, config, evidence)
     begin = perf_counter()
 
     def initialize(gateway: EvaluationGateway, streams: RNGManager) -> list[Candidate]:

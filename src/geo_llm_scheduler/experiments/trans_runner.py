@@ -40,8 +40,17 @@ HYBRID_NATIVE: dict[str, Callable[[SearchContext, int], list[Individual]]] = {
 HYBRID = tuple(HYBRID_NATIVE)
 BALANCED_EXTERNAL = {name + "_B4050": name for name in ext_hybrid.ARMS}
 BALANCED_NATIVE = {name + "_B4050": fn for name, fn in HYBRID_NATIVE.items()}
-AVAILABLE_ALGORITHMS = (*ALGORITHMS, *HYBRID, *BALANCED_EXTERNAL, *BALANCED_NATIVE)
-ALL_NATIVE = NATIVE | HYBRID_NATIVE | BALANCED_NATIVE
+S4INIT_EXTERNAL = {name + "_S4INIT": name for name in ext_hybrid.ARMS}
+S4INIT_NATIVE = {name + "_S4INIT": fn for name, fn in HYBRID_NATIVE.items()}
+AVAILABLE_ALGORITHMS = (
+    *ALGORITHMS,
+    *HYBRID,
+    *BALANCED_EXTERNAL,
+    *BALANCED_NATIVE,
+    *S4INIT_EXTERNAL,
+    *S4INIT_NATIVE,
+)
+ALL_NATIVE = NATIVE | HYBRID_NATIVE | BALANCED_NATIVE | S4INIT_NATIVE
 
 
 def digest(path: Path) -> str:
@@ -109,7 +118,7 @@ def run_case(
         raise ValueError("Supply an explicit frozen S4 calibration record")
     if algorithm not in ALL_NATIVE and population_size is not None:
         raise ValueError("S4 and enhanced baselines retain their population of 100")
-    if algorithm in (*HYBRID, *BALANCED_NATIVE) and not wait_genes:
+    if algorithm in (*HYBRID, *BALANCED_NATIVE, *S4INIT_NATIVE) and not wait_genes:
         raise ValueError("Enhanced methods require waiting genes for Polish replay")
     output.mkdir(parents=True, exist_ok=False)
     record: dict = {
@@ -129,11 +138,13 @@ def run_case(
         else f"{'4N' if wait_genes else '3N'}_keys"
         if algorithm in ALL_NATIVE
         else "enhanced_hybrid_MS_OS"
-        if algorithm in (*ext_hybrid.ARMS, *BALANCED_EXTERNAL)
+        if algorithm in (*ext_hybrid.ARMS, *BALANCED_EXTERNAL, *S4INIT_EXTERNAL)
         else "S4_MS_OS_timing",
         "archive_policy": "all_complete_feasible_exact_candidates; passive for native ports",
         "enhancement": (
-            "EXTH 20-heuristic + 1 BILL + 79 random; old single-Prefill Polish, 20% per generation"
+            "S4 BILL4 initialization; old single-Prefill Polish, 20% per generation"
+            if algorithm in (*S4INIT_EXTERNAL, *S4INIT_NATIVE)
+            else "EXTH 20-heuristic + 1 BILL + 79 random; old single-Prefill Polish, 20% per generation"
             if algorithm in HYBRID
             else "40 heuristic + 10 BILL (4 trials) + 50 random; old single-Prefill Polish, 20%"
             if algorithm in (*BALANCED_EXTERNAL, *BALANCED_NATIVE)
@@ -215,8 +226,8 @@ def run_case(
                     "polish": search.polish_steps,
                 },
             )
-        elif algorithm in (*ext_hybrid.ARMS, *BALANCED_EXTERNAL):
-            base_arm = BALANCED_EXTERNAL.get(algorithm, algorithm)
+        elif algorithm in (*ext_hybrid.ARMS, *BALANCED_EXTERNAL, *S4INIT_EXTERNAL):
+            base_arm = S4INIT_EXTERNAL.get(algorithm, BALANCED_EXTERNAL.get(algorithm, algorithm))
             cfg = ext_hybrid.arm_config(base_arm, seed, budget)
             if max_generations is not None:
                 cfg = replace(cfg, generations=max_generations)
@@ -228,6 +239,7 @@ def run_case(
                 evidence,
                 observer=observe if campaign_output else None,
                 balanced=algorithm in BALANCED_EXTERNAL,
+                s4_init=algorithm in S4INIT_EXTERNAL,
             )
             gateway, population, trace, elapsed = (
                 result.gateway,
@@ -245,8 +257,9 @@ def run_case(
                     wait_genes=wait_genes,
                     max_generations=max_generations,
                     balanced=algorithm in BALANCED_NATIVE,
+                    s4_init=algorithm in S4INIT_NATIVE,
                 )
-                if algorithm in (*HYBRID, *BALANCED_NATIVE)
+                if algorithm in (*HYBRID, *BALANCED_NATIVE, *S4INIT_NATIVE)
                 else SearchContext(
                     problem, seed, budget, wait_genes=wait_genes, max_generations=max_generations
                 )
