@@ -49,8 +49,10 @@ from geo_llm_scheduler.lsv2.polish import FastRightShiftPolish
 from geo_llm_scheduler.lsv2.polish_selection import (
     POOL_POLICIES,
     SEGMENTS,
+    PhysicalKey,
     PolishSelector,
     physical_fingerprint,
+    physical_key,
     segment_of,
 )
 from geo_llm_scheduler.macrosearch.search import execute
@@ -393,6 +395,18 @@ class LSV2Search:
         self.reused_polish = ReusedCommonPolish()
         self.opportunity_selector = OpportunitySelector()
         self.counts: dict[str, int] = {}
+        # Shift-decoupling seam (experiments.s4_decouple). The defaults keep every
+        # reference path: polish entrants are reflowed and polish follows episodes.
+        # ``polish_reflow=False`` sends right-shift entrants to the Archive only;
+        # ``polish_after_episode=False`` drops the per-episode polish; a
+        # ``terminal_share`` adds an Archive-front sweep in the final budget share.
+        self.polish_reflow = True
+        self.polish_after_episode = True
+        self.terminal_share: float | None = None
+        self.terminal_seconds = 0.0
+        self.terminal_started: float | None = None
+        self._terminal_done: set[PhysicalKey] = set()
+        self._terminal_signature: int | None = None
         self._structural: dict[int, Operator] = {a: StructuralOperator(a) for a in range(1, 6)}
         self._timing: dict[str, Operator] = {
             "A7": ActivePack(),
@@ -418,6 +432,9 @@ class LSV2Search:
                 discount=self.config.seed_discount,
                 shares=self.config.flow_end_shares,
             )
+        if self.terminal_share is not None and self._terminal_due(now):
+            self._terminal_sweep(population, gateway, streams, budget_elapsed)
+            now = budget_elapsed()
         while not self._deadline(now) and self.ls_seconds < self.config.time_share * (
             now - self.search_start
         ):
@@ -429,6 +446,78 @@ class LSV2Search:
     def _deadline(self, elapsed: float) -> bool:
         seconds = self.engine_config.seconds
         return seconds is not None and elapsed >= seconds
+
+    def _terminal_due(self, elapsed: float) -> bool:
+        """True once the inclusive clock enters the final ``terminal_share`` of the budget."""
+        seconds = self.engine_config.seconds
+        share = self.terminal_share
+        return seconds is not None and share is not None and elapsed >= (1.0 - share) * seconds
+
+    def _terminal_sweep(
+        self,
+        population: list[Candidate],
+        gateway: EvaluationGateway,
+        streams: RNGManager,
+        budget_elapsed: Callable[[], float],
+    ) -> None:
+        """Right-shift every Archive front point once per physical schedule, Archive only.
+
+        One representative per objective vector, lowest Flow first. An accepted
+        shift enters the Archive as a new physical schedule and is shifted again
+        until the generator certifies it empty, so the sweep ends with every
+        front schedule either visited or the deadline reached. The sweep is
+        skipped while no new Archive insertion happened since the last complete
+        sweep. The sweep polishes its own target (endpoint input, all regions,
+        no input diagnostics) whatever the episode polish selection is, and its
+        entrants never replace population members.
+        """
+        signature = sum(v for k, v in gateway.counts.items() if k.startswith("archive_insertions"))
+        if signature == self._terminal_signature:
+            return
+        started = self.timer()
+        if self.terminal_started is None:
+            self.terminal_started = budget_elapsed()
+        complete = False
+        saved = self.config
+        self.config = replace(
+            saved, polish_region="all", polish_selection="endpoint", polish_diagnostics=False
+        )
+        reflow, self.polish_reflow = self.polish_reflow, False
+        try:
+            while not self._deadline(budget_elapsed()):
+                by_objective: dict[Point, Candidate] = {}
+                for member in gateway.archive.members:
+                    by_objective.setdefault(member.evaluation.objectives, member)
+                front = nondominated(list(by_objective))
+                todo = [
+                    by_objective[p]
+                    for p in front
+                    if physical_key(by_objective[p]) not in self._terminal_done
+                ]
+                if not todo:
+                    complete = True
+                    break
+                target = todo[0]
+                self._terminal_done.add(physical_key(target))
+                self._polish(
+                    target,
+                    FrozenFrame.of(front),
+                    -1,
+                    population,
+                    gateway,
+                    streams,
+                    budget_elapsed,
+                )
+                if self.retain_steps:
+                    self.polish_steps[-1].update(phase="terminal", elapsed=budget_elapsed())
+                self._count("terminal:polish")
+        finally:
+            self.config, self.polish_reflow = saved, reflow
+            self.terminal_seconds += self.timer() - started
+        if complete:
+            self._terminal_signature = sum(
+                v for k, v in gateway.counts.items() if k.startswith("archive_insertions")
+            )
 
     def _count(self, name: str, value: int = 1) -> None:
         self.counts[name] = self.counts.get(name, 0) + value
@@ -495,7 +584,7 @@ class LSV2Search:
             self.steps_since_frame += 1
         self.sampler.report(seed_point, total_gain > 0)
         self._finish_episode()
-        if self.config.polish_region != "off" and executed:
+        if self.config.polish_region != "off" and executed and self.polish_after_episode:
             self._polish(
                 current,
                 frame,
@@ -698,7 +787,11 @@ class LSV2Search:
             # Refresh diagnostics for every admitted timing candidate, including non-best ones.
             refreshed = {id(c): _with_diagnostics(gateway.problem, c) for c in entrants}
             gateway.archive.members[:] = [refreshed.get(id(c), c) for c in gateway.archive.members]
-            replaced = self.reflow(population, gateway, list(refreshed.values()))
+            replaced = (
+                self.reflow(population, gateway, list(refreshed.values()))
+                if self.polish_reflow
+                else 0
+            )
             best = min(improving, key=lambda c: (c.evaluation.bill, identity(c)), default=current)
             row.update(
                 exact=gateway.counts["exact"] - exact_start,
@@ -925,6 +1018,18 @@ class LSV2Search:
 
     def summary(self) -> dict:
         """JSON-ready configuration, accounting and bandit choice distribution."""
+        out = self._summary()
+        if not (self.polish_reflow and self.polish_after_episode) or self.terminal_share:
+            out["decoupling"] = dict(
+                polish_reflow=self.polish_reflow,
+                polish_after_episode=self.polish_after_episode,
+                terminal_share=self.terminal_share,
+                terminal_started=self.terminal_started,
+                terminal_seconds=self.terminal_seconds,
+            )
+        return out
+
+    def _summary(self) -> dict:
         return dict(
             config=asdict(self.config),
             ls_seconds=self.ls_seconds,

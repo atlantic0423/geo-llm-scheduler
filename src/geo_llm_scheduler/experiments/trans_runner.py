@@ -14,7 +14,7 @@ from time import perf_counter
 
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
-from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation, s4_c4
+from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation, s4_c4, s4_decouple
 from geo_llm_scheduler.experiments.trans_cmoeaaop import run_cmoeaaop
 from geo_llm_scheduler.experiments.trans_cmoeacd import run_cmoeacd
 from geo_llm_scheduler.experiments.trans_cmoflcs import run_cmoflcs
@@ -86,14 +86,18 @@ def run_case(
     Native population defaults are retained (100; PSLGP 1000). Size overrides
     and generation limits are explicitly labeled engineering checks.
     """
-    if algorithm not in ALGORITHMS and algorithm not in s4_c4.EXTRA_ARMS:
+    extra = {
+        **{a: s4_c4 for a in s4_c4.EXTRA_ARMS},
+        **{a: s4_decouple for a in s4_decouple.EXTRA_ARMS},
+    }
+    if algorithm not in ALGORITHMS and algorithm not in extra:
         raise ValueError("Unknown algorithm")
-    s4_study = s4_c4 if algorithm in s4_c4.EXTRA_ARMS else s4_ablation
+    s4_study = extra.get(algorithm, s4_ablation)
     problem = load_instance(instance)
     budget = seconds if seconds is not None else s4_ablation.BUDGETS[len(problem.jobs)]
     if budget <= 0 or not float("-inf") < budget < float("inf"):
         raise ValueError("Finite positive budget required")
-    if (algorithm in s4_ablation.ARMS or algorithm in s4_c4.EXTRA_ARMS) and (
+    if (algorithm in s4_ablation.ARMS or algorithm in extra) and (
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
         raise ValueError("Supply an explicit frozen S4 calibration record")
@@ -158,7 +162,7 @@ def run_case(
 
     try:
         evidence: dict = {}
-        if algorithm in s4_ablation.ARMS or algorithm in s4_c4.EXTRA_ARMS:
+        if algorithm in s4_ablation.ARMS or algorithm in extra:
             cfg = s4_study.arm_config(algorithm, seed, budget)
             if max_generations is not None:
                 cfg = replace(cfg, generations=max_generations)
