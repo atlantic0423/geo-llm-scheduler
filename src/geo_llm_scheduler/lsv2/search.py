@@ -511,6 +511,7 @@ class LSV2Search:
                 if self.retain_steps:
                     self.polish_steps[-1].update(phase="terminal", elapsed=budget_elapsed())
                 self._count("terminal:polish")
+                self._terminal_extra(target, front, population, gateway, streams, budget_elapsed)
         finally:
             self.config, self.polish_reflow = saved, reflow
             self.terminal_seconds += self.timer() - started
@@ -541,7 +542,7 @@ class LSV2Search:
             self.frame_id += 1
             self.steps_since_frame = 0
         frame = self.frame
-        index = self.sampler.pick(frame, front)
+        index = self._pick_index(frame, front, population)
         seed_point = front[index]
         if self.config.selector == "direct_shift":
             # Same admission and front seed sampler. The seed itself receives
@@ -567,7 +568,7 @@ class LSV2Search:
         self.trajectories += 1
         total_gain = 0.0
         executed = 0
-        for step in range(self.config.trajectory_steps):
+        for step in range(self._trajectory_steps()):
             if self._deadline(budget_elapsed()):
                 break
             current, gain = self._step(
@@ -597,6 +598,38 @@ class LSV2Search:
 
     def _finish_episode(self) -> None:
         """Close controller credit before any external polish (base has no pending TD)."""
+
+    # ---------------- research seams (base behavior unchanged) ----------------
+    def _pick_index(
+        self, frame: FrozenFrame, front: list[Point], population: list[Candidate]
+    ) -> int:
+        """Seed index into the Archive front; the base keeps the configured sampler."""
+        assert self.sampler is not None
+        return self.sampler.pick(frame, front)
+
+    def _trajectory_steps(self) -> int:
+        """Steps of the next trajectory; the base keeps the configured constant."""
+        return self.config.trajectory_steps
+
+    def _execute_weight(self, frame: FrozenFrame, current: Candidate) -> tuple[float, float]:
+        """Best-of-B weight of one step; the base uses the ray through the incumbent."""
+        return frame.weight_for(current.evaluation.objectives)
+
+    def _before_execute(
+        self, current: Candidate, frame: FrozenFrame, gateway: EvaluationGateway
+    ) -> None:
+        """Hook just before a step's proposals are exact-evaluated (base: nothing)."""
+
+    def _terminal_extra(
+        self,
+        target: Candidate,
+        front: list[Point],
+        population: list[Candidate],
+        gateway: EvaluationGateway,
+        streams: RNGManager,
+        budget_elapsed: Callable[[], float],
+    ) -> None:
+        """Extra Archive-only terminal refinement of one front target (base: nothing)."""
 
     def _polish(
         self,
@@ -901,11 +934,12 @@ class LSV2Search:
         )
         t2 = self.timer()
         context = NormalizationContext(gateway.ideal, maximum(population))
+        self._before_execute(current, frame, gateway)
         result = execute(
             batch,
             current,
             self.config.budget,
-            frame.weight_for(current.evaluation.objectives),
+            self._execute_weight(frame, current),
             context,
             gateway,
             "LSV2:" + operator,

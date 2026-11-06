@@ -31,6 +31,12 @@ class EvaluationGateway:
     archive dispatch are unchanged; hits are counted separately as
     ``ssgs_cache_hits`` and their lookup time as ``decode_cache`` seconds.
     ``audit_decode_cache`` recomputes every hit and asserts equality (tests only).
+
+    ``refine`` (research seam, default ``None``) post-processes every structural
+    SSGS decode with a deterministic timing function of ``(genotype, schedule,
+    refine_class)``; the refined schedule is what is exact-evaluated, so the
+    combined decoder stays a function of the genotype and the declared class.
+    The cache key then includes ``refine_class``. ``None`` keeps every path.
     """
 
     def __init__(
@@ -51,26 +57,42 @@ class EvaluationGateway:
         self.candidate_sink: Callable[[Candidate], None] | None = None
         self.decode_cache_size = decode_cache_size
         self.audit_decode_cache = False
-        self._decoded: OrderedDict[Genotype, tuple[Schedule, EvaluationResult]] = OrderedDict()
+        self.refine: Callable[[Genotype, Schedule, int], Schedule] | None = None
+        self.refine_class = 0
+        self._decoded: OrderedDict[object, tuple[Schedule, EvaluationResult]] = OrderedDict()
+
+    def _key(self, genotype: Genotype) -> object:
+        return genotype if self.refine is None else (genotype, self.refine_class)
+
+    def _decode(self, genotype: Genotype) -> Schedule:
+        """SSGS decode, followed by the optional deterministic refine seam."""
+        schedule = decode(self.problem, genotype)
+        if self.refine is not None:
+            start = time.perf_counter()
+            schedule = self.refine(genotype, schedule, self.refine_class)
+            self.seconds["refine"] += time.perf_counter() - start
+            self.counts["refine"] += 1
+        return schedule
 
     def _cached(self, genotype: Genotype) -> tuple[Schedule, EvaluationResult] | None:
         """Return and refresh a structural cache entry, auditing it when requested."""
         if not self.decode_cache_size:
             return None
         start = time.perf_counter()
-        hit = self._decoded.get(genotype)
+        key = self._key(genotype)
+        hit = self._decoded.get(key)
         if hit is not None:
-            self._decoded.move_to_end(genotype)
+            self._decoded.move_to_end(key)
         self.seconds["decode_cache"] += time.perf_counter() - start
         if hit is not None and self.audit_decode_cache:
-            schedule = decode(self.problem, genotype)
+            schedule = self._decode(genotype)
             assert schedule == hit[0] and evaluate(self.problem, genotype, schedule) == hit[1]
         return hit
 
     def _remember(self, genotype: Genotype, schedule: Schedule, result: EvaluationResult) -> None:
         """Insert a fresh structural result, evicting the least recently used entry."""
         if self.decode_cache_size:
-            self._decoded[genotype] = (schedule, result)
+            self._decoded[self._key(genotype)] = (schedule, result)
             if len(self._decoded) > self.decode_cache_size:
                 self._decoded.popitem(last=False)
 
@@ -98,7 +120,7 @@ class EvaluationGateway:
         else:
             if schedule is None:
                 start = time.perf_counter()
-                schedule = decode(self.problem, genotype)
+                schedule = self._decode(genotype)
                 duration = time.perf_counter() - start
                 self.seconds["ssgs"] += duration
                 self.seconds["ssgs:" + origin] += duration

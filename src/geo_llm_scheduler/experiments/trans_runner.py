@@ -14,7 +14,7 @@ from time import perf_counter
 
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
-from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation, s4_c4, s4_decouple
+from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation, s4_c4, s4_decouple, s4_moead
 from geo_llm_scheduler.experiments.trans_cmoeaaop import run_cmoeaaop
 from geo_llm_scheduler.experiments.trans_cmoeacd import run_cmoeacd
 from geo_llm_scheduler.experiments.trans_cmoflcs import run_cmoflcs
@@ -89,6 +89,7 @@ def run_case(
     extra = {
         **{a: s4_c4 for a in s4_c4.EXTRA_ARMS},
         **{a: s4_decouple for a in s4_decouple.EXTRA_ARMS},
+        **{a: s4_moead for a in s4_moead.EXTRA_ARMS},
     }
     if algorithm not in ALGORITHMS and algorithm not in extra:
         raise ValueError("Unknown algorithm")
@@ -198,6 +199,11 @@ def run_case(
                 {
                     "steps": search.steps,
                     "polish": search.polish_steps,
+                    **(
+                        {"moead": search.moead_summary()}
+                        if hasattr(search, "moead_summary")
+                        else {}
+                    ),
                 },
             )
         elif algorithm in ext_hybrid.ARMS:
