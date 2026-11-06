@@ -92,8 +92,29 @@ def memory_gate(
     return host_available > 220 * 1024**3 and disk_free > 220 * 1024**3 and unit_ok
 
 
+def charged_memory(current: int, stat: str) -> int:
+    """Non-reclaimable cgroup charge: ``memory.current`` minus file cache plus ``shmem``.
+
+    Active and inactive file cache are both reclaimable under the container limit.
+    Linux may keep files read or written by earlier batches in ``active_file`` for
+    hours, which would otherwise hold a small container above the gate with almost
+    no process memory. ``shmem`` is counted inside ``file`` but cannot be reclaimed,
+    so it is added back (the E15 rule).
+    """
+    fields = {}
+    for line in stat.splitlines():
+        parts = line.split()
+        if len(parts) == 2:
+            fields[parts[0]] = int(parts[1])
+    return max(0, current - fields.get("file", 0) + fields.get("shmem", 0))
+
+
 def resources_available(root: Path) -> bool:
-    """Read host memory, disk and this process's cgroup, then apply :func:`memory_gate`."""
+    """Read host memory, disk and this process's cgroup, then apply :func:`memory_gate`.
+
+    In a small container (limit at most 32GiB) the cgroup charge excludes reclaimable
+    file cache (:func:`charged_memory`); the shared-host rule reads ``memory.current``.
+    """
     available = (
         int(
             next(
@@ -105,6 +126,7 @@ def resources_available(root: Path) -> bool:
         * 1024
     )
     current = limit = None
+    stat = ""
     for line in Path("/proc/self/cgroup").read_text().splitlines():
         if line.startswith("0::"):
             base = Path("/sys/fs/cgroup" + line[3:])
@@ -113,6 +135,10 @@ def resources_available(root: Path) -> bool:
             if (base / "memory.max").exists():
                 text = (base / "memory.max").read_text().strip()
                 limit = None if text == "max" else int(text)
+            if (base / "memory.stat").exists():
+                stat = (base / "memory.stat").read_text()
+    if current is not None and limit is not None and limit <= CONTAINER_LIMIT and stat:
+        current = charged_memory(current, stat)
     return memory_gate(available, shutil.disk_usage(root).free, current, limit)
 
 

@@ -3,6 +3,7 @@
 import gzip
 import importlib
 import json
+from collections import Counter
 from dataclasses import asdict
 from pathlib import Path
 
@@ -237,6 +238,63 @@ def test_plan_keeps_nine_arms_on_forty_large_blocks(tmp_path, monkeypatch, runne
         runner.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
         seen += runner.validate_inputs(shard)["blocks"]
     assert sorted(seen) == sorted(m["blocks"])
+
+
+@pytest.fixture
+def confirm(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p1_confirm")
+
+
+def test_confirmation_runs_two_arms_on_every_unscreened_block(tmp_path, monkeypatch, confirm):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(confirm.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(confirm.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    confirm.prepare(root, panel, cal, "example")
+    m = confirm.validate_inputs(root)
+    assert m["runs"] == 400 and len(m["blocks"]) == 200 and tuple(m["arms"]) == confirm.ARMS
+    assert m["design"] == confirm.DESIGN and m["level"] == "development confirmation"
+    cells, primary, orders = Counter(), Counter(), set()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        cells[(spec["n"], spec["seed"])] += 1
+        primary[spec["primary"]] += 1
+        assert block == f"{spec['instance']}_s{spec['seed']}"
+        assert spec["seconds"] == {50: 600, 100: 1200, 200: 2400}[spec["n"]]
+        assert spec["config"]["M2_P1_T05"]["moead"]["terminal_ops"] == ["A7", "A8"]
+        assert "A7" not in spec["config"]["M2_P1_T05"]["lsv2"]["operators"]
+        assert "A7" in spec["config"]["M0_B2"]["lsv2"]["operators"]
+        assert spec["config"]["M2_P1_T05"]["decoupling"]["terminal_share"] == 0.05
+        orders.add(tuple(spec["order"]))
+    assert cells == {
+        (50, 1): 40,
+        (100, 1): 20,
+        (200, 1): 20,
+        (50, 2): 40,
+        (100, 2): 40,
+        (200, 2): 40,
+    }
+    assert primary == {True: 120, False: 80}
+    assert orders == {confirm.ARMS, tuple(reversed(confirm.ARMS))}
+    screen = tmp_path / "screen"
+    confirm.base.prepare(screen, panel, cal, "example")
+    used = set(confirm.base.validate_inputs(screen)["blocks"])
+    assert len(used) == 40 and not used & set(m["blocks"])
+    assert all(confirm.screened(dict(key=b[:-3], n=int(b[4:7]), seed=1)) for b in used)
+    seen = []
+    for k in range(3):
+        shard = tmp_path / f"shard{k}"
+        confirm.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
+        seen += confirm.validate_inputs(shard)["blocks"]
+    assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))
+    spec_path = root / "specs" / (m["blocks"][0] + ".json")
+    spec = json.loads(spec_path.read_text())
+    spec["seed"] = 1 if spec["seed"] == 2 else 2
+    spec_path.write_text(json.dumps(spec))
+    with pytest.raises(AssertionError):
+        confirm.validate_inputs(root)
 
 
 def test_region_yield_widens_steps_only_where_ls_outyields_evolution():

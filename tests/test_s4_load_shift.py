@@ -116,3 +116,21 @@ def test_memory_gate_uses_container_limit_and_keeps_shared_host_reserve(monkeypa
     assert not flat.memory_gate(219 * gib, 900 * gib, 3 * gib, 80 * gib)
     assert not flat.memory_gate(221 * gib, 219 * gib, None, None)
     assert flat.memory_gate(221 * gib, 221 * gib, None, None)
+
+
+def test_container_charge_excludes_reclaimable_file_cache(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    flat = importlib.import_module("slot_assignment_dispatch")
+    gib = 1024**3
+    # Observed on the 253 containers: 3.1GiB cache from earlier batches plus 18 workers.
+    rows = dict(anon=int(2.7 * gib), file=int(3.1 * gib), active_file=int(2.6 * gib), shmem=0)
+    stat = "".join(f"{k} {v}" + chr(10) for k, v in rows.items())
+    current = int(5.8 * gib)
+    assert not flat.memory_gate(100 * gib, 900 * gib, current, 8 * gib)
+    charged = flat.charged_memory(current, stat)
+    assert abs(charged - 2.7 * gib) < 1024
+    assert flat.memory_gate(100 * gib, 900 * gib, charged, 8 * gib)
+    # Shared memory sits inside ``file`` but is not reclaimable.
+    assert flat.charged_memory(6 * gib, f"file {4 * gib}" + chr(10) + f"shmem {3 * gib}") == 5 * gib
+    assert flat.charged_memory(gib, f"file {2 * gib}") == 0
+    assert flat.charged_memory(gib, "") == gib
