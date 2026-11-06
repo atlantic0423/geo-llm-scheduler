@@ -17,6 +17,16 @@ other arm changes one declared decision (see :mod:`lsv2.moead_search`):
 
 Judgement (user, 2026-11-06): P1/P2/P3 against ``M0_B2``; P4 against
 ``M1_NO_LS``; every arm is reported against both.
+
+Combination arms (``COMBO_ARMS``, user 2026-11-06): P4 on top of P1, all with
+the record-only region/time trace. ``N0_P1`` is ``M2_P1_T05`` plus the trace.
+
+========================  ====================================================
+``N0_P1``                 P1 terminal 5% (control)
+``N1_P1_P4R5``            P1 + P4 region-yield seeds and width, five regions
+``N2_P1_P4R3``            P1 + P4 with three regions (Flow end, balanced, Bill end)
+``N3_P1_P4R3_RANDOM``     P1 + uniform random region of three (mechanism reference)
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -45,7 +55,8 @@ ARMS = (
     "M7_P4",
     "M8_P4_RANDOM",
 )
-EXTRA_ARMS = ARMS
+COMBO_ARMS = ("N0_P1", "N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM")
+EXTRA_ARMS = ARMS + COMBO_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -59,12 +70,20 @@ _OPTIONS = {
     "M6_P3": MoeadOptions(seed_mode="duplicate"),
     "M7_P4": MoeadOptions(seed_mode="region_yield"),
     "M8_P4_RANDOM": MoeadOptions(seed_mode="region_random"),
+    "N0_P1": MoeadOptions(terminal_ops=TIMING_OPS, trace=True),
+    "N1_P1_P4R5": MoeadOptions(terminal_ops=TIMING_OPS, seed_mode="region_yield", trace=True),
+    "N2_P1_P4R3": MoeadOptions(
+        terminal_ops=TIMING_OPS, seed_mode="region_yield", regions=3, trace=True
+    ),
+    "N3_P1_P4R3_RANDOM": MoeadOptions(
+        terminal_ops=TIMING_OPS, seed_mode="region_random", regions=3, trace=True
+    ),
 }
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
 def _check(arm: str) -> None:
-    if arm not in ARMS:
+    if arm not in EXTRA_ARMS:
         raise ValueError("Unknown S4-B2 MOEA/D arm")
 
 
@@ -126,6 +145,9 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
             wide_budget=opts.wide_budget,
         ),
     )
+    if opts.trace:
+        # Record-only; the nine-arm records stay byte-identical.
+        record["moead"].update(trace=True, trace_seconds=opts.trace_seconds)
     return record
 
 
@@ -173,6 +195,7 @@ def run_arm(
 __all__ = [
     "ARMS",
     "BASE",
+    "COMBO_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",

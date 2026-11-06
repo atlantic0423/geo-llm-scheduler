@@ -4,8 +4,9 @@ import gzip
 import importlib
 import json
 from collections import Counter
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from test_lsv2_fast_rightshift import CAL, synthetic
@@ -26,8 +27,13 @@ from geo_llm_scheduler.lsv2.decoder_refine import (
     tradeoff_pass,
     weight_class,
 )
-from geo_llm_scheduler.lsv2.frontier import FrozenFrame, nondominated
-from geo_llm_scheduler.lsv2.moead_search import MoeadMixin, MoeadOptions
+from geo_llm_scheduler.lsv2.frontier import FrozenFrame, SeedSampler, nondominated
+from geo_llm_scheduler.lsv2.moead_search import (
+    TRACE_FIELDS,
+    TRACE_WBINS,
+    MoeadMixin,
+    MoeadOptions,
+)
 from geo_llm_scheduler.scheduling.ssgs import decode
 from geo_llm_scheduler.utils.rng import RNGManager
 
@@ -321,3 +327,171 @@ def test_region_yield_widens_steps_only_where_ls_outyields_evolution():
     search._pick_index(frame, front, pop)
     assert search.config.budget == search.moead.wide_budget == 6
     assert search.moead_counts.get("region_wide", 0) >= 1
+
+
+def test_combination_arms_add_only_regions_and_the_record_only_trace():
+    cfg = s4_moead.arm_config("N0_P1", 7, 1200)
+    assert set(s4_moead.COMBO_ARMS) & set(s4_moead.ARMS) == set()
+    assert s4_moead.EXTRA_ARMS == s4_moead.ARMS + s4_moead.COMBO_ARMS
+    p1 = s4_moead.options("M2_P1_T05")
+    assert s4_moead.options("N0_P1") == replace(p1, trace=True)
+    want = dict(
+        N1_P1_P4R5=replace(p1, seed_mode="region_yield", trace=True),
+        N2_P1_P4R3=replace(p1, seed_mode="region_yield", regions=3, trace=True),
+        N3_P1_P4R3_RANDOM=replace(p1, seed_mode="region_random", regions=3, trace=True),
+    )
+    reference = s4_moead.configuration_record("M2_P1_T05", cfg, CAL)
+    assert "trace" not in reference["moead"]
+    for arm in s4_moead.COMBO_ARMS:
+        opts = s4_moead.options(arm)
+        assert opts == want.get(arm, opts) and opts.trace and opts.terminal_ops == ("A7", "A8")
+        assert s4_moead.arm_config(arm, 7, 1200) == cfg
+        assert s4_moead.search_config(arm) == s4_moead.search_config("M2_P1_T05")
+        assert s4_moead.terminal_share(arm) == 0.05
+        record = s4_moead.configuration_record(arm, cfg, CAL)
+        assert record["moead"]["trace"] is True and record["moead"]["trace_seconds"] == 30.0
+        same = {k: v for k, v in record.items() if k not in ("arm", "moead")}
+        assert same == {k: v for k, v in reference.items() if k not in ("arm", "moead")}
+        diff = {k for k in record["moead"] if record["moead"][k] != reference["moead"].get(k)}
+        assert diff <= {"seed_mode", "regions", "trace", "trace_seconds"}
+    with pytest.raises(ValueError):
+        MoeadOptions(trace=True, trace_seconds=0.0)
+
+
+def _fake_region_run(arm: str, trace: bool):
+    """Drive one search through a fixed insertion/pick sequence with a fake clock."""
+    search = s4_moead.make_search(arm, s4_moead.arm_config(arm, 3, 1200), CAL)
+    search.moead_init(replace(search.moead, trace=trace))
+    clock = [100.0]
+    search.timer = lambda: clock[0]
+    search._ready = True
+    search._clock_offset = 0.0
+    search._rng = RNGManager(4).stream("lsv2:moead")
+    search.sampler = SeedSampler("gap", RNGManager(4).stream("s"))
+    start = [(1.0, 10.0), (5.0, 5.0), (10.0, 1.0)]
+    archive = SimpleNamespace(
+        members=[SimpleNamespace(evaluation=SimpleNamespace(objectives=p)) for p in start],
+        insertions=3,
+    )
+    gateway = SimpleNamespace(archive=archive)
+    search._last_insertions = 3
+    search.frame = FrozenFrame.of(start)
+    events = [
+        ("structural", (2.0, 7.0)),
+        ("LSV2:A2", (6.0, 3.0)),
+        ("LSV2:RIGHTSHIFT", (4.0, 6.0)),
+        ("structural", (2.0, 7.0)),  # equal objectives, distinct timing: zero HV gain
+        ("LSV2:A4", (8.0, 1.5)),
+    ]
+    picks = []
+    for origin, point in events:
+        clock[0] += 31.0
+        search.ls_seconds += 5.0
+        archive.members.append(SimpleNamespace(evaluation=SimpleNamespace(objectives=point)))
+        archive.insertions += 1
+        candidate = SimpleNamespace(origin=origin, evaluation=SimpleNamespace(objectives=point))
+        search._on_candidate(candidate, gateway)
+        front = nondominated([m.evaluation.objectives for m in archive.members])
+        picks.append((search._pick_index(search.frame, front, []), search.config.budget))
+    return search, picks, start, archive
+
+
+@pytest.mark.parametrize("arm", ["N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM", "N0_P1"])
+def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
+    traced, picks, start, archive = _fake_region_run(arm, True)
+    plain, plain_picks, _, _ = _fake_region_run(arm, False)
+    assert picks == plain_picks and traced._rates() == plain._rates()
+    assert traced._rate == plain._rate and traced.moead_counts.get("region_wide") == (
+        plain.moead_counts.get("region_wide")
+    )
+    assert "trace" not in plain.moead_summary() and plain._trace == {}
+    summary = traced.moead_summary()
+    assert summary["options"]["trace"] is True
+    record = summary["trace"]
+    assert record["fields"] == list(TRACE_FIELDS) and record["wbins"] == TRACE_WBINS
+    totals: Counter = Counter()
+    for t, w, f, v in record["cells"]:
+        assert 0 <= w < TRACE_WBINS and t >= 4 and v >= 0
+        totals[TRACE_FIELDS[f]] += v
+    assert totals["evo"] == 2 and totals["ls"] == 2 and totals["other"] == 1
+    assert totals["seed"] == 5 and totals["terminal"] == 0
+    frame = traced.frame
+    first = frame.hv([*start, (2.0, 7.0)]) - frame.hv(start)
+    assert totals["evo_hv"] == pytest.approx(first) and first > 0
+    hv_total = sum(totals[f] for f in ("evo_hv", "ls_hv", "other_hv"))
+    final = [m.evaluation.objectives for m in archive.members]
+    assert hv_total == pytest.approx(frame.hv(final) - frame.hv(start))
+    if arm.startswith("N1") or arm.startswith("N2"):
+        assert record["rates"] and all(
+            len(r[0]) == traced.moead.regions for r in record["rates"].values()
+        )
+        assert totals["wide"] == traced.moead_counts.get("region_wide", 0)
+    else:
+        assert record["rates"] == {} and totals["wide"] == 0
+    assert json.loads(json.dumps(summary)) == summary
+
+
+@pytest.mark.parametrize("arm", s4_moead.COMBO_ARMS)
+def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
+    monkeypatch.setattr(s4_decouple, "TERMINAL_SHARE", 0.999)
+    instance = tmp_path / "input.json"
+    save_instance(synthetic(4)[0], instance)
+    out = tmp_path / "out"
+    summary = run_case(
+        arm, instance, out, seconds=6, calibration=CAL, max_generations=3, campaign_output=True
+    )
+    assert summary["independent_exact_audit"] == "passed" and summary["archive_size"] > 0
+    record = json.loads((out / "algorithm_config.json").read_text())
+    assert record["arm"] == arm and record["moead"]["trace"] is True
+    with gzip.open(out / "local_search.json.gz", "rt") as f:
+        data = json.load(f)
+    assert data["moead"]["options"]["regions"] == s4_moead.options(arm).regions
+    assert data["moead"]["trace"]["fields"] == list(TRACE_FIELDS)
+
+
+@pytest.fixture
+def combo(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p4p1")
+
+
+def test_combination_batch_runs_four_arms_on_large_blocks_at_seed_three(
+    tmp_path, monkeypatch, combo
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(combo.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(combo.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    combo.prepare(root, panel, cal, "example")
+    m = combo.validate_inputs(root)
+    assert m["runs"] == 320 and len(m["blocks"]) == 80 and tuple(m["arms"]) == combo.ARMS
+    assert m["design"] == combo.DESIGN and m["control"] == "N0_P1"
+    assert m["solver_seconds"] == 4 * (40 * 1200 + 40 * 2400)
+    cells, orders, firsts = Counter(), Counter(), Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        cells[(spec["n"], spec["seed"])] += 1
+        assert block == f"{spec['instance']}_s3" and spec["seed"] == 3
+        assert spec["config"]["N2_P1_P4R3"]["moead"]["regions"] == 3
+        assert spec["config"]["N1_P1_P4R5"]["moead"]["regions"] == 5
+        assert spec["config"]["N3_P1_P4R3_RANDOM"]["moead"]["seed_mode"] == "region_random"
+        assert all("A7" not in spec["config"][a]["lsv2"]["operators"] for a in combo.ARMS)
+        orders[tuple(spec["order"])] += 1
+        firsts[(spec["n"], spec["order"][0])] += 1
+    assert cells == {(100, 3): 40, (200, 3): 40}
+    assert len(orders) == 4 and set(orders.values()) == {20}
+    assert set(firsts.values()) == {10}
+    seen = []
+    for k in range(3):
+        shard = tmp_path / f"shard{k}"
+        combo.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
+        seen += combo.validate_inputs(shard)["blocks"]
+    assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))
+    assert all(combo.base.MODE[a] == {"common_fast"} for a in combo.ARMS)
+    spec_path = root / "specs" / (m["blocks"][0] + ".json")
+    spec = json.loads(spec_path.read_text())
+    spec["config"]["N2_P1_P4R3"]["moead"]["regions"] = 5
+    spec_path.write_text(json.dumps(spec))
+    with pytest.raises(AssertionError):
+        combo.validate_inputs(root)
