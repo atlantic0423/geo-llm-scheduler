@@ -33,6 +33,7 @@ from geo_llm_scheduler.lsv2.moead_search import (
     TRACE_WBINS,
     MoeadMixin,
     MoeadOptions,
+    degenerate,
 )
 from geo_llm_scheduler.scheduling.ssgs import decode
 from geo_llm_scheduler.utils.rng import RNGManager
@@ -332,7 +333,9 @@ def test_region_yield_widens_steps_only_where_ls_outyields_evolution():
 def test_combination_arms_add_only_regions_and_the_record_only_trace():
     cfg = s4_moead.arm_config("N0_P1", 7, 1200)
     assert set(s4_moead.COMBO_ARMS) & set(s4_moead.ARMS) == set()
-    assert s4_moead.EXTRA_ARMS == s4_moead.ARMS + s4_moead.COMBO_ARMS + s4_moead.NEXT_ARMS
+    assert s4_moead.EXTRA_ARMS == (
+        s4_moead.ARMS + s4_moead.COMBO_ARMS + s4_moead.NEXT_ARMS + s4_moead.BANDIT_ARMS
+    )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
     want = dict(
@@ -396,7 +399,7 @@ def _fake_region_run(arm: str, trace: bool):
     return search, picks, start, archive
 
 
-@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS])
+@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS])
 def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     traced, picks, start, archive = _fake_region_run(arm, True)
     plain, plain_picks, _, _ = _fake_region_run(arm, False)
@@ -404,6 +407,8 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     assert traced._rate == plain._rate and traced.moead_counts.get("region_wide") == (
         plain.moead_counts.get("region_wide")
     )
+    assert traced._bandit_gain == plain._bandit_gain
+    assert traced._bandit_time == plain._bandit_time
     assert "trace" not in plain.moead_summary() and plain._trace == {}
     summary = traced.moead_summary()
     assert summary["options"]["trace"] is True
@@ -426,12 +431,14 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
             len(r[0]) == traced.moead.regions for r in record["rates"].values()
         )
         assert totals["wide"] == traced.moead_counts.get("region_wide", 0)
+    elif s4_moead.options(arm).seed_mode == "region_bandit":
+        assert record["rates"] and totals["wide"] == 0 and "bandit" in summary
     else:
         assert record["rates"] == {} and totals["wide"] == 0
     assert json.loads(json.dumps(summary)) == summary
 
 
-@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS])
+@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS])
 def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
     monkeypatch.setattr(s4_decouple, "TERMINAL_SHARE", 0.999)
     instance = tmp_path / "input.json"
@@ -603,4 +610,114 @@ def test_follow_up_batch_runs_four_arms_on_large_blocks_at_seed_four(tmp_path, m
         shard = tmp_path / f"shard{k}"
         follow.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
         seen += follow.validate_inputs(shard)["blocks"]
+    assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))
+
+
+def test_bandit_arm_declares_an_hv_rate_bandit_without_widening():
+    n2 = s4_moead.options("N2_P1_P4R3")
+    assert s4_moead.options("N6_P1_P4R3_BANDIT") == replace(
+        n2, seed_mode="region_bandit", yield_measure="hv"
+    )
+    cfg = s4_moead.arm_config("N6_P1_P4R3_BANDIT", 7, 1200)
+    record = s4_moead.configuration_record("N6_P1_P4R3_BANDIT", cfg, CAL)
+    assert record["moead"]["seed_mode"] == "region_bandit"
+    assert record["moead"]["yield_measure"] == "hv"
+    assert s4_moead.search_config("N6_P1_P4R3_BANDIT") == s4_moead.search_config("N0_P1")
+    with pytest.raises(ValueError):
+        MoeadOptions(seed_mode="region_bandit")
+
+
+def _insert(search, archive, origin, point):
+    archive.members.append(SimpleNamespace(evaluation=SimpleNamespace(objectives=point)))
+    archive.insertions += 1
+    candidate = SimpleNamespace(origin=origin, evaluation=SimpleNamespace(objectives=point))
+    search._on_candidate(candidate, SimpleNamespace(archive=archive))
+
+
+def test_bandit_charges_each_trajectory_to_its_launch_region_per_ls_second():
+    search, start, archive = _fixed_clock_search("N6_P1_P4R3_BANDIT")
+    clock = [500.0]
+    search.timer = lambda: clock[0]
+    frame = search.frame
+    regions = [search._region_of(frame, p) for p in start]
+    assert sorted(regions) == [0, 1, 2]
+    launched = []
+    gains = {}
+    # Exploration: each present region is launched once before any rate is used.
+    for step, point in enumerate(((0.5, 10.0), (9.0, 0.5), (4.0, 4.0))):
+        search._pick_index(frame, start, [])
+        region = search._bandit_region
+        launched.append(region)
+        assert search.config.budget != search.moead.wide_budget
+        search.ls_seconds += 10.0 * (step + 1)
+        before = frame.hv([m.evaluation.objectives for m in archive.members])
+        _insert(search, archive, "LSV2:A2", point)
+        gains[region] = frame.hv([m.evaluation.objectives for m in archive.members]) - before
+        _insert(search, archive, "structural", (point[0] + 0.01, point[1] + 0.01))
+    assert sorted(launched) == [0, 1, 2] and search.moead_counts["bandit_explore"] == 3
+    search._bandit_pick([0, 1, 2])  # closes the third trajectory's account
+    for step, region in enumerate(launched):
+        assert search._bandit_time[region] == pytest.approx(10.0 * (step + 1))
+        # Credit follows the launch region, wherever the insertion landed.
+        assert search._bandit_gain[region] == pytest.approx(gains[region])
+        assert gains[region] > 0
+    rates = search._bandit_rates()
+    clock[0] += 120.0
+    search._bandit_region = None
+    search._bandit_accrue(clock[0])
+    assert search._bandit_rates() == pytest.approx(rates)  # decay keeps each estimate
+    search._bandit_gain = [0.0, 50.0, 0.0]
+    search._bandit_time = [1.0, 1.0, 1.0]
+    picks = Counter(search._bandit_pick([0, 1, 2]) for _ in range(300))
+    assert picks[1] > 0.8 * 300 and picks[0] > 0 and picks[2] > 0
+
+
+def test_degenerate_frame_insertions_gain_nothing():
+    single = FrozenFrame.of([(1.0, 1.0)])
+    assert degenerate(single) and not degenerate(FrozenFrame.of([(1.0, 2.0), (2.0, 1.0)]))
+    assert single.hv([(0.5, 0.5)]) > 1e20  # why the guard exists
+    search, _, _ = _fixed_clock_search("N4_P1_P4R3_HV")
+    search.frame = single
+    archive = SimpleNamespace(
+        members=[SimpleNamespace(evaluation=SimpleNamespace(objectives=(1.0, 1.0)))],
+        insertions=1,
+    )
+    search._last_insertions = 1
+    _insert(search, archive, "structural", (0.5, 0.5))
+    assert sum(search._rate["evo"]) == 0.0
+    assert search.moead_counts["degenerate_frame_insertions"] == 1
+
+
+@pytest.fixture
+def bandit_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p4_bandit")
+
+
+def test_bandit_batch_runs_two_arms_on_large_blocks_at_seed_five(
+    tmp_path, monkeypatch, bandit_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(bandit_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(bandit_batch.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    bandit_batch.prepare(root, panel, cal, "example")
+    m = bandit_batch.validate_inputs(root)
+    assert m["runs"] == 160 and len(m["blocks"]) == 80 and m["design"] == "s4-p1-p4-bandit/v1"
+    assert tuple(m["arms"]) == ("N0_P1", "N6_P1_P4R3_BANDIT")
+    assert m["solver_seconds"] == 2 * (40 * 1200 + 40 * 2400)
+    orders = Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        assert spec["seed"] == 5 and block.endswith("_s5") and spec["n"] in (100, 200)
+        assert spec["config"]["N6_P1_P4R3_BANDIT"]["moead"]["seed_mode"] == "region_bandit"
+        assert "run_s4_p4_bandit.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert len(orders) == 2 and set(orders.values()) == {40}
+    seen = []
+    for k in range(3):
+        shard = tmp_path / f"shard{k}"
+        bandit_batch.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
+        seen += bandit_batch.validate_inputs(shard)["blocks"]
     assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))

@@ -27,10 +27,19 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     advantage, weight (LS_r + d) / (evo_r + d) with d = 5% of the largest rate,
     so LS still has a preferred region when evolution out-yields it everywhere
     (where ``region_yield`` falls back to near-uniform epsilon weights).
+    ``region_bandit`` (N6) treats regions as arms of a rate bandit over LS time:
+    each LS trajectory is charged to the region it was launched from, its cost is
+    the LS seconds it used and its reward the in-frame HV gain of its Archive
+    insertions; a region's rate is decayed reward over decayed cost (both decay
+    with ``tau_seconds``, so an unvisited region keeps its last estimate).
+    Untried present regions are launched first, then regions are sampled with
+    weight rate + 5% of the largest rate. No widening; requires HV yields.
 ``yield_measure``
     ``count`` (default): a yield event is one Archive insertion. ``hv``: it is
     the insertion's HV gain over the previous Archive in the current frozen
     frame, so equal-objective timing variants and negligible steps add nothing.
+    A degenerate frame (a single-point front, zero range in an objective) has no
+    defined HV scale; insertions measured in it gain 0.
 ``trace``
     Record-only instrumentation (no decision reads it): per ``trace_seconds`` bin
     of the inclusive clock and per ``TRACE_WBINS`` bin of the Flow ray weight,
@@ -56,8 +65,17 @@ from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import NormalizationContext, maximum
 from geo_llm_scheduler.utils.rng import RNGManager
 
-SEED_MODES = ("gap", "duplicate", "region_yield", "region_random", "region_ratio")
+SEED_MODES = (
+    "gap",
+    "duplicate",
+    "region_yield",
+    "region_random",
+    "region_ratio",
+    "region_bandit",
+)
 YIELD_MODES = ("region_yield", "region_ratio")
+HV_MODES = (*YIELD_MODES, "region_bandit")
+REGION_MODES = ("region_yield", "region_random", "region_ratio", "region_bandit")
 YIELD_MEASURES = ("count", "hv")
 TRACE_WBINS = 30
 TRACE_FIELDS = (
@@ -102,8 +120,17 @@ class MoeadOptions:
             raise ValueError("Trace bins must be positive")
         if self.yield_measure not in YIELD_MEASURES:
             raise ValueError("Unknown yield measure")
-        if self.yield_measure != "count" and self.seed_mode not in YIELD_MODES:
+        if self.yield_measure != "count" and self.seed_mode not in HV_MODES:
             raise ValueError("A yield measure needs a yield-driven seed mode")
+        if self.seed_mode == "region_bandit" and self.yield_measure != "hv":
+            raise ValueError("The region bandit is rewarded by HV gain")
+
+
+def degenerate(frame: FrozenFrame) -> bool:
+    """True when an objective has (numerically) zero range in the frozen frame."""
+    return any(
+        frame.nadir[k] - frame.ideal[k] <= 1e-9 * max(1.0, abs(frame.nadir[k])) for k in range(2)
+    )
 
 
 class MoeadMixin:
@@ -132,6 +159,11 @@ class MoeadMixin:
         self._trace: dict[tuple[int, int, int], float] = {}
         self._trace_rates: dict[int, list[list[float]]] = {}
         self._trace_ls_seconds: dict[int, float] = {}
+        self._bandit_gain = [0.0] * k
+        self._bandit_time = [0.0] * k
+        self._bandit_region: int | None = None
+        self._bandit_clock: float | None = None
+        self._bandit_mark = 0.0
 
     def _mcount(self, name: str, value: int = 1) -> None:
         self.moead_counts[name] = self.moead_counts.get(name, 0) + value
@@ -150,7 +182,7 @@ class MoeadMixin:
             )
             gateway.refine = DecoderRefiner(gateway.problem, self.moead.refine, scales)
             gateway.refine_class = 0
-        if self.moead.seed_mode in YIELD_MODES or self.moead.trace:
+        if self.moead.seed_mode in HV_MODES or self.moead.trace:
             previous = gateway.candidate_sink
 
             def sink(candidate: Candidate) -> None:
@@ -255,7 +287,7 @@ class MoeadMixin:
         mode = self.moead.seed_mode
         if mode == "duplicate":
             index = self._pick_duplicate(frame, front, population)
-        elif mode in ("region_yield", "region_random", "region_ratio"):
+        elif mode in REGION_MODES:
             index = self._pick_region(frame, front)
         else:
             index = super()._pick_index(frame, front, population)  # type: ignore[misc]
@@ -329,13 +361,19 @@ class MoeadMixin:
         else:
             source = None
         yield_mode = self.moead.seed_mode in YIELD_MODES
-        hv_yield = yield_mode and self.moead.yield_measure == "hv"
+        bandit = self.moead.seed_mode == "region_bandit"
+        hv_yield = (yield_mode or bandit) and self.moead.yield_measure == "hv"
         gain = (
             self._insertion_gain(frame, candidate, gateway) if self.moead.trace or hv_yield else 0.0
         )
         if self.moead.trace:
             label = "terminal" if terminal else (source or "other")
             self._trace_insertion(frame, candidate, label, gain)
+        if bandit:
+            if not terminal and source == "ls" and self._bandit_region is not None:
+                self._bandit_accrue(self.timer())  # type: ignore[attr-defined]
+                self._bandit_gain[self._bandit_region] += gain
+            return
         if terminal or source is None or not yield_mode:
             return
         self._decay_to(self.timer())  # type: ignore[attr-defined]
@@ -365,6 +403,10 @@ class MoeadMixin:
         insertion whose objectives already exist in the Archive gains nothing.
         """
         points = [m.evaluation.objectives for m in gateway.archive.members]
+        if degenerate(frame):
+            self._hv_frame, self._hv_last = None, 0.0
+            self._mcount("degenerate_frame_insertions")
+            return 0.0
         hv = frame.hv(points)
         if self._hv_frame is frame:
             gain = hv - self._hv_last
@@ -395,6 +437,8 @@ class MoeadMixin:
         if self.moead.seed_mode in YIELD_MODES:
             evo, ls = self._rates()
             self._trace_rates[t] = [list(evo), list(ls)]
+        elif self.moead.seed_mode == "region_bandit":
+            self._trace_rates[t] = [list(self._bandit_time), self._bandit_rates()]
         self._trace_ls_seconds[t] = self.ls_seconds  # type: ignore[attr-defined]
 
     def trace_record(self) -> dict:
@@ -420,6 +464,8 @@ class MoeadMixin:
         present = sorted(regions)
         if self.moead.seed_mode == "region_random":
             region = present[self._rng.randrange(len(present))]
+        elif self.moead.seed_mode == "region_bandit":
+            region = self._bandit_pick(present)
         else:
             self._decay_to(self.timer())  # type: ignore[attr-defined]
             evo, ls = self._rates()
@@ -442,6 +488,42 @@ class MoeadMixin:
         self._mcount(f"region_seed:{region}")
         return self._gap_pick(frame, front, regions[region])
 
+    # ---------------- N6: region rate bandit ----------------
+    def _bandit_accrue(self, now: float) -> None:
+        """Decay rewards and costs to ``now``; charge LS seconds since the last
+        accrual to the region of the trajectory in progress."""
+        ls_now = self.ls_seconds  # type: ignore[attr-defined]
+        if self._bandit_clock is None:
+            self._bandit_clock, self._bandit_mark = now, ls_now
+            return
+        factor = math.exp(-max(0.0, now - self._bandit_clock) / self.moead.tau_seconds)
+        self._bandit_gain = [v * factor for v in self._bandit_gain]
+        self._bandit_time = [v * factor for v in self._bandit_time]
+        if self._bandit_region is not None:
+            self._bandit_time[self._bandit_region] += max(0.0, ls_now - self._bandit_mark)
+        self._bandit_clock, self._bandit_mark = now, ls_now
+
+    def _bandit_rates(self) -> list[float]:
+        """Decayed HV gain per decayed LS second of each region (0 before any use)."""
+        return [g / t if t > 0 else 0.0 for g, t in zip(self._bandit_gain, self._bandit_time)]
+
+    def _bandit_pick(self, present: list[int]) -> int:
+        """Close the previous trajectory's account and choose the next launch region."""
+        assert self._rng is not None
+        self._bandit_accrue(self.timer())  # type: ignore[attr-defined]
+        untried = [r for r in present if self._bandit_time[r] <= 0.0]
+        if untried:
+            region = untried[self._rng.randrange(len(untried))]
+            self._mcount("bandit_explore")
+        else:
+            rates = self._bandit_rates()
+            top = max(rates[r] for r in present)
+            eps = 0.05 * top if top > 0 else 1.0
+            weights = [rates[r] + eps for r in present]
+            region = present[self._rng.choices(range(len(present)), weights=weights)[0]]
+        self._bandit_region = region
+        return region
+
     def moead_summary(self) -> dict:
         """JSON-ready options, counters and final decayed rates (plus the trace if on)."""
         evo, ls = self._rates()
@@ -459,6 +541,12 @@ class MoeadMixin:
         )
         if self.moead.yield_measure != "count":
             options.update(yield_measure=self.moead.yield_measure)
+        if self.moead.seed_mode == "region_bandit":
+            out["bandit"] = dict(
+                gain=list(self._bandit_gain),
+                time=list(self._bandit_time),
+                rates=self._bandit_rates(),
+            )
         if self.moead.trace:
             options.update(trace=True, trace_seconds=self.moead.trace_seconds)
             out["trace"] = self.trace_record()
@@ -476,12 +564,15 @@ def with_moead(search: object, options: MoeadOptions) -> MoeadMixin:
 
 
 __all__ = [
+    "HV_MODES",
+    "REGION_MODES",
     "SEED_MODES",
     "YIELD_MEASURES",
     "YIELD_MODES",
     "TRACE_FIELDS",
     "TRACE_WBINS",
     "MoeadMixin",
+    "degenerate",
     "MoeadOptions",
     "with_moead",
 ]

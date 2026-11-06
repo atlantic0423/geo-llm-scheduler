@@ -34,6 +34,13 @@ Follow-up arms (``NEXT_ARMS``), three regions, P1 and the trace:
 ``N4_P1_P4R3_HV``         ``N2`` with HV-gain yields instead of insertion counts
 ``N5_P1_P4R3_CA``         HV-gain yields and comparative-advantage region sampling
 ========================  ====================================================
+
+Bandit arm (``BANDIT_ARMS``), three regions, P1 and the trace:
+
+========================  ====================================================
+``N6_P1_P4R3_BANDIT``     LS launch region by a decayed HV-per-LS-second rate
+                          bandit (launch-region credit, no widening)
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -64,7 +71,8 @@ ARMS = (
 )
 COMBO_ARMS = ("N0_P1", "N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM")
 NEXT_ARMS = ("N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
-EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS
+BANDIT_ARMS = ("N6_P1_P4R3_BANDIT",)
+EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -96,6 +104,13 @@ _OPTIONS = {
     "N5_P1_P4R3_CA": MoeadOptions(
         terminal_ops=TIMING_OPS,
         seed_mode="region_ratio",
+        regions=3,
+        trace=True,
+        yield_measure="hv",
+    ),
+    "N6_P1_P4R3_BANDIT": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="region_bandit",
         regions=3,
         trace=True,
         yield_measure="hv",
@@ -221,6 +236,7 @@ __all__ = [
     "BASE",
     "COMBO_ARMS",
     "NEXT_ARMS",
+    "BANDIT_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",
