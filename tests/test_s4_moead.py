@@ -332,7 +332,7 @@ def test_region_yield_widens_steps_only_where_ls_outyields_evolution():
 def test_combination_arms_add_only_regions_and_the_record_only_trace():
     cfg = s4_moead.arm_config("N0_P1", 7, 1200)
     assert set(s4_moead.COMBO_ARMS) & set(s4_moead.ARMS) == set()
-    assert s4_moead.EXTRA_ARMS == s4_moead.ARMS + s4_moead.COMBO_ARMS
+    assert s4_moead.EXTRA_ARMS == s4_moead.ARMS + s4_moead.COMBO_ARMS + s4_moead.NEXT_ARMS
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
     want = dict(
@@ -396,7 +396,7 @@ def _fake_region_run(arm: str, trace: bool):
     return search, picks, start, archive
 
 
-@pytest.mark.parametrize("arm", ["N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM", "N0_P1"])
+@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS])
 def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     traced, picks, start, archive = _fake_region_run(arm, True)
     plain, plain_picks, _, _ = _fake_region_run(arm, False)
@@ -421,7 +421,7 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     hv_total = sum(totals[f] for f in ("evo_hv", "ls_hv", "other_hv"))
     final = [m.evaluation.objectives for m in archive.members]
     assert hv_total == pytest.approx(frame.hv(final) - frame.hv(start))
-    if arm.startswith("N1") or arm.startswith("N2"):
+    if s4_moead.options(arm).seed_mode in ("region_yield", "region_ratio"):
         assert record["rates"] and all(
             len(r[0]) == traced.moead.regions for r in record["rates"].values()
         )
@@ -431,7 +431,7 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     assert json.loads(json.dumps(summary)) == summary
 
 
-@pytest.mark.parametrize("arm", s4_moead.COMBO_ARMS)
+@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS])
 def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
     monkeypatch.setattr(s4_decouple, "TERMINAL_SHARE", 0.999)
     instance = tmp_path / "input.json"
@@ -495,3 +495,112 @@ def test_combination_batch_runs_four_arms_on_large_blocks_at_seed_three(
     spec_path.write_text(json.dumps(spec))
     with pytest.raises(AssertionError):
         combo.validate_inputs(root)
+
+
+def _fixed_clock_search(arm: str):
+    search = s4_moead.make_search(arm, s4_moead.arm_config(arm, 3, 1200), CAL)
+    search.timer = lambda: 500.0
+    search._ready = True
+    search._clock_offset = 0.0
+    search._rng = RNGManager(6).stream("lsv2:moead")
+    search.sampler = SeedSampler("gap", RNGManager(6).stream("s"))
+    start = [(1.0, 10.0), (5.0, 5.0), (10.0, 1.0)]
+    archive = SimpleNamespace(
+        members=[SimpleNamespace(evaluation=SimpleNamespace(objectives=p)) for p in start],
+        insertions=3,
+    )
+    search._last_insertions = 3
+    search.frame = FrozenFrame.of(start)
+    return search, start, archive
+
+
+def test_follow_up_arms_declare_hv_yields_and_comparative_advantage():
+    n2 = s4_moead.options("N2_P1_P4R3")
+    assert s4_moead.options("N4_P1_P4R3_HV") == replace(n2, yield_measure="hv")
+    assert s4_moead.options("N5_P1_P4R3_CA") == replace(
+        n2, seed_mode="region_ratio", yield_measure="hv"
+    )
+    cfg = s4_moead.arm_config("N5_P1_P4R3_CA", 7, 1200)
+    for arm in s4_moead.NEXT_ARMS:
+        record = s4_moead.configuration_record(arm, cfg, CAL)
+        assert record["moead"]["yield_measure"] == "hv" and record["moead"]["regions"] == 3
+        assert s4_moead.search_config(arm) == s4_moead.search_config("N0_P1")
+    for arm in s4_moead.COMBO_ARMS:
+        assert "yield_measure" not in s4_moead.configuration_record(arm, cfg, CAL)["moead"]
+    with pytest.raises(ValueError):
+        MoeadOptions(yield_measure="hv")
+    with pytest.raises(ValueError):
+        MoeadOptions(seed_mode="region_yield", yield_measure="area")
+
+
+def test_hv_yield_charges_in_frame_gain_and_ignores_equal_objectives():
+    rates = {}
+    for arm in ("N4_P1_P4R3_HV", "N2_P1_P4R3"):
+        search, start, archive = _fixed_clock_search(arm)
+        gateway = SimpleNamespace(archive=archive)
+        for point in ((2.0, 7.0), (2.0, 7.0)):
+            archive.members.append(SimpleNamespace(evaluation=SimpleNamespace(objectives=point)))
+            archive.insertions += 1
+            candidate = SimpleNamespace(
+                origin="structural", evaluation=SimpleNamespace(objectives=point)
+            )
+            search._on_candidate(candidate, gateway)
+        region = search._region_of(search.frame, (2.0, 7.0))
+        rates[arm] = (search._rate["evo"][region], sum(search._rate["evo"]))
+        frame = search.frame
+    gain = frame.hv([*start, (2.0, 7.0)]) - frame.hv(start)
+    assert gain > 0
+    assert rates["N4_P1_P4R3_HV"] == (pytest.approx(gain), pytest.approx(gain))
+    assert rates["N2_P1_P4R3"] == (2.0, 2.0)
+
+
+def test_comparative_advantage_targets_the_relatively_best_region():
+    counts = {}
+    for arm in ("N5_P1_P4R3_CA", "N2_P1_P4R3"):
+        search, start, _ = _fixed_clock_search(arm)
+        search._rate_clock = 500.0
+        search._rate_ls_seconds = search.ls_seconds
+        search._rate_time = dict(evo=10.0, ls=10.0)
+        # Evolution out-yields LS everywhere; LS is relatively strongest in the middle.
+        search._rate = dict(evo=[50.0, 50.0, 50.0], ls=[2.0, 30.0, 2.0])
+        regions = [search._region_of(search.frame, p) for p in start]
+        assert sorted(regions) == [0, 1, 2]
+        for _ in range(300):
+            search._pick_index(search.frame, start, [])
+            assert search.config.budget != search.moead.wide_budget
+        counts[arm] = [search.moead_counts.get(f"region_seed:{r}", 0) for r in range(3)]
+    assert counts["N5_P1_P4R3_CA"][1] > 0.6 * 300
+    assert max(counts["N2_P1_P4R3"]) < 0.5 * 300
+
+
+@pytest.fixture
+def follow(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p4_next")
+
+
+def test_follow_up_batch_runs_four_arms_on_large_blocks_at_seed_four(tmp_path, monkeypatch, follow):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(follow.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(follow.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    follow.prepare(root, panel, cal, "example")
+    m = follow.validate_inputs(root)
+    assert m["runs"] == 320 and len(m["blocks"]) == 80 and m["design"] == "s4-p1-p4-next/v1"
+    assert tuple(m["arms"]) == ("N0_P1", "N2_P1_P4R3", "N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
+    orders = Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        assert spec["seed"] == 4 and block.endswith("_s4") and spec["n"] in (100, 200)
+        assert spec["config"]["N5_P1_P4R3_CA"]["moead"]["seed_mode"] == "region_ratio"
+        assert spec["config"]["N4_P1_P4R3_HV"]["moead"]["yield_measure"] == "hv"
+        assert "run_s4_p4_next.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert len(orders) == 4 and set(orders.values()) == {20}
+    seen = []
+    for k in range(3):
+        shard = tmp_path / f"shard{k}"
+        follow.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
+        seen += follow.validate_inputs(shard)["blocks"]
+    assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))

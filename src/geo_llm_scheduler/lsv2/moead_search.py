@@ -22,7 +22,15 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     Q state encodes remaining steps, so depth stays fixed). ``region_random`` is
     the random-region reference (uniform region, configured width). ``regions``
     sets the number of equal-width bins of the Flow weight of a front point's
-    Tchebycheff ray (3: Flow end, balanced, Bill end).
+    Tchebycheff ray (3: Flow end, balanced, Bill end). ``region_ratio`` keeps
+    the same rates and widening rule but samples regions by comparative
+    advantage, weight (LS_r + d) / (evo_r + d) with d = 5% of the largest rate,
+    so LS still has a preferred region when evolution out-yields it everywhere
+    (where ``region_yield`` falls back to near-uniform epsilon weights).
+``yield_measure``
+    ``count`` (default): a yield event is one Archive insertion. ``hv``: it is
+    the insertion's HV gain over the previous Archive in the current frozen
+    frame, so equal-objective timing variants and negligible steps add nothing.
 ``trace``
     Record-only instrumentation (no decision reads it): per ``trace_seconds`` bin
     of the inclusive clock and per ``TRACE_WBINS`` bin of the Flow ray weight,
@@ -48,7 +56,9 @@ from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import NormalizationContext, maximum
 from geo_llm_scheduler.utils.rng import RNGManager
 
-SEED_MODES = ("gap", "duplicate", "region_yield", "region_random")
+SEED_MODES = ("gap", "duplicate", "region_yield", "region_random", "region_ratio")
+YIELD_MODES = ("region_yield", "region_ratio")
+YIELD_MEASURES = ("count", "hv")
 TRACE_WBINS = 30
 TRACE_FIELDS = (
     "evo",
@@ -77,6 +87,7 @@ class MoeadOptions:
     wide_budget: int = 6
     trace: bool = False
     trace_seconds: float = 30.0
+    yield_measure: str = "count"
 
     def __post_init__(self) -> None:
         if self.seed_mode not in SEED_MODES:
@@ -89,6 +100,10 @@ class MoeadOptions:
             raise ValueError("Invalid region or depth settings")
         if self.trace_seconds <= 0:
             raise ValueError("Trace bins must be positive")
+        if self.yield_measure not in YIELD_MEASURES:
+            raise ValueError("Unknown yield measure")
+        if self.yield_measure != "count" and self.seed_mode not in YIELD_MODES:
+            raise ValueError("A yield measure needs a yield-driven seed mode")
 
 
 class MoeadMixin:
@@ -135,7 +150,7 @@ class MoeadMixin:
             )
             gateway.refine = DecoderRefiner(gateway.problem, self.moead.refine, scales)
             gateway.refine_class = 0
-        if self.moead.seed_mode == "region_yield" or self.moead.trace:
+        if self.moead.seed_mode in YIELD_MODES or self.moead.trace:
             previous = gateway.candidate_sink
 
             def sink(candidate: Candidate) -> None:
@@ -240,7 +255,7 @@ class MoeadMixin:
         mode = self.moead.seed_mode
         if mode == "duplicate":
             index = self._pick_duplicate(frame, front, population)
-        elif mode in ("region_yield", "region_random"):
+        elif mode in ("region_yield", "region_random", "region_ratio"):
             index = self._pick_region(frame, front)
         else:
             index = super()._pick_index(frame, front, population)  # type: ignore[misc]
@@ -313,13 +328,19 @@ class MoeadMixin:
             source = "ls"
         else:
             source = None
+        yield_mode = self.moead.seed_mode in YIELD_MODES
+        hv_yield = yield_mode and self.moead.yield_measure == "hv"
+        gain = (
+            self._insertion_gain(frame, candidate, gateway) if self.moead.trace or hv_yield else 0.0
+        )
         if self.moead.trace:
             label = "terminal" if terminal else (source or "other")
-            self._trace_insertion(frame, candidate, gateway, label)
-        if terminal or source is None or self.moead.seed_mode != "region_yield":
+            self._trace_insertion(frame, candidate, label, gain)
+        if terminal or source is None or not yield_mode:
             return
         self._decay_to(self.timer())  # type: ignore[attr-defined]
-        self._rate[source][self._region_of(frame, candidate.evaluation.objectives)] += 1.0
+        region = self._region_of(frame, candidate.evaluation.objectives)
+        self._rate[source][region] += gain if hv_yield else 1.0
 
     # ---------------- record-only trace ----------------
     def _trace_time(self) -> int:
@@ -334,13 +355,14 @@ class MoeadMixin:
     def _wbin(frame: FrozenFrame, point: Point) -> int:
         return min(TRACE_WBINS - 1, int(TRACE_WBINS * frame.weight_for(point)[0]))
 
-    def _trace_insertion(
-        self, frame: FrozenFrame, candidate: Candidate, gateway: EvaluationGateway, label: str
-    ) -> None:
-        """Count one insertion and its HV gain over the previous Archive in this frame.
+    def _insertion_gain(
+        self, frame: FrozenFrame, candidate: Candidate, gateway: EvaluationGateway
+    ) -> float:
+        """HV gain of one insertion over the previous Archive in this frozen frame.
 
         The first insertion seen in a new frame is charged its exclusive
-        contribution (the Archive before it is no longer available).
+        contribution (the Archive before it is no longer available); an
+        insertion whose objectives already exist in the Archive gains nothing.
         """
         points = [m.evaluation.objectives for m in gateway.archive.members]
         hv = frame.hv(points)
@@ -352,10 +374,16 @@ class MoeadMixin:
             gain = hv - frame.hv(rest) if len(rest) == len(points) - 1 else 0.0
             self._mcount("trace_frame_resets")
         self._hv_frame, self._hv_last = frame, hv
+        return max(0.0, gain)
+
+    def _trace_insertion(
+        self, frame: FrozenFrame, candidate: Candidate, label: str, gain: float
+    ) -> None:
+        """Record one insertion and its HV gain in its time and ray-weight bin."""
         t = self._trace_time()
         w = self._wbin(frame, candidate.evaluation.objectives)
         self._trace_add(t, w, label, 1.0)
-        self._trace_add(t, w, label + "_hv", max(0.0, gain))
+        self._trace_add(t, w, label + "_hv", gain)
         self._trace_ls_seconds[t] = self.ls_seconds  # type: ignore[attr-defined]
 
     def _trace_seed(self, frame: FrozenFrame, point: Point) -> None:
@@ -364,7 +392,7 @@ class MoeadMixin:
         self._trace_add(t, w, "seed", 1.0)
         if self._last_wide:
             self._trace_add(t, w, "wide", 1.0)
-        if self.moead.seed_mode == "region_yield":
+        if self.moead.seed_mode in YIELD_MODES:
             evo, ls = self._rates()
             self._trace_rates[t] = [list(evo), list(ls)]
         self._trace_ls_seconds[t] = self.ls_seconds  # type: ignore[attr-defined]
@@ -397,7 +425,10 @@ class MoeadMixin:
             evo, ls = self._rates()
             top = max([*evo, *ls, 0.0])
             eps = 0.05 * top if top > 0 else 1.0
-            weights = [max(0.0, ls[r] - evo[r]) + eps for r in present]
+            if self.moead.seed_mode == "region_ratio":
+                weights = [(ls[r] + eps) / (evo[r] + eps) for r in present]
+            else:
+                weights = [max(0.0, ls[r] - evo[r]) + eps for r in present]
             region = present[self._rng.choices(range(len(present)), weights=weights)[0]]
             if ls[region] > evo[region]:
                 wide = True
@@ -426,6 +457,8 @@ class MoeadMixin:
         out = dict(
             options=options, counts=dict(self.moead_counts), final_rates=dict(evo=evo, ls=ls)
         )
+        if self.moead.yield_measure != "count":
+            options.update(yield_measure=self.moead.yield_measure)
         if self.moead.trace:
             options.update(trace=True, trace_seconds=self.moead.trace_seconds)
             out["trace"] = self.trace_record()
@@ -444,6 +477,8 @@ def with_moead(search: object, options: MoeadOptions) -> MoeadMixin:
 
 __all__ = [
     "SEED_MODES",
+    "YIELD_MEASURES",
+    "YIELD_MODES",
     "TRACE_FIELDS",
     "TRACE_WBINS",
     "MoeadMixin",

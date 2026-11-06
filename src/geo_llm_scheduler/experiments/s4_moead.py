@@ -27,6 +27,13 @@ the record-only region/time trace. ``N0_P1`` is ``M2_P1_T05`` plus the trace.
 ``N2_P1_P4R3``            P1 + P4 with three regions (Flow end, balanced, Bill end)
 ``N3_P1_P4R3_RANDOM``     P1 + uniform random region of three (mechanism reference)
 ========================  ====================================================
+
+Follow-up arms (``NEXT_ARMS``), three regions, P1 and the trace:
+
+========================  ====================================================
+``N4_P1_P4R3_HV``         ``N2`` with HV-gain yields instead of insertion counts
+``N5_P1_P4R3_CA``         HV-gain yields and comparative-advantage region sampling
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -56,7 +63,8 @@ ARMS = (
     "M8_P4_RANDOM",
 )
 COMBO_ARMS = ("N0_P1", "N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM")
-EXTRA_ARMS = ARMS + COMBO_ARMS
+NEXT_ARMS = ("N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
+EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -77,6 +85,20 @@ _OPTIONS = {
     ),
     "N3_P1_P4R3_RANDOM": MoeadOptions(
         terminal_ops=TIMING_OPS, seed_mode="region_random", regions=3, trace=True
+    ),
+    "N4_P1_P4R3_HV": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="region_yield",
+        regions=3,
+        trace=True,
+        yield_measure="hv",
+    ),
+    "N5_P1_P4R3_CA": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="region_ratio",
+        regions=3,
+        trace=True,
+        yield_measure="hv",
     ),
 }
 _TERMINAL = {"M3_P1_T10": 0.10}
@@ -148,6 +170,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
     if opts.trace:
         # Record-only; the nine-arm records stay byte-identical.
         record["moead"].update(trace=True, trace_seconds=opts.trace_seconds)
+    if opts.yield_measure != "count":
+        record["moead"].update(yield_measure=opts.yield_measure)
     return record
 
 
@@ -196,6 +220,7 @@ __all__ = [
     "ARMS",
     "BASE",
     "COMBO_ARMS",
+    "NEXT_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",
