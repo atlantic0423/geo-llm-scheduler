@@ -43,6 +43,13 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     ``share_bounds``, and the LS allowance integrates that share over the
     inclusive clock, so LS is front-loaded while it buys more HV per second
     than evolution and recedes when it buys less.
+``static_wide``
+    Region indices (of the ``regions`` equal Flow-weight bins) whose LS seeds
+    always run with best-of-``wide_budget`` steps, whatever the yields (N9/N10:
+    the control for the yield-triggered widening of ``region_yield`` and
+    ``region_ratio``, which under HV yields widens most Flow-end trajectories).
+    Only for seed modes without a widening rule of their own (``gap``,
+    ``region_random``, ``region_bandit``).
 ``yield_measure``
     ``count`` (default): a yield event is one Archive insertion. ``hv``: it is
     the insertion's HV gain over the previous Archive in the current frozen
@@ -120,6 +127,7 @@ class MoeadOptions:
     share_mode: str = "fixed"
     share_bounds: tuple[float, float] = (0.05, 0.5)
     share_exponent: float = 0.5
+    static_wide: tuple[int, ...] = ()
 
     def __post_init__(self) -> None:
         if self.seed_mode not in SEED_MODES:
@@ -143,6 +151,13 @@ class MoeadOptions:
         lo, hi = self.share_bounds
         if not 0 < lo < hi < 1 or self.share_exponent <= 0:
             raise ValueError("Invalid LS share bounds or exponent")
+        if self.static_wide:
+            if self.seed_mode not in ("gap", "region_random", "region_bandit"):
+                raise ValueError("Static widening needs a seed mode without its own widening")
+            if len(set(self.static_wide)) != len(self.static_wide) or not all(
+                0 <= r < self.regions for r in self.static_wide
+            ):
+                raise ValueError("Static widening regions must be distinct region indices")
 
 
 def degenerate(frame: FrozenFrame) -> bool:
@@ -322,9 +337,26 @@ class MoeadMixin:
             index = self._pick_region(frame, front)
         else:
             index = super()._pick_index(frame, front, population)  # type: ignore[misc]
+        if self.moead.static_wide:
+            self._apply_static_wide(frame, front[index])
         if self.moead.trace:
             self._trace_seed(frame, front[index])
         return index
+
+    def _apply_static_wide(self, frame: FrozenFrame, seed: Point) -> None:
+        """Best-of-``wide_budget`` steps for a seed in a ``static_wide`` region (N9/N10)."""
+        base = cast(Any, self)
+        if self._base_config is None:
+            self._base_config = base.config
+        wide = self._region_of(frame, seed) in self.moead.static_wide
+        if wide:
+            self._mcount("static_wide")
+        self._last_wide = wide
+        base.config = (
+            replace(cast(Any, self._base_config), budget=self.moead.wide_budget)
+            if wide
+            else self._base_config
+        )
 
     def _pick_duplicate(
         self, frame: FrozenFrame, front: list[Point], population: list[Candidate]
@@ -625,6 +657,8 @@ class MoeadMixin:
         )
         if self.moead.yield_measure != "count":
             options.update(yield_measure=self.moead.yield_measure)
+        if self.moead.static_wide:
+            options.update(static_wide=list(self.moead.static_wide))
         if self.moead.share_mode != "fixed":
             options.update(
                 share_mode=self.moead.share_mode,

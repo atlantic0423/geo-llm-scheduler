@@ -339,6 +339,7 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
         + s4_moead.NEXT_ARMS
         + s4_moead.BANDIT_ARMS
         + s4_moead.SHARE_ARMS
+        + s4_moead.WIDEN_ARMS
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
@@ -405,7 +406,13 @@ def _fake_region_run(arm: str, trace: bool):
 
 @pytest.mark.parametrize(
     "arm",
-    [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS, *s4_moead.SHARE_ARMS],
+    [
+        *s4_moead.COMBO_ARMS,
+        *s4_moead.NEXT_ARMS,
+        *s4_moead.BANDIT_ARMS,
+        *s4_moead.SHARE_ARMS,
+        *s4_moead.WIDEN_ARMS,
+    ],
 )
 def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     traced, picks, start, archive = _fake_region_run(arm, True)
@@ -440,15 +447,25 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
         )
         assert totals["wide"] == traced.moead_counts.get("region_wide", 0)
     elif s4_moead.options(arm).seed_mode == "region_bandit":
-        assert record["rates"] and totals["wide"] == 0 and "bandit" in summary
+        assert record["rates"] and "bandit" in summary
+        assert totals["wide"] == traced.moead_counts.get("static_wide", 0)
     else:
-        assert record["rates"] == {} and totals["wide"] == 0
+        assert record["rates"] == {}
+        assert totals["wide"] == traced.moead_counts.get("static_wide", 0)
+    if not s4_moead.options(arm).static_wide:
+        assert "static_wide" not in traced.moead_counts
     assert json.loads(json.dumps(summary)) == summary
 
 
 @pytest.mark.parametrize(
     "arm",
-    [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS, *s4_moead.SHARE_ARMS],
+    [
+        *s4_moead.COMBO_ARMS,
+        *s4_moead.NEXT_ARMS,
+        *s4_moead.BANDIT_ARMS,
+        *s4_moead.SHARE_ARMS,
+        *s4_moead.WIDEN_ARMS,
+    ],
 )
 def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
     monkeypatch.setattr(s4_decouple, "TERMINAL_SHARE", 0.999)
@@ -841,5 +858,79 @@ def test_factorial_batch_crosses_launch_region_with_ls_share_at_seed_six(
         assert cfg["N8_P1_P4R3_BANDIT_SHARE"]["moead"]["seed_mode"] == "region_bandit"
         assert "share_mode" not in cfg["N6_P1_P4R3_BANDIT"]["moead"]
         assert "run_s4_p4_factorial.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert len(orders) == 4 and set(orders.values()) == {20}
+
+
+def test_widen_arms_declare_flow_end_widening_without_yields():
+    assert s4_moead.options("N9_P1_FLOWWIDE") == replace(
+        s4_moead.options("N0_P1"), regions=3, static_wide=(2,)
+    )
+    assert s4_moead.options("N10_P1_P4R3_BANDIT_FLOWWIDE") == replace(
+        s4_moead.options("N6_P1_P4R3_BANDIT"), static_wide=(2,)
+    )
+    cfg = s4_moead.arm_config("N9_P1_FLOWWIDE", 7, 1200)
+    assert s4_moead.configuration_record("N9_P1_FLOWWIDE", cfg, CAL)["moead"]["static_wide"] == [2]
+    assert (
+        "static_wide" not in s4_moead.configuration_record("N6_P1_P4R3_BANDIT", cfg, CAL)["moead"]
+    )
+    assert s4_moead.search_config("N9_P1_FLOWWIDE") == s4_moead.search_config("N0_P1")
+    for bad in (
+        dict(seed_mode="region_yield", static_wide=(2,)),  # has its own widening rule
+        dict(seed_mode="duplicate", static_wide=(2,)),
+        dict(regions=3, static_wide=(3,)),
+        dict(regions=3, static_wide=(2, 2)),
+    ):
+        with pytest.raises(ValueError):
+            MoeadOptions(**bad)
+
+
+@pytest.mark.parametrize("arm", ["N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE"])
+def test_static_widening_widens_exactly_the_flow_end_seeds(arm):
+    search, start, _ = _fixed_clock_search(arm)
+    frame = search.frame
+    regions = {p: search._region_of(frame, p) for p in start}
+    assert sorted(regions.values()) == [0, 1, 2]
+    base_budget = search.config.budget
+    assert base_budget == s4_moead.search_config(arm).budget != search.moead.wide_budget
+    seen = Counter()
+    for _ in range(200):
+        index = search._pick_index(frame, start, [])
+        flow_end = regions[start[index]] == 2
+        seen[flow_end] += 1
+        assert search._last_wide is flow_end
+        assert search.config.budget == (search.moead.wide_budget if flow_end else base_budget)
+    assert seen[True] > 0 and seen[False] > 0
+    assert search.moead_counts["static_wide"] == seen[True]
+    assert search.moead_summary()["options"]["static_wide"] == [2]
+
+
+@pytest.fixture
+def widen_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p4_widen")
+
+
+def test_widen_batch_crosses_launch_region_with_flow_end_widening_at_seed_seven(
+    tmp_path, monkeypatch, widen_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(widen_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(widen_batch.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    widen_batch.prepare(root, panel, cal, "example")
+    m = widen_batch.validate_inputs(root)
+    assert m["runs"] == 320 and len(m["blocks"]) == 80
+    assert m["design"] == "s4-p1-p4-widen/v1"
+    orders = Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        assert spec["seed"] == 7 and block.endswith("_s7")
+        cfg = spec["config"]
+        assert cfg["N9_P1_FLOWWIDE"]["moead"]["static_wide"] == [2]
+        assert cfg["N10_P1_P4R3_BANDIT_FLOWWIDE"]["moead"]["seed_mode"] == "region_bandit"
+        assert "static_wide" not in cfg["N6_P1_P4R3_BANDIT"]["moead"]
+        assert "run_s4_p4_widen.py" in spec["entry"]
         orders[tuple(spec["order"])] += 1
     assert len(orders) == 4 and set(orders.values()) == {20}

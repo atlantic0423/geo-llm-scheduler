@@ -48,6 +48,15 @@ Time-share arms (``SHARE_ARMS``), P1 and the trace; candidates, not yet run:
 ``N7_P1_SHARE``           gap seeds; LS share follows LS/evolution HV per second
 ``N8_P1_P4R3_BANDIT_SHARE`` N6 region bandit plus the N7 equimarginal share
 ========================  ====================================================
+
+Widening controls (``WIDEN_ARMS``), P1 and the trace; candidates, not yet run.
+They separate where LS is launched from P4's longer Flow-end steps:
+
+==============================  ==============================================
+``N9_P1_FLOWWIDE``              gap seeds; seeds in the Flow-end third always
+                                run best-of-6 steps (no yields, no regions)
+``N10_P1_P4R3_BANDIT_FLOWWIDE`` N6 region bandit plus the same Flow-end widening
+==============================  ==============================================
 """
 
 from collections.abc import Callable
@@ -80,7 +89,8 @@ COMBO_ARMS = ("N0_P1", "N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM")
 NEXT_ARMS = ("N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
 BANDIT_ARMS = ("N6_P1_P4R3_BANDIT",)
 SHARE_ARMS = ("N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
-EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS
+WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
+EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -131,6 +141,17 @@ _OPTIONS = {
         trace=True,
         yield_measure="hv",
         share_mode="equimarginal",
+    ),
+    "N9_P1_FLOWWIDE": MoeadOptions(
+        terminal_ops=TIMING_OPS, regions=3, static_wide=(2,), trace=True
+    ),
+    "N10_P1_P4R3_BANDIT_FLOWWIDE": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="region_bandit",
+        regions=3,
+        trace=True,
+        yield_measure="hv",
+        static_wide=(2,),
     ),
 }
 _TERMINAL = {"M3_P1_T10": 0.10}
@@ -204,6 +225,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["moead"].update(trace=True, trace_seconds=opts.trace_seconds)
     if opts.yield_measure != "count":
         record["moead"].update(yield_measure=opts.yield_measure)
+    if opts.static_wide:
+        record["moead"].update(static_wide=list(opts.static_wide))
     if opts.share_mode != "fixed":
         record["moead"].update(
             share_mode=opts.share_mode,
@@ -261,6 +284,7 @@ __all__ = [
     "NEXT_ARMS",
     "BANDIT_ARMS",
     "SHARE_ARMS",
+    "WIDEN_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",
