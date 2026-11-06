@@ -334,7 +334,11 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
     cfg = s4_moead.arm_config("N0_P1", 7, 1200)
     assert set(s4_moead.COMBO_ARMS) & set(s4_moead.ARMS) == set()
     assert s4_moead.EXTRA_ARMS == (
-        s4_moead.ARMS + s4_moead.COMBO_ARMS + s4_moead.NEXT_ARMS + s4_moead.BANDIT_ARMS
+        s4_moead.ARMS
+        + s4_moead.COMBO_ARMS
+        + s4_moead.NEXT_ARMS
+        + s4_moead.BANDIT_ARMS
+        + s4_moead.SHARE_ARMS
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
@@ -399,7 +403,10 @@ def _fake_region_run(arm: str, trace: bool):
     return search, picks, start, archive
 
 
-@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS])
+@pytest.mark.parametrize(
+    "arm",
+    [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS, *s4_moead.SHARE_ARMS],
+)
 def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     traced, picks, start, archive = _fake_region_run(arm, True)
     plain, plain_picks, _, _ = _fake_region_run(arm, False)
@@ -409,6 +416,7 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     )
     assert traced._bandit_gain == plain._bandit_gain
     assert traced._bandit_time == plain._bandit_time
+    assert traced._mgain == plain._mgain and traced._mtime == plain._mtime
     assert "trace" not in plain.moead_summary() and plain._trace == {}
     summary = traced.moead_summary()
     assert summary["options"]["trace"] is True
@@ -438,7 +446,10 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
     assert json.loads(json.dumps(summary)) == summary
 
 
-@pytest.mark.parametrize("arm", [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS])
+@pytest.mark.parametrize(
+    "arm",
+    [*s4_moead.COMBO_ARMS, *s4_moead.NEXT_ARMS, *s4_moead.BANDIT_ARMS, *s4_moead.SHARE_ARMS],
+)
 def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
     monkeypatch.setattr(s4_decouple, "TERMINAL_SHARE", 0.999)
     instance = tmp_path / "input.json"
@@ -721,3 +732,114 @@ def test_bandit_batch_runs_two_arms_on_large_blocks_at_seed_five(
         bandit_batch.prepare(shard, panel, cal, f"host{k}", f"{k}/3")
         seen += bandit_batch.validate_inputs(shard)["blocks"]
     assert sorted(seen) == sorted(m["blocks"]) and len(seen) == len(set(seen))
+
+
+def test_share_arms_declare_the_equimarginal_ls_share():
+    assert s4_moead.options("N7_P1_SHARE") == replace(
+        s4_moead.options("N0_P1"), share_mode="equimarginal"
+    )
+    assert s4_moead.options("N8_P1_P4R3_BANDIT_SHARE") == replace(
+        s4_moead.options("N6_P1_P4R3_BANDIT"), share_mode="equimarginal"
+    )
+    cfg = s4_moead.arm_config("N7_P1_SHARE", 7, 1200)
+    record = s4_moead.configuration_record("N7_P1_SHARE", cfg, CAL)
+    assert record["moead"]["share_mode"] == "equimarginal"
+    assert record["moead"]["share_bounds"] == [0.05, 0.5]
+    assert "share_mode" not in s4_moead.configuration_record("N6_P1_P4R3_BANDIT", cfg, CAL)["moead"]
+    assert s4_moead.search_config("N7_P1_SHARE") == s4_moead.search_config("N0_P1")
+    for bad in (
+        dict(share_mode="adaptive"),
+        dict(share_bounds=(0.5, 0.2)),
+        dict(share_bounds=(0.0, 0.5)),
+        dict(share_exponent=0.0),
+    ):
+        with pytest.raises(ValueError):
+            MoeadOptions(**bad)
+
+
+def test_equimarginal_share_integrates_the_marginal_value_of_ls_time():
+    fixed, _, _ = _fixed_clock_search("N0_P1")
+    fixed.search_start = 0.0
+    assert fixed._ls_allowance(40.0) == pytest.approx(0.2 * 40.0)
+    search, _, _ = _fixed_clock_search("N7_P1_SHARE")
+    search.search_start = 0.0
+    assert search._ls_allowance(0.0) == 0.0 and search._share == pytest.approx(0.2)
+    search._mtime = dict(evo=100.0, ls=100.0)
+    search._mgain = dict(evo=1.0, ls=9.0)  # LS buys 9x more HV per second
+    assert search._ls_allowance(10.0) == pytest.approx(2.0)
+    assert search._share == pytest.approx(0.5)  # 0.2 * 3 clipped to the upper bound
+    assert search._ls_allowance(20.0) == pytest.approx(7.0)
+    search._mgain = dict(evo=9.0, ls=1.0)
+    assert search._ls_allowance(30.0) == pytest.approx(12.0)
+    assert search._share == pytest.approx(0.2 / 3)
+    assert search._ls_allowance(40.0) == pytest.approx(12.0 + 10 * 0.2 / 3)
+    search._mgain = dict(evo=9.0, ls=0.0)
+    search._ls_allowance(50.0)
+    assert search._share == pytest.approx(0.05)  # lower bound keeps LS measurable
+    search._mgain = dict(evo=0.0, ls=1.0)
+    search._ls_allowance(60.0)
+    assert search._share == pytest.approx(0.5)
+    summary = search.moead_summary()
+    assert summary["options"]["share_mode"] == "equimarginal"
+    assert summary["share"]["allowance"] == pytest.approx(search._allow)
+
+
+def test_equimarginal_share_charges_hv_and_seconds_by_source():
+    search, start, archive = _fixed_clock_search("N7_P1_SHARE")
+    search.moead_init(replace(search.moead, tau_seconds=1e12))
+    search._ready = True
+    clock = [500.0]
+    search.timer = lambda: clock[0]
+    frame = search.frame
+    gains = Counter()
+    for origin, point, ls_dt in (
+        ("structural", (2.0, 7.0), 0.0),
+        ("LSV2:A2", (6.0, 3.0), 4.0),
+        ("structural", (2.0, 7.0), 0.0),  # equal objectives: no gain
+        ("LSV2:RIGHTSHIFT", (4.0, 6.0), 1.0),  # neither source
+        ("LSV2:A4", (8.0, 1.5), 3.0),
+    ):
+        clock[0] += 10.0
+        search.ls_seconds += ls_dt
+        before = frame.hv([m.evaluation.objectives for m in archive.members])
+        _insert(search, archive, origin, point)
+        after = frame.hv([m.evaluation.objectives for m in archive.members])
+        source = "evo" if origin == "structural" else ("ls" if "RIGHTSHIFT" not in origin else None)
+        if source:
+            gains[source] += after - before
+    assert search._mgain["evo"] == pytest.approx(gains["evo"]) and gains["evo"] > 0
+    assert search._mgain["ls"] == pytest.approx(gains["ls"]) and gains["ls"] > 0
+    # The first accrual only starts the clock; afterwards LS and evolution seconds add up.
+    assert search._mtime["ls"] + search._mtime["evo"] == pytest.approx(40.0)
+    assert search._mtime["ls"] == pytest.approx(8.0)
+
+
+@pytest.fixture
+def factorial_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_p4_factorial")
+
+
+def test_factorial_batch_crosses_launch_region_with_ls_share_at_seed_six(
+    tmp_path, monkeypatch, factorial_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(factorial_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(factorial_batch.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    factorial_batch.prepare(root, panel, cal, "example")
+    m = factorial_batch.validate_inputs(root)
+    assert m["runs"] == 320 and len(m["blocks"]) == 80
+    assert m["design"] == "s4-p1-p4-factorial/v1"
+    orders = Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        assert spec["seed"] == 6 and block.endswith("_s6")
+        cfg = spec["config"]
+        assert cfg["N7_P1_SHARE"]["moead"]["share_mode"] == "equimarginal"
+        assert cfg["N8_P1_P4R3_BANDIT_SHARE"]["moead"]["seed_mode"] == "region_bandit"
+        assert "share_mode" not in cfg["N6_P1_P4R3_BANDIT"]["moead"]
+        assert "run_s4_p4_factorial.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert len(orders) == 4 and set(orders.values()) == {20}

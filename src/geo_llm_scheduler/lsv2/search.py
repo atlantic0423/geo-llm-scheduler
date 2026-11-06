@@ -435,13 +435,20 @@ class LSV2Search:
         if self.terminal_share is not None and self._terminal_due(now):
             self._terminal_sweep(population, gateway, streams, budget_elapsed)
             now = budget_elapsed()
-        while not self._deadline(now) and self.ls_seconds < self.config.time_share * (
-            now - self.search_start
-        ):
+        while not self._deadline(now) and self.ls_seconds < self._ls_allowance(now):
             started = self.timer()
             self._trajectory(population, gateway, streams, budget_elapsed)
             self.ls_seconds += self.timer() - started
             now = budget_elapsed()
+
+    def _ls_allowance(self, now: float) -> float:
+        """LS seconds allowed by the inclusive clock ``now`` (research seam).
+
+        The reference rule is a fixed share of search time; subclasses may
+        integrate a time-varying share instead.
+        """
+        assert self.search_start is not None
+        return self.config.time_share * (now - self.search_start)
 
     def _deadline(self, elapsed: float) -> bool:
         seconds = self.engine_config.seconds

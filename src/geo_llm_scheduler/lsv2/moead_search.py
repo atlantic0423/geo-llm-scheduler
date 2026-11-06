@@ -34,6 +34,15 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     with ``tau_seconds``, so an unvisited region keeps its last estimate).
     Untried present regions are launched first, then regions are sampled with
     weight rate + 5% of the largest rate. No widening; requires HV yields.
+``share_mode``
+    ``fixed`` (default): LS may use ``time_share`` of search time throughout.
+    ``equimarginal`` (N7): the share follows the measured marginal value of LS
+    time. LS and evolution each keep a decayed in-frame HV gain over their
+    decayed seconds (``tau_seconds``); the current share is
+    ``time_share * (LS rate / evolution rate) ** share_exponent`` clipped to
+    ``share_bounds``, and the LS allowance integrates that share over the
+    inclusive clock, so LS is front-loaded while it buys more HV per second
+    than evolution and recedes when it buys less.
 ``yield_measure``
     ``count`` (default): a yield event is one Archive insertion. ``hv``: it is
     the insertion's HV gain over the previous Archive in the current frozen
@@ -76,6 +85,8 @@ SEED_MODES = (
 YIELD_MODES = ("region_yield", "region_ratio")
 HV_MODES = (*YIELD_MODES, "region_bandit")
 REGION_MODES = ("region_yield", "region_random", "region_ratio", "region_bandit")
+SHARE_MODES = ("fixed", "equimarginal")
+SHARE_MIN_SECONDS = 5.0
 YIELD_MEASURES = ("count", "hv")
 TRACE_WBINS = 30
 TRACE_FIELDS = (
@@ -106,6 +117,9 @@ class MoeadOptions:
     trace: bool = False
     trace_seconds: float = 30.0
     yield_measure: str = "count"
+    share_mode: str = "fixed"
+    share_bounds: tuple[float, float] = (0.05, 0.5)
+    share_exponent: float = 0.5
 
     def __post_init__(self) -> None:
         if self.seed_mode not in SEED_MODES:
@@ -124,6 +138,11 @@ class MoeadOptions:
             raise ValueError("A yield measure needs a yield-driven seed mode")
         if self.seed_mode == "region_bandit" and self.yield_measure != "hv":
             raise ValueError("The region bandit is rewarded by HV gain")
+        if self.share_mode not in SHARE_MODES:
+            raise ValueError("Unknown LS share mode")
+        lo, hi = self.share_bounds
+        if not 0 < lo < hi < 1 or self.share_exponent <= 0:
+            raise ValueError("Invalid LS share bounds or exponent")
 
 
 def degenerate(frame: FrozenFrame) -> bool:
@@ -164,6 +183,14 @@ class MoeadMixin:
         self._bandit_region: int | None = None
         self._bandit_clock: float | None = None
         self._bandit_mark = 0.0
+        self._share: float | None = None
+        self._allow = 0.0
+        self._allow_clock: float | None = None
+        self._mgain = dict(evo=0.0, ls=0.0)
+        self._mtime = dict(evo=0.0, ls=0.0)
+        self._mclock: float | None = None
+        self._mmark = 0.0
+        self._share_trace: dict[int, float] = {}
 
     def _mcount(self, name: str, value: int = 1) -> None:
         self.moead_counts[name] = self.moead_counts.get(name, 0) + value
@@ -182,7 +209,11 @@ class MoeadMixin:
             )
             gateway.refine = DecoderRefiner(gateway.problem, self.moead.refine, scales)
             gateway.refine_class = 0
-        if self.moead.seed_mode in HV_MODES or self.moead.trace:
+        if (
+            self.moead.seed_mode in HV_MODES
+            or self.moead.trace
+            or self.moead.share_mode == "equimarginal"
+        ):
             previous = gateway.candidate_sink
 
             def sink(candidate: Candidate) -> None:
@@ -363,12 +394,18 @@ class MoeadMixin:
         yield_mode = self.moead.seed_mode in YIELD_MODES
         bandit = self.moead.seed_mode == "region_bandit"
         hv_yield = (yield_mode or bandit) and self.moead.yield_measure == "hv"
+        marginal = self.moead.share_mode == "equimarginal"
         gain = (
-            self._insertion_gain(frame, candidate, gateway) if self.moead.trace or hv_yield else 0.0
+            self._insertion_gain(frame, candidate, gateway)
+            if self.moead.trace or hv_yield or marginal
+            else 0.0
         )
         if self.moead.trace:
             label = "terminal" if terminal else (source or "other")
             self._trace_insertion(frame, candidate, label, gain)
+        if marginal and not terminal and source is not None:
+            self._share_accrue(self.timer())  # type: ignore[attr-defined]
+            self._mgain[source] += gain
         if bandit:
             if not terminal and source == "ls" and self._bandit_region is not None:
                 self._bandit_accrue(self.timer())  # type: ignore[attr-defined]
@@ -488,6 +525,53 @@ class MoeadMixin:
         self._mcount(f"region_seed:{region}")
         return self._gap_pick(frame, front, regions[region])
 
+    # ---------------- N7: equimarginal LS share ----------------
+    def _share_accrue(self, now: float) -> None:
+        """Decay both sources' HV gains and seconds to ``now``; add the elapsed
+        LS and evolution seconds since the last accrual."""
+        ls_now = self.ls_seconds  # type: ignore[attr-defined]
+        if self._mclock is None:
+            self._mclock, self._mmark = now, ls_now
+            return
+        dt = max(0.0, now - self._mclock)
+        ls_dt = min(dt, max(0.0, ls_now - self._mmark))
+        factor = math.exp(-dt / self.moead.tau_seconds)
+        for source in ("evo", "ls"):
+            self._mgain[source] *= factor
+            self._mtime[source] *= factor
+        self._mtime["ls"] += ls_dt
+        self._mtime["evo"] += dt - ls_dt
+        self._mclock, self._mmark = now, ls_now
+
+    def _target_share(self) -> float:
+        """``time_share * (LS HV/s / evolution HV/s) ** exponent`` within the bounds."""
+        base = cast(Any, self).config.time_share
+        lo, hi = self.moead.share_bounds
+        self._share_accrue(self.timer())  # type: ignore[attr-defined]
+        if min(self._mtime.values()) < SHARE_MIN_SECONDS:
+            return min(hi, max(lo, base))
+        ls_rate = self._mgain["ls"] / self._mtime["ls"]
+        evo_rate = self._mgain["evo"] / self._mtime["evo"]
+        if evo_rate <= 0:
+            return hi if ls_rate > 0 else min(hi, max(lo, base))
+        return min(hi, max(lo, base * (ls_rate / evo_rate) ** self.moead.share_exponent))
+
+    def _ls_allowance(self, now: float) -> float:
+        """Fixed share (reference) or the integral of the equimarginal share."""
+        if self.moead.share_mode == "fixed":
+            return super()._ls_allowance(now)  # type: ignore[misc]
+        base = cast(Any, self)
+        if self._allow_clock is None:
+            self._allow_clock = base.search_start
+            self._share = base.config.time_share
+        assert self._share is not None and self._allow_clock is not None
+        self._allow += self._share * max(0.0, now - self._allow_clock)
+        self._allow_clock = now
+        self._share = self._target_share()
+        if self.moead.trace:
+            self._share_trace[self._trace_time()] = self._share
+        return self._allow
+
     # ---------------- N6: region rate bandit ----------------
     def _bandit_accrue(self, now: float) -> None:
         """Decay rewards and costs to ``now``; charge LS seconds since the last
@@ -541,6 +625,19 @@ class MoeadMixin:
         )
         if self.moead.yield_measure != "count":
             options.update(yield_measure=self.moead.yield_measure)
+        if self.moead.share_mode != "fixed":
+            options.update(
+                share_mode=self.moead.share_mode,
+                share_bounds=list(self.moead.share_bounds),
+                share_exponent=self.moead.share_exponent,
+            )
+            out["share"] = dict(
+                final=self._share,
+                allowance=self._allow,
+                gain=dict(self._mgain),
+                seconds=dict(self._mtime),
+                trace={str(t): v for t, v in sorted(self._share_trace.items())},
+            )
         if self.moead.seed_mode == "region_bandit":
             out["bandit"] = dict(
                 gain=list(self._bandit_gain),
@@ -567,6 +664,7 @@ __all__ = [
     "HV_MODES",
     "REGION_MODES",
     "SEED_MODES",
+    "SHARE_MODES",
     "YIELD_MEASURES",
     "YIELD_MODES",
     "TRACE_FIELDS",

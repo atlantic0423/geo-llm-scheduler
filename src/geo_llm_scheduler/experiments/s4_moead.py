@@ -41,6 +41,13 @@ Bandit arm (``BANDIT_ARMS``), three regions, P1 and the trace:
 ``N6_P1_P4R3_BANDIT``     LS launch region by a decayed HV-per-LS-second rate
                           bandit (launch-region credit, no widening)
 ========================  ====================================================
+
+Time-share arms (``SHARE_ARMS``), P1 and the trace; candidates, not yet run:
+
+========================  ====================================================
+``N7_P1_SHARE``           gap seeds; LS share follows LS/evolution HV per second
+``N8_P1_P4R3_BANDIT_SHARE`` N6 region bandit plus the N7 equimarginal share
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -72,7 +79,8 @@ ARMS = (
 COMBO_ARMS = ("N0_P1", "N1_P1_P4R5", "N2_P1_P4R3", "N3_P1_P4R3_RANDOM")
 NEXT_ARMS = ("N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
 BANDIT_ARMS = ("N6_P1_P4R3_BANDIT",)
-EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS
+SHARE_ARMS = ("N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
+EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -114,6 +122,15 @@ _OPTIONS = {
         regions=3,
         trace=True,
         yield_measure="hv",
+    ),
+    "N7_P1_SHARE": MoeadOptions(terminal_ops=TIMING_OPS, trace=True, share_mode="equimarginal"),
+    "N8_P1_P4R3_BANDIT_SHARE": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="region_bandit",
+        regions=3,
+        trace=True,
+        yield_measure="hv",
+        share_mode="equimarginal",
     ),
 }
 _TERMINAL = {"M3_P1_T10": 0.10}
@@ -187,6 +204,12 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["moead"].update(trace=True, trace_seconds=opts.trace_seconds)
     if opts.yield_measure != "count":
         record["moead"].update(yield_measure=opts.yield_measure)
+    if opts.share_mode != "fixed":
+        record["moead"].update(
+            share_mode=opts.share_mode,
+            share_bounds=list(opts.share_bounds),
+            share_exponent=opts.share_exponent,
+        )
     return record
 
 
@@ -237,6 +260,7 @@ __all__ = [
     "COMBO_ARMS",
     "NEXT_ARMS",
     "BANDIT_ARMS",
+    "SHARE_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",
