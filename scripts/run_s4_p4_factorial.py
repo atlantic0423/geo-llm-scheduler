@@ -1,16 +1,18 @@
-"""Prepare and execute the S4 P4 space x time factorial batch (candidate; not yet run).
+"""Prepare and execute the S4 P4 confirmation and space x time factorial batch.
 
-Four arms, all with P1 (A7/A8 out of the Q pool, Archive-only in the final 5%)
-and the record-only trace, crossing where LS is launched with how much LS time
-is spent:
+Five arms, all with P1 (A7/A8 out of the Q pool, Archive-only in the final 5%)
+and the record-only trace. The 2 x 2 factorial crosses where LS is launched
+with how much LS time is spent; the random-region arm is the same-seed
+reference for the rate bandit (user, 2026-11-07):
 
 - ``N0_P1``: gap seeds over the whole front, fixed 20% LS share (control);
+- ``N3_P1_P4R3_RANDOM``: uniform random region of three, fixed share;
 - ``N6_P1_P4R3_BANDIT``: region rate bandit, fixed share;
 - ``N7_P1_SHARE``: gap seeds, equimarginal LS share;
 - ``N8_P1_P4R3_BANDIT_SHARE``: region rate bandit and equimarginal share.
 
 Blocks: every 100/200-job instance of the frozen panel at seed 6 (unused by any
-earlier S4 batch): 80 blocks, 320 runs. Judgement and analysis are fixed in the
+earlier S4 batch): 80 blocks, 400 runs. Judgement and analysis are fixed in the
 batch's launch record before any result. Development screen; it does not change
 the default algorithm. Preflight, worker and completion checks are those of
 ``run_s4_moead``.
@@ -32,13 +34,19 @@ from geo_llm_scheduler.experiments import s4_ablation, s4_moead
 from geo_llm_scheduler.experiments.campaign.support import atomic_json
 from geo_llm_scheduler.experiments.trans_runner import digest
 
-ARMS = ("N0_P1", "N6_P1_P4R3_BANDIT", "N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
+ARMS = (
+    "N0_P1",
+    "N3_P1_P4R3_RANDOM",
+    "N6_P1_P4R3_BANDIT",
+    "N7_P1_SHARE",
+    "N8_P1_P4R3_BANDIT_SHARE",
+)
 CONTROL = "N0_P1"
 SEEDS = (6,)
 SIZES = (100, 200)
 PANEL_SIZES = (50, 100, 200)
 SELECTED_BLOCKS = 80
-DESIGN = "s4-p1-p4-factorial/v1"
+DESIGN = "s4-p1-p4-factorial/v2"
 assert set(ARMS) <= set(s4_moead.EXTRA_ARMS)
 base.MODE.update({a: {"common_fast"} for a in ARMS})
 
@@ -66,7 +74,7 @@ def _read(path: Path) -> dict:
 
 
 def _order(index: int) -> list[str]:
-    """Rotate the four arms' start order cyclically by block index."""
+    """Rotate the arms' start order cyclically by block index."""
     k = index % len(ARMS)
     return list(ARMS[k:] + ARMS[:k])
 

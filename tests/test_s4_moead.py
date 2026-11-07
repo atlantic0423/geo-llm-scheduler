@@ -847,19 +847,23 @@ def test_factorial_batch_crosses_launch_region_with_ls_share_at_seed_six(
     root = tmp_path / "full"
     factorial_batch.prepare(root, panel, cal, "example")
     m = factorial_batch.validate_inputs(root)
-    assert m["runs"] == 320 and len(m["blocks"]) == 80
-    assert m["design"] == "s4-p1-p4-factorial/v1"
+    assert m["runs"] == 400 and len(m["blocks"]) == 80
+    assert m["design"] == "s4-p1-p4-factorial/v2"
+    assert factorial_batch.ARMS[:3] == ("N0_P1", "N3_P1_P4R3_RANDOM", "N6_P1_P4R3_BANDIT")
     orders = Counter()
     for block in m["blocks"]:
         spec = json.loads((root / "specs" / (block + ".json")).read_text())
         assert spec["seed"] == 6 and block.endswith("_s6")
         cfg = spec["config"]
+        assert cfg["N3_P1_P4R3_RANDOM"]["moead"]["seed_mode"] == "region_random"
+        assert cfg["N3_P1_P4R3_RANDOM"]["moead"]["regions"] == 3
         assert cfg["N7_P1_SHARE"]["moead"]["share_mode"] == "equimarginal"
         assert cfg["N8_P1_P4R3_BANDIT_SHARE"]["moead"]["seed_mode"] == "region_bandit"
         assert "share_mode" not in cfg["N6_P1_P4R3_BANDIT"]["moead"]
+        assert "share_mode" not in cfg["N3_P1_P4R3_RANDOM"]["moead"]
         assert "run_s4_p4_factorial.py" in spec["entry"]
         orders[tuple(spec["order"])] += 1
-    assert len(orders) == 4 and set(orders.values()) == {20}
+    assert len(orders) == 5 and set(orders.values()) == {16}
 
 
 def test_widen_arms_declare_flow_end_widening_without_yields():
