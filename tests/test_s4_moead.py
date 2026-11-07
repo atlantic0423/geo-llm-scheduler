@@ -938,3 +938,49 @@ def test_widen_batch_crosses_launch_region_with_flow_end_widening_at_seed_seven(
         assert "run_s4_p4_widen.py" in spec["entry"]
         orders[tuple(spec["order"])] += 1
     assert len(orders) == 4 and set(orders.values()) == {20}
+
+
+@pytest.fixture
+def n7_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_n7_confirm")
+
+
+def test_n7_confirmation_batch_pairs_control_and_share_at_seeds_seven_and_eight(
+    tmp_path, monkeypatch, n7_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(n7_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(n7_batch.base, "CAL", digest(cal))
+    root = tmp_path / "full"
+    n7_batch.prepare(root, panel, cal, "example")
+    m = n7_batch.validate_inputs(root)
+    assert m["runs"] == 320 and len(m["blocks"]) == 160
+    assert m["design"] == "s4-p1-n7-confirm/v1" and tuple(m["seeds"]) == (7, 8)
+    orders, seeds = Counter(), Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        seeds[spec["seed"]] += 1
+        assert block.endswith(f"_s{spec['seed']}") and spec["n"] in (100, 200)
+        cfg = spec["config"]
+        assert cfg["N7_P1_SHARE"]["moead"]["share_mode"] == "equimarginal"
+        assert "share_mode" not in cfg["N0_P1"]["moead"]
+        assert cfg["N0_P1"]["moead"]["terminal_ops"] == ["A7", "A8"]
+        assert "run_s4_n7_confirm.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert seeds == {7: 80, 8: 80}
+    assert len(orders) == 2 and set(orders.values()) == {80}
+    shards = [
+        n7_batch.base.shard_blocks(
+            n7_batch.select(
+                n7_batch.plan(
+                    json.loads((panel / "manifest.json").read_text())["instances"],
+                    json.loads(cal.read_text()),
+                )
+            ),
+            f"{k}/3",
+        )
+        for k in range(3)
+    ]
+    assert sorted(len(s) for s in shards) == [53, 53, 54]
