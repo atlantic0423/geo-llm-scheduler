@@ -1,0 +1,128 @@
+{
+  "location": "local Windows / Python 3.13.5",
+  "reference_commit": "b148c4addd207fe30a6b2a43d953a04afc35d3a1",
+  "runtime_source_hash": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+  "full_gates": {
+    "exit_code": 0,
+    "passed": 730,
+    "skipped": 1,
+    "pytest_seconds": 601.0,
+    "overall_coverage_percent": 86.43,
+    "core_coverage_percent": 97.43,
+    "lint": true,
+    "format": true,
+    "mypy": true,
+    "includes_late_13_variant_tests": false
+  },
+  "late_variant_tests": {
+    "exit_code": 0,
+    "passed": 13,
+    "seconds": 2.41,
+    "full_gates_collected_before_these_were_added": true
+  },
+  "post_checks": {
+    "D03": "57/57 runs, 41 PNG/PDF pairs, 134 hashed files",
+    "deterministic_replay": "aeb9824d2e671fe76771297ece91af40576124c930721193c18127cbdb814fa7",
+    "wheel": "passed",
+    "cli": "passed",
+    "final_ruff_lint_format": "passed"
+  },
+  "interrupted_check": "outputs/resume_validate_all.log was intentionally interrupted before tests; not counted as passed",
+  "logs": [
+    {
+      "path": "outputs/resume_validate_all_frozen.log",
+      "bytes": 1308,
+      "sha256": "f165d4fa7d11c9f5c76ac86fdbc7ad3499550a876e6d0af923d0d98aa32ad554",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/reuse_variants.log",
+      "bytes": 210,
+      "sha256": "4388103318c2be2531e13216f705041b0fcfac60e7986ca08bb6ba252a24925d",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/reuse_variants.xml",
+      "bytes": 2331,
+      "sha256": "107538567f738306d45cb3fec04d6979c66ac6eff666ae97b50d7ea742153845",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/resume_d03.log",
+      "bytes": 74,
+      "sha256": "d6cb53fbadf00b3fe591f4adec3ba2e66da2768f61daffd27d807f08f6a4db5a",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/resume_replay.log",
+      "bytes": 88,
+      "sha256": "8a8c1d44fe73f56afdd88f6efb9b6d094b8bb8f2d25e70b088c213b2dc0681ee",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/resume_wheel.log",
+      "bytes": 966,
+      "sha256": "ba774a547b787be14f31745dc5de4b4d96d624bad42b8e6c04e876da29b58afa",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/resume_cli.log",
+      "bytes": 1989,
+      "sha256": "5101f6068fcc5df59017f043e6c71c3b91dc016c29d0825fed9afb1cc09ffbb8",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/resume_validate_all.log",
+      "bytes": 95,
+      "sha256": "5fa93ebd24ac879704a2d288651a8e38b3bf2e69097f165cba5b7605cde406c4",
+      "included_in_git": false
+    },
+    {
+      "path": "outputs/reuse_fullscale_p100_bill.log",
+      "bytes": 1269,
+      "sha256": "b5916d80b61f3eb06e8dbc710d71823d57e74778b99a8ceb6e89fdc72f636b4d",
+      "included_in_git": false
+    }
+  ],
+  "history": "Earlier source-change failure and interrupted profiling remain in local outputs/resume_history; not treated as successful completed measurements.",
+  "pre_supplement_ci": {
+    "head": "5c6d77218a002cf90d60350902b165ae9e445afa",
+    "run_id": 39371659068,
+    "jobs": [
+      {
+        "python": "3.11",
+        "job_id": 118460666304,
+        "passed": 744,
+        "pytest_seconds": 341.12,
+        "overall_coverage_percent": 86.34,
+        "core_coverage_percent": 97.61,
+        "all_steps": "success"
+      },
+      {
+        "python": "3.13",
+        "job_id": 118460666407,
+        "passed": 744,
+        "pytest_seconds": 184.21,
+        "overall_coverage_percent": 86.32,
+        "core_coverage_percent": 97.61,
+        "all_steps": "success"
+      }
+    ],
+    "runtime_source_hash_same_as_benchmark": true,
+    "later_documentation_and_measurement_commit_requires_own_head_ci": true
+  },
+  "supplemental_fullscale": {
+    "status": "complete",
+    "pairs": 3,
+    "all_six_output_digests_equal": true,
+    "complete_output_digest": "f244874135ef553c5462bd95ca26ddc2b504ac3f30e5175a40ff99f44da0d953",
+    "runtime_source_unchanged": true,
+    "file": "benchmark_fullscale.json",
+    "sha256": "2ed6031e2d8d0a1bc4b8248b2cf55f1422bcc5c3c77f8ad8faf23191b6483a74",
+    "reference_wall_median": 510.071177100006,
+    "optimized_wall_median": 225.30059870000696,
+    "wall_reduction": 0.5582957657381338,
+    "raw_local_sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+    "versioned_format": "UTF-8/LF; data values unchanged from original CRLF measurement"
+  }
+}
