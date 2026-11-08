@@ -54,11 +54,11 @@ ARMS = (
 CONTROL = "N0_P1"
 SEEDS = (9,)
 GROUPS = {"base": (100, 200), "large": (500,)}
-LARGE_REPLICATES = (1, 3)
+LARGE_REPLICATES = (1,)  # deadline 2026-11-08 23:00 (user): one replicate per family
 GROUP_BLOCKS = {"base": 80, "large": 10 * len(LARGE_REPLICATES)}
 PANEL_SIZES = (50, 100, 200)
 # Load-power copy of the 40 extended 500-job inputs (manifest SHA256).
-PANEL500 = "PENDING"
+PANEL500 = "0f1138afbb889e263de499a8198070b3be6c4ab9133ff680914b9761153fb36b"
 LARGE_SECONDS = 6000
 DESIGN = "s4-space/v1"
 assert set(ARMS) <= set(s4_moead.EXTRA_ARMS)
