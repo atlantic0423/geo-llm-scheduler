@@ -10,7 +10,9 @@ from geo_llm_scheduler.lsv2.seed_field import (
     DiminishingSegments,
     RateScale,
     RBFField,
+    investment_kernel,
     local_investment,
+    local_investment_many,
 )
 
 
@@ -114,3 +116,45 @@ def test_local_investment_is_a_gaussian_kernel_sum():
         2.0 + math.exp(-0.5 * (0.8 / 0.08) ** 2)
     )
     assert local_investment([], 0.5, 0.08) == 0.0
+
+
+def test_local_investment_many_matches_the_scalar_reference():
+    rng = Random(5)
+    launches = [(rng.random(), rng.uniform(0.0, 3.0)) for _ in range(400)]
+    lams = [i / 30 for i in range(31)] + [launches[0][0]]
+    fast = local_investment_many(lams, launches, 0.08)
+    ref = [local_investment(launches, lam, 0.08) for lam in lams]
+    assert fast.shape == (len(lams),)
+    assert fast.tolist() == pytest.approx(ref, rel=1e-12, abs=1e-15)
+    assert local_investment_many(lams, [], 0.08).tolist() == [0.0] * len(lams)
+    kernel = investment_kernel([0.5], [0.5, 0.58], 0.08)
+    assert kernel.shape == (1, 2) and kernel[0].tolist() == pytest.approx([1.0, math.exp(-0.5)])
+    with pytest.raises(ValueError):
+        investment_kernel([0.5], [0.5], 0.0)
+
+
+def _manual_mean(field: RBFField, points: list[tuple[float, float]]) -> np.ndarray:
+    """Uncached posterior mean straight from the stored data terms."""
+    ybar = field._ysum / field._n
+    precision = field.alpha * np.eye(field.size) + field._A / field.noise
+    mean_w = np.linalg.solve(precision, (field._b - ybar * field._s) / field.noise)
+    return ybar + field.features(points) @ mean_w
+
+
+def test_rbf_mean_is_cached_until_the_data_change():
+    field = RBFField(tau=100.0)
+    pts = [(0.1, 0.2), (0.7, 0.9), (0.5, 0.5)]
+    field.update((0.2, 0.3), 1.0, 0.0)
+    m1 = field.mean(pts)
+    assert np.array_equal(m1, field.posterior(pts)[0]) and np.array_equal(
+        m1, _manual_mean(field, pts)
+    )
+    assert np.array_equal(field.mean(pts), m1)  # served from the cache
+    field.update((0.8, 0.8), 3.0, 10.0)  # new data invalidate the cache
+    m2 = field.mean(pts)
+    assert not np.allclose(m1, m2) and np.array_equal(m2, _manual_mean(field, pts))
+    field.decay(400.0)  # decay shrinks data against the prior: the mean moves
+    m3 = field.mean(pts)
+    assert not np.allclose(m2, m3) and np.array_equal(m3, _manual_mean(field, pts))
+    field.decay(400.0)  # no time elapsed: cache stays valid
+    assert np.array_equal(field.mean(pts), m3)

@@ -1085,6 +1085,42 @@ def test_gp_marginal_uses_local_investment_and_reports_a_frontier_rate():
     assert len(snap["mean"]) == len(snap["second"]) == 21
 
 
+def _reference_frontier(search, now):
+    """Pre-optimization GE3 frontier rate: scalar local investment, full posterior."""
+    inputs = [(lam, search._local_z(lam, now)) for lam in search._field_lams]
+    mean, _ = search._field.posterior(inputs)
+    return float(search._scale.to_rate(float(max(mean))))
+
+
+def test_gp_marginal_vectorized_inputs_match_the_scalar_reference():
+    search, start, _ = _fixed_clock_search("GE3_P1_GP_EQM")
+    clock = {"now": 500.0}
+    search.timer = lambda: clock["now"]
+    tau = search.moead.tau_seconds
+    grid = [i / 20 for i in range(21)]
+    for step in range(80):
+        clock["now"] += 4.0  # launches spread over time
+        _run_field(search, start, lambda i: 0.02 if i == 2 else 0.001, 1)
+        if step % 9 == 0 or step > 70:
+            lams = grid + search._field_lams
+            now = clock["now"]
+            fast = search._local_zs(lams, now)
+            ref = [search._local_z(lam, now) for lam in lams]
+            assert fast == pytest.approx(ref, rel=1e-12, abs=1e-15)
+            if search._field.observations >= 10:
+                want = _reference_frontier(search, now)
+                assert search._frontier_rate() == pytest.approx(want, rel=1e-12)
+    assert max(search._local_zs(search._field_lams, clock["now"])) > 0
+    # Ageing past the 8 tau window prunes launches; the cache follows the launch set.
+    later = clock["now"] + 8 * tau - 100.0
+    assert search._local_zs(grid, later) == pytest.approx(
+        [search._local_z(lam, later) for lam in grid], rel=1e-12, abs=1e-15
+    )
+    assert 0 < len(search._launches) < 79
+    gone = clock["now"] + 9 * tau
+    assert search._local_zs(grid, gone) == [0.0] * len(grid) and search._launches == []
+
+
 @pytest.fixture
 def space_batch(monkeypatch):
     monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))

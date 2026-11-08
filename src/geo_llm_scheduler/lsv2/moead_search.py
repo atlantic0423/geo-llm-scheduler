@@ -242,6 +242,8 @@ class MoeadMixin:
         self._scale: Any = None
         self._traj: dict[str, Any] | None = None
         self._launches: list[tuple[float, float, float]] = []
+        self._launch_version = 0  # bumped when ``_launches`` gains or drops entries
+        self._z_cache: tuple[Any, ...] | None = None  # GE3 kernel per (front, launch set)
         self._field_lams: list[float] = []
         self._field_obs: list[list[float]] = []
         self._field_trace: dict[int, Any] = {}
@@ -683,9 +685,43 @@ class MoeadMixin:
         from geo_llm_scheduler.lsv2.seed_field import local_investment
 
         tau = self.moead.tau_seconds
-        self._launches = [(x, c, at) for x, c, at in self._launches if now - at < 8 * tau]
+        kept = [(x, c, at) for x, c, at in self._launches if now - at < 8 * tau]
+        if len(kept) != len(self._launches):
+            self._launches = kept
+            self._launch_version += 1
         recent = [(x, c * math.exp(-(now - at) / tau)) for x, c, at in self._launches]
         return 1.0 - math.exp(-local_investment(recent, lam, LOCAL_WIDTH) / LOCAL_SCALE)
+
+    def _local_zs(self, lams: list[float], now: float) -> list[float]:
+        """``[_local_z(lam, now) for lam in lams]`` in one pass (reference: ``_local_z``).
+
+        The share controller asks for the frontier rate at every LS allowance
+        check, while the front and the launch set change only when a trajectory
+        closes. The ``lams x launches`` kernel is therefore cached per (front,
+        launch set) and each call only re-weights the launches by their age.
+        Values equal the reference up to summation rounding.
+        """
+        import numpy as np
+
+        from geo_llm_scheduler.lsv2.seed_field import investment_kernel
+
+        tau = self.moead.tau_seconds
+        # Launches are appended in time order, so only the oldest can have aged out;
+        # the window mask below keeps the reference semantics for any order.
+        if self._launches and now - self._launches[0][2] >= 8 * tau:
+            self._launches = [(x, c, at) for x, c, at in self._launches if now - at < 8 * tau]
+            self._launch_version += 1
+        kept = self._launches
+        if not kept:
+            return [0.0] * len(lams)
+        key = (tuple(lams), self._launch_version)
+        if self._z_cache is None or self._z_cache[0] != key:
+            xs, cs, ats = (np.asarray(v, dtype=float) for v in zip(*kept, strict=True))
+            self._z_cache = (key, investment_kernel(lams, xs, LOCAL_WIDTH), cs, ats)
+        _, kernel, cs, ats = self._z_cache
+        age = now - ats
+        invest = kernel @ np.where(age < 8 * tau, cs * np.exp(-age / tau), 0.0)
+        return [1.0 - math.exp(-float(v) / LOCAL_SCALE) for v in invest]
 
     def _close_trajectory(self, now: float) -> None:
         """Charge the finished trajectory's HV gain and LS seconds to its launch point."""
@@ -706,6 +742,7 @@ class MoeadMixin:
             model.update(traj["point"], self._scale.to_y(rate), now)
             if self.moead.seed_mode == "gp_marginal":
                 self._launches.append((traj["lam"], cost, now))
+                self._launch_version += 1
         self._mcount("field_observations")
         if self.moead.trace and len(self._field_obs) < 6000:
             self._field_obs.append([round(traj["lam"], 4), round(traj["t"], 4), rate])
@@ -713,7 +750,7 @@ class MoeadMixin:
     def _field_inputs(self, lams: list[float], t: float, now: float) -> list[tuple[float, float]]:
         if self.moead.seed_mode == "gp_field":
             return [(lam, t) for lam in lams]
-        return [(lam, self._local_z(lam, now)) for lam in lams]
+        return list(zip(lams, self._local_zs(lams, now), strict=True))
 
     def _pick_field(self, frame: FrozenFrame, front: list[Point]) -> int:
         """Close the previous trajectory's account and choose the next launch point."""
@@ -782,7 +819,7 @@ class MoeadMixin:
         if model.observations < FIELD_WARMUP:
             return None
         inputs = self._field_inputs(self._field_lams, self._budget_fraction(), now)
-        mean, _ = model.posterior(inputs)
+        mean = model.mean(inputs)  # no covariance needed; weights cached between updates
         return float(self._scale.to_rate(float(max(mean))))
 
     def _field_snapshot(self, now: float, t: float) -> None:

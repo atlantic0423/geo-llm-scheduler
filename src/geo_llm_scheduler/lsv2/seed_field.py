@@ -100,6 +100,8 @@ class RBFField:
         self._ysum = 0.0
         self._clock: float | None = None
         self.observations = 0
+        self._version = 0  # bumped whenever the data terms change
+        self._cache: tuple[int, float, np.ndarray, np.ndarray] | None = None
 
     @property
     def size(self) -> int:
@@ -121,6 +123,7 @@ class RBFField:
             self._s *= f
             self._n *= f
             self._ysum *= f
+            self._version += 1
         self._clock = now if self._clock is None else max(self._clock, now)
 
     def update(self, point: tuple[float, float], y: float, now: float) -> None:
@@ -133,12 +136,22 @@ class RBFField:
         self._n += 1.0
         self._ysum += y
         self.observations += 1
+        self._version += 1
 
     def _posterior(self) -> tuple[float, np.ndarray, np.ndarray]:
+        """Posterior weight mean and precision, recomputed only after the data change."""
+        if self._cache is not None and self._cache[0] == self._version:
+            return self._cache[1], self._cache[2], self._cache[3]
         ybar = self._ysum / self._n if self._n > 0 else 0.0
         precision = self.alpha * np.eye(self.size) + self._A / self.noise
         mean_w = np.linalg.solve(precision, (self._b - ybar * self._s) / self.noise)
+        self._cache = (self._version, ybar, mean_w, precision)
         return ybar, mean_w, precision
+
+    def mean(self, points: Sequence[tuple[float, float]]) -> np.ndarray:
+        """Posterior mean of the field at ``points`` (same values as ``posterior()[0]``)."""
+        ybar, mean_w, _ = self._posterior()
+        return ybar + self.features(points) @ mean_w
 
     def posterior(self, points: Sequence[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]:
         """Posterior mean and standard deviation of the field at ``points``."""
@@ -229,10 +242,32 @@ def local_investment(launches: Sequence[tuple[float, float]], lam: float, width:
     return sum(c * math.exp(-0.5 * ((lam - x) / width) ** 2) for x, c in launches)
 
 
+def investment_kernel(
+    lams: Sequence[float] | np.ndarray, xs: Sequence[float] | np.ndarray, width: float
+) -> np.ndarray:
+    """``len(lams) x len(xs)`` Gaussian kernel ``exp(-(lam_i - x_j)^2 / (2 width^2))``."""
+    if width <= 0:
+        raise ValueError("Kernel width must be positive")
+    d = (np.asarray(lams, dtype=float)[:, None] - np.asarray(xs, dtype=float)[None, :]) / width
+    return np.exp(-0.5 * d * d)
+
+
+def local_investment_many(
+    lams: Sequence[float], launches: Sequence[tuple[float, float]], width: float
+) -> np.ndarray:
+    """Vectorized :func:`local_investment` at every ``lam`` (equal up to summation rounding)."""
+    if not launches:
+        return np.zeros(len(lams))
+    xs, cs = zip(*launches, strict=True)
+    return investment_kernel(lams, xs, width) @ np.asarray(cs, dtype=float)
+
+
 __all__ = [
     "SCALE_WARMUP",
     "DiminishingSegments",
     "RBFField",
     "RateScale",
+    "investment_kernel",
     "local_investment",
+    "local_investment_many",
 ]
