@@ -1148,6 +1148,13 @@ def test_space_batch_prepares_base_and_large_groups_at_seed_nine(
     assert reps <= set(space_batch.LARGE_REPLICATES)
     with pytest.raises(AssertionError):
         space_batch.prepare(tmp_path / "wrong", panel, cal, "example", group="large")
+    small = tmp_path / "small"
+    space_batch.prepare(small, panel, cal, "example", group="small")
+    ms = space_batch.validate_inputs(small)
+    assert ms["group"] == "small" and ms["runs"] == 240 and len(ms["blocks"]) == 40
+    assert {
+        json.loads((small / "specs" / (b + ".json")).read_text())["seconds"] for b in ms["blocks"]
+    } == {600}
 
 
 def s4_ablation_budgets():

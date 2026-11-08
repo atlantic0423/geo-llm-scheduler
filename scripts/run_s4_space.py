@@ -16,6 +16,8 @@ the record-only trace (user, 2026-11-08):
 Two block groups, prepared as separate roots so each can run on its own cores:
 
 - ``base``: every 100/200-job instance of the frozen 120-input panel (80 blocks);
+- ``small`` (user 2026-11-08, if time allows): every 50-job instance of the frozen
+  panel (40 blocks, 600 seconds), run on the base cores after the base group;
 - ``large``: extended 500-job instances (same generator and seed formula), 6000
   seconds each, Q calibration from the 200-job folds (user decision). To finish by
   the user's deadline the large group keeps only the replicates in
@@ -53,9 +55,9 @@ ARMS = (
 )
 CONTROL = "N0_P1"
 SEEDS = (9,)
-GROUPS = {"base": (100, 200), "large": (500,)}
+GROUPS = {"base": (100, 200), "large": (500,), "small": (50,)}
 LARGE_REPLICATES = (1,)  # deadline 2026-11-08 23:00 (user): one replicate per family
-GROUP_BLOCKS = {"base": 80, "large": 10 * len(LARGE_REPLICATES)}
+GROUP_BLOCKS = {"base": 80, "large": 10 * len(LARGE_REPLICATES), "small": 40}
 PANEL_SIZES = (50, 100, 200)
 # Load-power copy of the 40 extended 500-job inputs (manifest SHA256).
 PANEL500 = "0f1138afbb889e263de499a8198070b3be6c4ab9133ff680914b9761153fb36b"
