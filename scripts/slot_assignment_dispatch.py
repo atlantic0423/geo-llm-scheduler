@@ -142,6 +142,24 @@ def resources_available(root: Path) -> bool:
     return memory_gate(available, shutil.disk_usage(root).free, current, limit)
 
 
+def slot_limit(root: Path, slots: int) -> int:
+    """Active-slot cap read from ``root/parallel.limit`` at every dispatch tick.
+
+    Absent file: every slot (historical behaviour). A readable integer is clamped
+    to ``[0, slots]``; unreadable or non-integer content gives 0, so a damaged file
+    pauses new starts instead of over-committing memory. Running workers are never
+    touched; lowering the cap only stops new starts until enough slots finish.
+    """
+    path = root / "parallel.limit"
+    if not path.exists():
+        return slots
+    try:
+        value = int(path.read_text().strip())
+    except (OSError, ValueError):
+        return 0
+    return max(0, min(slots, value))
+
+
 def dispatch(
     root: Path, runner: Any, cpus: list[int], worker_entry: Path, interval: float = 1.0
 ) -> dict:
@@ -187,8 +205,11 @@ def dispatch(
         if stopped and not active:
             break
         resources = resources_available(root)
+        limit = slot_limit(root, len(cpus))
         for slot, cpu in enumerate(cpus):
             if slot in active or stopped or not resources or not pending:
+                continue
+            if len(active) >= limit:
                 continue
             key, arm, seconds = pending[0]
             if time.time() + seconds + 900 > start["deadline"]:
@@ -270,6 +291,7 @@ def dispatch(
                 total=manifest["runs"],
                 dispatch="flat_ops_v1",
                 parallel=len(cpus),
+                limit=limit,
                 pending_runs=len(pending),
                 pending_blocks=len({k for k, _, _ in pending}),
                 failure=failed,

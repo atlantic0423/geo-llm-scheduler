@@ -161,3 +161,16 @@ def test_dispatch_excludes_whole_cores_and_runs_longest_budgets_first(tmp_path):
         ("long", "A", 2400),
         ("short", "B", 300),
     ]
+
+
+def test_slot_limit_file_caps_new_starts_and_fails_closed(tmp_path):
+    flat = load_script("slot_assignment_dispatch")
+    assert flat.slot_limit(tmp_path, 3) == 3  # absent: every slot
+    (tmp_path / "parallel.limit").write_text("2" + chr(10))
+    assert flat.slot_limit(tmp_path, 3) == 2
+    (tmp_path / "parallel.limit").write_text("9")
+    assert flat.slot_limit(tmp_path, 3) == 3  # clamped to the cores given
+    (tmp_path / "parallel.limit").write_text("-1")
+    assert flat.slot_limit(tmp_path, 3) == 0
+    (tmp_path / "parallel.limit").write_text("three")
+    assert flat.slot_limit(tmp_path, 3) == 0  # damaged file pauses new starts

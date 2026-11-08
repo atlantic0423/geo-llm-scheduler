@@ -1197,3 +1197,56 @@ def s4_ablation_budgets():
     from geo_llm_scheduler.experiments import s4_ablation
 
     return s4_ablation.BUDGETS
+
+
+@pytest.fixture
+def ge3fix_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_ge3fix")
+
+
+def test_ge3fix_batch_prepares_the_panel_and_nine_large_blocks(
+    tmp_path, monkeypatch, ge3fix_batch, space_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    panel500 = _panel500(tmp_path, power)
+    for mod in (ge3fix_batch, space_batch):
+        monkeypatch.setattr(mod.base, "PANEL", digest(panel / "manifest.json"))
+        monkeypatch.setattr(mod.base, "CAL", digest(cal))
+        monkeypatch.setattr(mod, "PANEL500", digest(panel500 / "manifest.json"))
+    root = tmp_path / "panel_root"
+    ge3fix_batch.prepare(root, panel, cal, "example", group="panel")
+    m = ge3fix_batch.validate_inputs(root)
+    assert m["runs"] == 360 and len(m["blocks"]) == 120 and m["design"] == "s4-ge3fix/v1"
+    assert tuple(m["arms"]) == ("N0_P1", "N7_P1_SHARE", "GE3_P1_GP_EQM")
+    sizes, orders = Counter(), Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        sizes[spec["n"]] += 1
+        orders[tuple(spec["order"])] += 1
+        assert spec["seed"] == 9 and "run_s4_ge3fix.py" in spec["entry"]
+        assert spec["seconds"] == {50: 600, 100: 1200, 200: 2400}[spec["n"]]
+        assert spec["config"]["GE3_P1_GP_EQM"]["moead"]["seed_mode"] == "gp_marginal"
+        assert spec["config"]["N7_P1_SHARE"]["moead"]["share_mode"] == "equimarginal"
+    assert sizes == {50: 40, 100: 40, 200: 40} and len(orders) == 3
+    # Large: f01-f09 at replicate 1 over three shards, folds as in the launch-point batch.
+    old = tmp_path / "old"
+    space_batch.prepare(old, panel500, cal, "example", group="large")
+    old_folds = {
+        b: json.loads((old / "specs" / (b + ".json")).read_text())["calibration_fold"]
+        for b in space_batch.validate_inputs(old)["blocks"]
+    }
+    seen = []
+    for k in range(3):
+        large = tmp_path / f"large{k}"
+        ge3fix_batch.prepare(large, panel500, cal, "example", shard=f"{k}/3", group="large")
+        ml = ge3fix_batch.validate_inputs(large)
+        assert ml["group"] == "large" and len(ml["blocks"]) == 3 and ml["runs"] == 9
+        for b in ml["blocks"]:
+            spec = json.loads((large / "specs" / (b + ".json")).read_text())
+            assert spec["seconds"] == 6000 and spec["calibration_fold"] == old_folds[b]
+        seen += ml["blocks"]
+    assert sorted(seen) == [f"mx_n500_f{f:02d}_r01_s9" for f in range(1, 10)]
+    with pytest.raises(AssertionError):
+        ge3fix_batch.prepare(tmp_path / "wrong", panel, cal, "example", group="large")
