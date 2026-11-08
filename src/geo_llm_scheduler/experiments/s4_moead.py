@@ -57,6 +57,20 @@ They separate where LS is launched from P4's longer Flow-end steps:
                                 run best-of-6 steps (no yields, no regions)
 ``N10_P1_P4R3_BANDIT_FLOWWIDE`` N6 region bandit plus the same Flow-end widening
 ==============================  ==============================================
+
+Launch-point arms (``SPACE_ARMS``, user 2026-11-08), P1 and the trace; candidates,
+not yet run. Each trajectory is charged to its launch point (see
+:mod:`lsv2.seed_field`):
+
+========================  ====================================================
+``R1_P1_RANDPOINT``       uniformly random Archive-front point (reference)
+``G1_P1_GP``              Thompson sampling of a Gaussian-RBF field of HV per LS
+                          second over (Flow ray weight, budget fraction)
+``E2_P1_EQM``             five weight segments with a shared diminishing return;
+                          equimarginal launch and LS share from that marginal
+``GE3_P1_GP_EQM``         field over (ray weight, local recent LS seconds);
+                          equimarginal LS share from its best marginal return
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -90,7 +104,8 @@ NEXT_ARMS = ("N4_P1_P4R3_HV", "N5_P1_P4R3_CA")
 BANDIT_ARMS = ("N6_P1_P4R3_BANDIT",)
 SHARE_ARMS = ("N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
 WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
-EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS
+SPACE_ARMS = ("R1_P1_RANDPOINT", "G1_P1_GP", "E2_P1_EQM", "GE3_P1_GP_EQM")
+EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS + SPACE_ARMS
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -144,6 +159,23 @@ _OPTIONS = {
     ),
     "N9_P1_FLOWWIDE": MoeadOptions(
         terminal_ops=TIMING_OPS, regions=3, static_wide=(2,), trace=True
+    ),
+    "R1_P1_RANDPOINT": MoeadOptions(terminal_ops=TIMING_OPS, seed_mode="random_point", trace=True),
+    "G1_P1_GP": MoeadOptions(terminal_ops=TIMING_OPS, seed_mode="gp_field", trace=True),
+    "E2_P1_EQM": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="marginal_segments",
+        regions=5,
+        trace=True,
+        share_mode="equimarginal",
+        share_signal="frontier",
+    ),
+    "GE3_P1_GP_EQM": MoeadOptions(
+        terminal_ops=TIMING_OPS,
+        seed_mode="gp_marginal",
+        trace=True,
+        share_mode="equimarginal",
+        share_signal="frontier",
     ),
     "N10_P1_P4R3_BANDIT_FLOWWIDE": MoeadOptions(
         terminal_ops=TIMING_OPS,
@@ -227,6 +259,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["moead"].update(yield_measure=opts.yield_measure)
     if opts.static_wide:
         record["moead"].update(static_wide=list(opts.static_wide))
+    if opts.share_signal != "average":
+        record["moead"].update(share_signal=opts.share_signal)
     if opts.share_mode != "fixed":
         record["moead"].update(
             share_mode=opts.share_mode,
@@ -285,6 +319,7 @@ __all__ = [
     "BANDIT_ARMS",
     "SHARE_ARMS",
     "WIDEN_ARMS",
+    "SPACE_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",

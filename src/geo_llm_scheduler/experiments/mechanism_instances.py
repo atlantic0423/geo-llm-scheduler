@@ -95,11 +95,19 @@ class InstanceSpec:
         return f"mx_n{self.jobs:03d}_{self.family.lower()}_r{self.replicate:02d}"
 
 
-def panel_specs() -> tuple[InstanceSpec, ...]:
-    """Return 120 inputs: ten strata x three sizes x four independent seeds."""
+PANEL_SIZES = (50, 100, 200)
+# Large-scale extension (user, 2026-11-08): the same families, replicates and seed
+# formula at 500 jobs; it never changes the frozen 120-input panel.
+EXTENDED_SIZES = (500,)
+
+
+def panel_specs(sizes: tuple[int, ...] = PANEL_SIZES) -> tuple[InstanceSpec, ...]:
+    """Return ten strata x ``sizes`` x four independent seeds (default: the frozen 120)."""
+    if not sizes or not set(sizes) <= set(PANEL_SIZES + EXTENDED_SIZES):
+        raise ValueError("Unsupported stress size")
     return tuple(
         InstanceSpec(n, f.key, r, 3 if r <= 2 else 5, 202610310000 + n * 100 + i * 10 + r)
-        for n in (50, 100, 200)
+        for n in sizes
         for i, f in enumerate(FAMILIES, 1)
         for r in range(1, 5)
     )
@@ -155,7 +163,7 @@ def _tariffs(f: Family, region: int, count: int, horizon: float) -> tuple[Tariff
 def mechanism_problem(spec: InstanceSpec) -> ProblemInstance:
     """Generate one valid frozen-model input without inspecting any solver output."""
     families = {f.key: f for f in FAMILIES}
-    if spec.jobs not in (50, 100, 200) or spec.family not in families:
+    if spec.jobs not in PANEL_SIZES + EXTENDED_SIZES or spec.family not in families:
         raise ValueError("Unsupported stress size or family")
     if spec.regions not in (3, 5) or spec.replicate not in range(1, 5):
         raise ValueError("Expected three/five regions and replicate 1..4")

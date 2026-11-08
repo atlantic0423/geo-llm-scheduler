@@ -18,6 +18,7 @@ from geo_llm_scheduler.domain.models import ProblemInstance  # noqa: E402
 from geo_llm_scheduler.experiments.mechanism_audit import audit_problem  # noqa: E402
 from geo_llm_scheduler.experiments.mechanism_instances import (  # noqa: E402
     FAMILIES,
+    PANEL_SIZES,
     input_features,
     mechanism_problem,
     panel_specs,
@@ -69,6 +70,13 @@ def main() -> None:
     parser.add_argument("--rightshift-only", action="store_true")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--keys", nargs="*")
+    parser.add_argument(
+        "--sizes",
+        type=int,
+        nargs="+",
+        default=list(PANEL_SIZES),
+        help="job counts to generate (default: the frozen 50/100/200 panel; 500 extends it)",
+    )
     args = parser.parse_args()
     if args.workers < 1:
         parser.error("workers must be positive")
@@ -78,7 +86,7 @@ def main() -> None:
     inputs.mkdir(exist_ok=True)
     audits.mkdir(exist_ok=True)
     entries = []
-    for spec in panel_specs():
+    for spec in panel_specs(tuple(args.sizes)):
         problem = mechanism_problem(spec)
         path = inputs / (spec.key + ".json")
         _frozen_input(problem, path)
@@ -110,6 +118,8 @@ def main() -> None:
         "families": [asdict(f) for f in FAMILIES],
         "instances": entries,
     }
+    if tuple(args.sizes) != PANEL_SIZES:
+        manifest["sizes"] = list(args.sizes)
     _write(args.output / "manifest.json", manifest)
     print(f"Generated/verified {len(entries)} independent inputs", flush=True)
     if not args.audit:

@@ -93,3 +93,26 @@ def test_real_bill4_audit_verifies_exact_and_does_not_mutate_input():
             a["evaluation"]["tou"] + sum(a["evaluation"]["demand"])
         )
         assert a["schedule"]["starts"][1::2] == b["schedule"]["starts"][1::2]
+
+
+def test_extended_500_job_specs_reuse_the_panel_formula_without_touching_it():
+    frozen = panel_specs()
+    large = panel_specs((500,))
+    assert panel_specs((50, 100, 200)) == frozen
+    assert len(large) == len({s.key for s in large}) == len({s.seed for s in large}) == 40
+    assert Counter(s.family for s in large) == {f.key: 4 for f in FAMILIES}
+    assert Counter(s.regions for s in large) == {3: 20, 5: 20}
+    assert not {s.seed for s in large} & {s.seed for s in frozen}
+    assert all(s.key.startswith("mx_n500_") for s in large)
+    by_family = {(s.family, s.replicate): s for s in frozen if s.jobs == 200}
+    for s in large:
+        twin = by_family[(s.family, s.replicate)]
+        assert s.seed - twin.seed == (500 - 200) * 100 and s.regions == twin.regions
+    p = mechanism_problem(large[0])
+    assert len(p.jobs) == 500 and len({j.name for j in p.jobs}) == 500
+    with pytest.raises(ValueError):
+        panel_specs((300,))
+    with pytest.raises(ValueError):
+        panel_specs(())
+    with pytest.raises(ValueError):
+        mechanism_problem(replace(large[0], jobs=300))

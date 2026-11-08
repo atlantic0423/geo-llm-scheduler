@@ -340,6 +340,7 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
         + s4_moead.BANDIT_ARMS
         + s4_moead.SHARE_ARMS
         + s4_moead.WIDEN_ARMS
+        + s4_moead.SPACE_ARMS
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
@@ -412,6 +413,7 @@ def _fake_region_run(arm: str, trace: bool):
         *s4_moead.BANDIT_ARMS,
         *s4_moead.SHARE_ARMS,
         *s4_moead.WIDEN_ARMS,
+        *s4_moead.SPACE_ARMS,
     ],
 )
 def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
@@ -465,6 +467,7 @@ def test_trace_is_record_only_and_charges_hv_gain_by_source(arm):
         *s4_moead.BANDIT_ARMS,
         *s4_moead.SHARE_ARMS,
         *s4_moead.WIDEN_ARMS,
+        *s4_moead.SPACE_ARMS,
     ],
 )
 def test_runner_executes_every_combination_arm_with_trace(tmp_path, arm, monkeypatch):
@@ -984,3 +987,170 @@ def test_n7_confirmation_batch_pairs_control_and_share_at_seeds_seven_and_eight(
         for k in range(3)
     ]
     assert sorted(len(s) for s in shards) == [53, 53, 54]
+
+
+def test_space_arms_declare_the_launch_models():
+    n0 = s4_moead.options("N0_P1")
+    assert s4_moead.options("R1_P1_RANDPOINT") == replace(n0, seed_mode="random_point")
+    assert s4_moead.options("G1_P1_GP") == replace(n0, seed_mode="gp_field")
+    frontier = dict(share_mode="equimarginal", share_signal="frontier")
+    assert s4_moead.options("E2_P1_EQM") == replace(n0, seed_mode="marginal_segments", **frontier)
+    assert s4_moead.options("GE3_P1_GP_EQM") == replace(n0, seed_mode="gp_marginal", **frontier)
+    cfg = s4_moead.arm_config("E2_P1_EQM", 7, 1200)
+    record = s4_moead.configuration_record("E2_P1_EQM", cfg, CAL)
+    assert record["moead"]["share_signal"] == "frontier"
+    assert "share_signal" not in s4_moead.configuration_record("N7_P1_SHARE", cfg, CAL)["moead"]
+    for arm in s4_moead.SPACE_ARMS:
+        assert s4_moead.search_config(arm) == s4_moead.search_config("N0_P1")
+    for bad in (
+        dict(share_signal="peak"),
+        dict(share_signal="frontier"),  # needs the equimarginal share
+        dict(seed_mode="gp_field", share_mode="equimarginal", share_signal="frontier"),
+    ):
+        with pytest.raises(ValueError):
+            MoeadOptions(**bad)
+
+
+def test_random_point_launches_uniformly_from_the_front():
+    search, start, _ = _fixed_clock_search("R1_P1_RANDPOINT")
+    counts = Counter(search._pick_index(search.frame, start, []) for _ in range(900))
+    assert set(counts) == {0, 1, 2} and min(counts.values()) > 250
+    assert search.moead_counts["random_point_seeds"] == 900
+
+
+def _run_field(search, start, gain_of, trajectories):
+    """Scripted trajectories: one LS second each, HV gain set by the launch point."""
+    picks = []
+    for _ in range(trajectories):
+        i = search._pick_index(search.frame, start, [])
+        picks.append(i)
+        search._traj["gain"] = gain_of(i)
+        search.ls_seconds += 1.0
+    return picks
+
+
+def test_field_charges_trajectories_to_launch_points_and_learns_where_ls_pays():
+    search, start, archive = _fixed_clock_search("G1_P1_GP")
+    lams = [search.frame.weight_for(p)[0] for p in start]
+    best = max(range(3), key=lambda i: lams[i])  # the Flow end pays
+    picks = _run_field(search, start, lambda i: 0.02 if i == best else 0.0005, 120)
+    assert search.moead_counts["field_observations"] == 119
+    assert Counter(picks[-40:])[best] >= 30
+    assert search.moead_counts.get("field_explore", 0) == 10  # random warm-up only
+    # LS Archive insertions during an open trajectory are added to its gain.
+    search._traj["gain"] = 0.0
+    _insert(search, archive, "LSV2:A2", (2.0, 7.0))
+    assert search._traj["gain"] > 0
+    gain = search._traj["gain"]
+    _insert(search, archive, "structural", (1.5, 8.0))  # evolution: not charged to LS
+    assert search._traj["gain"] == gain
+    record = search.moead_summary()["field"]
+    assert record["mode"] == "gp_field" and len(record["mean"]) == 21 * 11
+    assert len(record["trajectories"]) == 119 and record["snapshots"]
+    assert json.loads(json.dumps(search.moead_summary())) == search.moead_summary()
+
+
+def test_marginal_segments_launch_the_best_marginal_and_set_the_frontier_share():
+    search, start, _ = _fixed_clock_search("E2_P1_EQM")
+    model = search._field_model()
+    segs = [model.segment(search.frame.weight_for(p)[0]) for p in start]
+    best = max(range(3), key=lambda i: segs[i])
+    picks = _run_field(search, start, lambda i: 0.05 if i == best else 0.001, 150)
+    assert Counter(picks[-50:])[best] >= 40
+    frontier = search._frontier_rate()
+    present = sorted(set(segs))
+    marg = model.marginals(0.05 * search._scale.current())
+    assert frontier == pytest.approx(max(marg[g] for g in present)) and frontier > 0
+    search._mtime = dict(evo=100.0, ls=100.0)
+    search._mgain = dict(evo=1.0, ls=1.0)  # equal average rates: N7 would keep 0.2
+    search._mclock = search.timer()
+    want = min(0.5, max(0.05, 0.2 * (frontier / 0.01) ** 0.5))
+    assert search._target_share() == pytest.approx(want)
+    assert search.moead_summary()["options"]["share_signal"] == "frontier"
+
+
+def test_gp_marginal_uses_local_investment_and_reports_a_frontier_rate():
+    search, start, _ = _fixed_clock_search("GE3_P1_GP_EQM")
+    lams = [search.frame.weight_for(p)[0] for p in start]
+    best = max(range(3), key=lambda i: lams[i])
+    assert search._frontier_rate() is None
+    _run_field(search, start, lambda i: 0.02 if i == best else 0.0005, 60)
+    z = [search._local_z(lam, search.timer()) for lam in lams]
+    assert all(0 <= v < 1 for v in z) and max(z) > 0
+    rate = search._frontier_rate()
+    assert rate is not None and rate > 0
+    record = search.moead_summary()["field"]
+    assert record["mode"] == "gp_marginal" and record["snapshots"]
+    snap = next(iter(record["snapshots"].values()))
+    assert len(snap["mean"]) == len(snap["second"]) == 21
+
+
+@pytest.fixture
+def space_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_space")
+
+
+def _panel500(tmp_path, power):
+    panel = tmp_path / "panel500"
+    (panel / "instances").mkdir(parents=True)
+    rows = []
+    for fam in range(1, 11):
+        for r in range(1, 5):
+            key = f"mx_n500_f{fam:02d}_r{r:02d}"
+            rel = f"instances/{key}.json"
+            (panel / rel).write_text("{}")
+            rows.append(dict(key=key, path=rel, jobs=500, sha256=digest(panel / rel)))
+    (panel / "manifest.json").write_text(json.dumps(dict(power_model=power, instances=rows)))
+    return panel
+
+
+def test_space_batch_prepares_base_and_large_groups_at_seed_nine(
+    tmp_path, monkeypatch, space_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    panel500 = _panel500(tmp_path, power)
+    monkeypatch.setattr(space_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(space_batch.base, "CAL", digest(cal))
+    monkeypatch.setattr(space_batch, "PANEL500", digest(panel500 / "manifest.json"))
+    assert space_batch.BUDGETS[500] == 6000 and 500 not in s4_ablation_budgets()
+    root = tmp_path / "base"
+    space_batch.prepare(root, panel, cal, "example", group="base")
+    m = space_batch.validate_inputs(root)
+    assert m["runs"] == 480 and len(m["blocks"]) == 80 and m["group"] == "base"
+    assert m["design"] == "s4-space/v1" and tuple(m["seeds"]) == (9,)
+    orders = Counter()
+    for block in m["blocks"]:
+        spec = json.loads((root / "specs" / (block + ".json")).read_text())
+        assert spec["seed"] == 9 and spec["n"] in (100, 200)
+        cfg = spec["config"]
+        assert cfg["G1_P1_GP"]["moead"]["seed_mode"] == "gp_field"
+        assert cfg["E2_P1_EQM"]["moead"]["share_signal"] == "frontier"
+        assert cfg["R1_P1_RANDPOINT"]["moead"]["seed_mode"] == "random_point"
+        assert "run_s4_space.py" in spec["entry"]
+        orders[tuple(spec["order"])] += 1
+    assert len(orders) == 6
+    large = tmp_path / "large"
+    space_batch.prepare(large, panel500, cal, "example", shard="1/3", group="large")
+    ml = space_batch.validate_inputs(large)
+    assert ml["group"] == "large" and ml["sizes"] == [500]
+    want = 10 * len(space_batch.LARGE_REPLICATES)
+    assert len(ml["blocks"]) in (want // 3, want // 3 + 1) and ml["runs"] == 6 * len(ml["blocks"])
+    folds = Counter()
+    for block in ml["blocks"]:
+        spec = json.loads((large / "specs" / (block + ".json")).read_text())
+        assert spec["n"] == 500 and spec["seconds"] == 6000
+        assert spec["calibration_fold"] in ("n200_f0", "n200_f1")
+        folds[spec["calibration_fold"]] += 1
+    assert set(folds) == {"n200_f0", "n200_f1"}
+    reps = {int(b.split("_r")[1].split("_")[0]) for b in ml["blocks"]}
+    assert reps <= set(space_batch.LARGE_REPLICATES)
+    with pytest.raises(AssertionError):
+        space_batch.prepare(tmp_path / "wrong", panel, cal, "example", group="large")
+
+
+def s4_ablation_budgets():
+    from geo_llm_scheduler.experiments import s4_ablation
+
+    return s4_ablation.BUDGETS

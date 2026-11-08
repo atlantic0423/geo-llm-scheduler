@@ -34,6 +34,19 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     with ``tau_seconds``, so an unvisited region keeps its last estimate).
     Untried present regions are launched first, then regions are sampled with
     weight rate + 5% of the largest rate. No widening; requires HV yields.
+``random_point`` (R1) launches LS from a uniformly random Archive-front point.
+    ``gp_field`` (G1), ``marginal_segments`` (E2) and ``gp_marginal`` (GE3) learn
+    where a second of LS buys most HV (see :mod:`lsv2.seed_field`): each
+    trajectory is charged to its launch point; G1 Thompson-samples a
+    Gaussian-RBF field over (Flow ray weight, budget fraction); E2 fits equal
+    weight segments with a shared diminishing-return slope in their recent LS
+    seconds and launches the segment of highest marginal return; GE3
+    Thompson-samples a field over (Flow ray weight, local recent LS investment).
+``share_signal``
+    ``average`` (default): the equimarginal share compares the LS and evolution
+    average HV rates (N7). ``frontier`` (E2/GE3): it compares the learned
+    marginal return of the best launch point with evolution, so where and how
+    much LS follow the same marginal-value principle.
 ``share_mode``
     ``fixed`` (default): LS may use ``time_share`` of search time throughout.
     ``equimarginal`` (N7): the share follows the measured marginal value of LS
@@ -88,9 +101,20 @@ SEED_MODES = (
     "region_random",
     "region_ratio",
     "region_bandit",
+    "random_point",
+    "gp_field",
+    "marginal_segments",
+    "gp_marginal",
 )
 YIELD_MODES = ("region_yield", "region_ratio")
-HV_MODES = (*YIELD_MODES, "region_bandit")
+FIELD_MODES = ("gp_field", "marginal_segments", "gp_marginal")
+HV_MODES = (*YIELD_MODES, "region_bandit", *FIELD_MODES)
+SHARE_SIGNALS = ("average", "frontier")
+FIELD_WARMUP = 10  # trajectories observed before a field drives the choice
+FIELD_EPSILON = 0.05  # E2 uniform exploration among present segments
+LOCAL_WIDTH = 0.08  # GE3 kernel width of the local investment in ray weight
+LOCAL_SCALE = 5.0  # GE3 seconds: z = 1 - exp(-local investment / LOCAL_SCALE)
+FIELD_GRID = 21  # record-only posterior snapshots on this many ray weights
 REGION_MODES = ("region_yield", "region_random", "region_ratio", "region_bandit")
 SHARE_MODES = ("fixed", "equimarginal")
 SHARE_MIN_SECONDS = 5.0
@@ -128,6 +152,7 @@ class MoeadOptions:
     share_bounds: tuple[float, float] = (0.05, 0.5)
     share_exponent: float = 0.5
     static_wide: tuple[int, ...] = ()
+    share_signal: str = "average"
 
     def __post_init__(self) -> None:
         if self.seed_mode not in SEED_MODES:
@@ -151,6 +176,13 @@ class MoeadOptions:
         lo, hi = self.share_bounds
         if not 0 < lo < hi < 1 or self.share_exponent <= 0:
             raise ValueError("Invalid LS share bounds or exponent")
+        if self.share_signal not in SHARE_SIGNALS:
+            raise ValueError("Unknown LS share signal")
+        if self.share_signal == "frontier" and (
+            self.share_mode != "equimarginal"
+            or self.seed_mode not in ("marginal_segments", "gp_marginal")
+        ):
+            raise ValueError("The frontier share signal needs a marginal launch model")
         if self.static_wide:
             if self.seed_mode not in ("gap", "region_random", "region_bandit"):
                 raise ValueError("Static widening needs a seed mode without its own widening")
@@ -206,6 +238,13 @@ class MoeadMixin:
         self._mclock: float | None = None
         self._mmark = 0.0
         self._share_trace: dict[int, float] = {}
+        self._field: Any = None
+        self._scale: Any = None
+        self._traj: dict[str, Any] | None = None
+        self._launches: list[tuple[float, float, float]] = []
+        self._field_lams: list[float] = []
+        self._field_obs: list[list[float]] = []
+        self._field_trace: dict[int, Any] = {}
 
     def _mcount(self, name: str, value: int = 1) -> None:
         self.moead_counts[name] = self.moead_counts.get(name, 0) + value
@@ -248,7 +287,7 @@ class MoeadMixin:
         """Install run-level seams once, then run S4-B2 LS or only its terminal sweep."""
         if not self._ready:
             self._setup(population, gateway, streams)
-        if self.moead.trace:
+        if self.moead.trace or self.moead.seed_mode in FIELD_MODES:
             self._clock_offset = budget_elapsed() - self.timer()  # type: ignore[attr-defined]
         if self.moead.ls_enabled:
             super().__call__(population, gateway, streams, budget_elapsed)  # type: ignore[misc]
@@ -333,6 +372,12 @@ class MoeadMixin:
         mode = self.moead.seed_mode
         if mode == "duplicate":
             index = self._pick_duplicate(frame, front, population)
+        elif mode == "random_point":
+            assert self._rng is not None
+            index = self._rng.randrange(len(front))
+            self._mcount("random_point_seeds")
+        elif mode in FIELD_MODES:
+            index = self._pick_field(frame, front)
         elif mode in REGION_MODES:
             index = self._pick_region(frame, front)
         else:
@@ -438,6 +483,10 @@ class MoeadMixin:
         if marginal and not terminal and source is not None:
             self._share_accrue(self.timer())  # type: ignore[attr-defined]
             self._mgain[source] += gain
+        if self.moead.seed_mode in FIELD_MODES:
+            if not terminal and source == "ls" and self._traj is not None:
+                self._traj["gain"] += gain
+            return
         if bandit:
             if not terminal and source == "ls" and self._bandit_region is not None:
                 self._bandit_accrue(self.timer())  # type: ignore[attr-defined]
@@ -584,6 +633,10 @@ class MoeadMixin:
             return min(hi, max(lo, base))
         ls_rate = self._mgain["ls"] / self._mtime["ls"]
         evo_rate = self._mgain["evo"] / self._mtime["evo"]
+        if self.moead.share_signal == "frontier":
+            frontier = self._frontier_rate()
+            if frontier is not None:
+                ls_rate = frontier
         if evo_rate <= 0:
             return hi if ls_rate > 0 else min(hi, max(lo, base))
         return min(hi, max(lo, base * (ls_rate / evo_rate) ** self.moead.share_exponent))
@@ -603,6 +656,192 @@ class MoeadMixin:
         if self.moead.trace:
             self._share_trace[self._trace_time()] = self._share
         return self._allow
+
+    # ---------------- G1/E2/GE3: learned launch-point models ----------------
+    def _budget_fraction(self) -> float:
+        """Inclusive budget clock as a fraction of the run's seconds (0 if unbounded)."""
+        seconds = cast(Any, self).engine_config.seconds
+        now = self.timer() + (self._clock_offset or 0.0)  # type: ignore[attr-defined]
+        return min(1.0, max(0.0, now / seconds)) if seconds else 0.0
+
+    def _field_model(self) -> Any:
+        """Create the launch model on first use (numpy is only needed by these arms)."""
+        if self._field is None:
+            from geo_llm_scheduler.lsv2 import seed_field
+
+            self._scale = seed_field.RateScale()
+            if self.moead.seed_mode == "marginal_segments":
+                self._field = seed_field.DiminishingSegments(
+                    self.moead.regions, self.moead.tau_seconds
+                )
+            else:
+                self._field = seed_field.RBFField(tau=2 * self.moead.tau_seconds)
+        return self._field
+
+    def _local_z(self, lam: float, now: float) -> float:
+        """GE3 input: recent LS seconds launched near ``lam``, squashed to ``[0, 1)``."""
+        from geo_llm_scheduler.lsv2.seed_field import local_investment
+
+        tau = self.moead.tau_seconds
+        self._launches = [(x, c, at) for x, c, at in self._launches if now - at < 8 * tau]
+        recent = [(x, c * math.exp(-(now - at) / tau)) for x, c, at in self._launches]
+        return 1.0 - math.exp(-local_investment(recent, lam, LOCAL_WIDTH) / LOCAL_SCALE)
+
+    def _close_trajectory(self, now: float) -> None:
+        """Charge the finished trajectory's HV gain and LS seconds to its launch point."""
+        traj, self._traj = self._traj, None
+        if traj is None:
+            return
+        cost = self.ls_seconds - traj["ls_mark"]  # type: ignore[attr-defined]
+        if cost <= 0:
+            return
+        rate = traj["gain"] / cost
+        self._scale.observe(rate)
+        model = self._field
+        if self.moead.seed_mode == "marginal_segments":
+            model.charge(traj["seg"], cost, now)
+            floor = 0.05 * self._scale.current()
+            model.observe(traj["seg"], traj["invested"], math.log(rate + floor), now)
+        else:
+            model.update(traj["point"], self._scale.to_y(rate), now)
+            if self.moead.seed_mode == "gp_marginal":
+                self._launches.append((traj["lam"], cost, now))
+        self._mcount("field_observations")
+        if self.moead.trace and len(self._field_obs) < 6000:
+            self._field_obs.append([round(traj["lam"], 4), round(traj["t"], 4), rate])
+
+    def _field_inputs(self, lams: list[float], t: float, now: float) -> list[tuple[float, float]]:
+        if self.moead.seed_mode == "gp_field":
+            return [(lam, t) for lam in lams]
+        return [(lam, self._local_z(lam, now)) for lam in lams]
+
+    def _pick_field(self, frame: FrozenFrame, front: list[Point]) -> int:
+        """Close the previous trajectory's account and choose the next launch point."""
+        assert self._rng is not None
+        now = self.timer()  # type: ignore[attr-defined]
+        model = self._field_model()
+        self._close_trajectory(now)
+        lams = [frame.weight_for(p)[0] for p in front]
+        self._field_lams = lams
+        t = self._budget_fraction()
+        state: dict[str, Any] = {}
+        if self.moead.seed_mode == "marginal_segments":
+            model.decay(now)
+            segs = [model.segment(lam) for lam in lams]
+            present = sorted(set(segs))
+            untried = [g for g in present if model.counts[g] == 0]
+            if untried or self._rng.random() < FIELD_EPSILON:
+                pool = untried or present
+                seg = pool[self._rng.randrange(len(pool))]
+                self._mcount("field_explore")
+            else:
+                marg = model.marginals(0.05 * self._scale.current())
+                best = max(marg[g] for g in present)
+                ties = [g for g in present if marg[g] >= best]
+                seg = ties[self._rng.randrange(len(ties))]
+            index = self._gap_pick(frame, front, [i for i, g in enumerate(segs) if g == seg])
+            state = dict(seg=seg, invested=model.invested[seg])
+            second = 0.0
+        else:
+            inputs = self._field_inputs(lams, t, now)
+            if model.observations < FIELD_WARMUP:
+                index = self._rng.randrange(len(front))
+                self._mcount("field_explore")
+            else:
+                values = model.sample(inputs, self._rng)
+                best = max(values)
+                ties = [i for i, v in enumerate(values) if v >= best]
+                index = ties[self._rng.randrange(len(ties))]
+            second = inputs[index][1]
+        lam = lams[index]
+        self._traj = dict(
+            lam=lam,
+            t=t,
+            point=(lam, second),
+            gain=0.0,
+            ls_mark=self.ls_seconds,  # type: ignore[attr-defined]
+            **state,
+        )
+        if self.moead.trace:
+            self._field_snapshot(now, t)
+        return index
+
+    def _frontier_rate(self) -> float | None:
+        """Learned marginal LS return (HV per LS second) at the best launch point now."""
+        model = self._field
+        if model is None or not self._field_lams:
+            return None
+        now = self.timer()  # type: ignore[attr-defined]
+        if self.moead.seed_mode == "marginal_segments":
+            if sum(model.counts) < FIELD_WARMUP:
+                return None
+            model.decay(now)
+            present = sorted({model.segment(lam) for lam in self._field_lams})
+            marg = model.marginals(0.05 * self._scale.current())
+            return max(marg[g] for g in present)
+        if model.observations < FIELD_WARMUP:
+            return None
+        inputs = self._field_inputs(self._field_lams, self._budget_fraction(), now)
+        mean, _ = model.posterior(inputs)
+        return float(self._scale.to_rate(float(max(mean))))
+
+    def _field_snapshot(self, now: float, t: float) -> None:
+        """Record-only: one posterior (or segment fit) snapshot per trace time bin."""
+        tb = self._trace_time()
+        model = self._field
+        if tb in self._field_trace or model is None:
+            return
+        grid = [i / (FIELD_GRID - 1) for i in range(FIELD_GRID)]
+        if self.moead.seed_mode == "marginal_segments":
+            a, b = model.fit()
+            self._field_trace[tb] = dict(
+                a=[round(v, 5) for v in a],
+                b=round(b, 6),
+                invested=[round(v, 4) for v in model.invested],
+            )
+            return
+        if model.observations < FIELD_WARMUP:
+            return
+        inputs = self._field_inputs(grid, t, now)
+        mean, sd = model.posterior(inputs)
+        self._field_trace[tb] = dict(
+            t=round(t, 4),
+            second=[round(x[1], 4) for x in inputs],
+            mean=[round(float(v), 5) for v in mean],
+            sd=[round(float(v), 5) for v in sd],
+        )
+
+    def field_record(self) -> dict:
+        """JSON-ready launch-model summary (snapshots and observations only with the trace)."""
+        model = self._field
+        out: dict[str, Any] = dict(
+            mode=self.moead.seed_mode,
+            observations=self.moead_counts.get("field_observations", 0),
+            scale=None if self._scale is None else self._scale.current(),
+        )
+        if model is None:
+            return out
+        if self.moead.seed_mode == "marginal_segments":
+            a, b = model.fit()
+            out.update(
+                intercepts=a, slope=b, invested=list(model.invested), counts=list(model.counts)
+            )
+        elif self.moead.seed_mode == "gp_field" and model.observations >= FIELD_WARMUP:
+            grid = [i / (FIELD_GRID - 1) for i in range(FIELD_GRID)]
+            times = [i / 10 for i in range(11)]
+            mean, sd = model.posterior([(lam, tt) for tt in times for lam in grid])
+            out.update(
+                grid_lambda=grid,
+                grid_t=times,
+                mean=[round(float(v), 5) for v in mean],
+                sd=[round(float(v), 5) for v in sd],
+            )
+        if self.moead.trace:
+            out.update(
+                snapshots={str(k): v for k, v in sorted(self._field_trace.items())},
+                trajectories=self._field_obs,
+            )
+        return out
 
     # ---------------- N6: region rate bandit ----------------
     def _bandit_accrue(self, now: float) -> None:
@@ -659,6 +898,10 @@ class MoeadMixin:
             options.update(yield_measure=self.moead.yield_measure)
         if self.moead.static_wide:
             options.update(static_wide=list(self.moead.static_wide))
+        if self.moead.share_signal != "average":
+            options.update(share_signal=self.moead.share_signal)
+        if self.moead.seed_mode in FIELD_MODES:
+            out["field"] = self.field_record()
         if self.moead.share_mode != "fixed":
             options.update(
                 share_mode=self.moead.share_mode,
@@ -697,8 +940,10 @@ def with_moead(search: object, options: MoeadOptions) -> MoeadMixin:
 __all__ = [
     "HV_MODES",
     "REGION_MODES",
+    "FIELD_MODES",
     "SEED_MODES",
     "SHARE_MODES",
+    "SHARE_SIGNALS",
     "YIELD_MEASURES",
     "YIELD_MODES",
     "TRACE_FIELDS",
