@@ -575,7 +575,9 @@ class LSV2Search:
         self.trajectories += 1
         total_gain = 0.0
         executed = 0
-        for step in range(self._trajectory_steps()):
+        limit = self._trajectory_steps()
+        step = 0
+        while limit > 0:
             if self._deadline(budget_elapsed()):
                 break
             current, gain = self._step(
@@ -590,6 +592,9 @@ class LSV2Search:
             total_gain += gain
             executed += 1
             self.steps_since_frame += 1
+            if not self._continue_trajectory(step, gain, limit, budget_elapsed):
+                break
+            step += 1
         self.sampler.report(seed_point, total_gain > 0)
         self._finish_episode()
         if self.config.polish_region != "off" and executed and self.polish_after_episode:
@@ -617,6 +622,16 @@ class LSV2Search:
     def _trajectory_steps(self) -> int:
         """Steps of the next trajectory; the base keeps the configured constant."""
         return self.config.trajectory_steps
+
+    def _continue_trajectory(
+        self, step: int, gain: float, limit: int, budget_elapsed: Callable[[], float]
+    ) -> bool:
+        """Whether step ``step + 1`` follows step ``step`` (which gained ``gain``).
+
+        The base runs exactly ``limit`` steps (the configured trajectory length);
+        research arms may stop earlier or extend after observing the step.
+        """
+        return step + 1 < limit
 
     def _execute_weight(self, frame: FrozenFrame, current: Candidate) -> tuple[float, float]:
         """Best-of-B weight of one step; the base uses the ray through the incumbent."""

@@ -341,6 +341,7 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
         + s4_moead.SHARE_ARMS
         + s4_moead.WIDEN_ARMS
         + s4_moead.SPACE_ARMS
+        + s4_moead.INVEST_ARMS
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)
@@ -1250,3 +1251,166 @@ def test_ge3fix_batch_prepares_the_panel_and_nine_large_blocks(
     assert sorted(seen) == [f"mx_n500_f{f:02d}_r01_s9" for f in range(1, 10)]
     with pytest.raises(AssertionError):
         ge3fix_batch.prepare(tmp_path / "wrong", panel, cal, "example", group="large")
+
+
+# ---------------- LS investment control (2026-11-09) ----------------
+def test_invest_arms_change_only_the_continuation_rule():
+    n7 = s4_moead.options("N7_P1_SHARE")
+    rules = dict(X1_EXTEND="extend", X1R_RANDEXT="random_extend", X2_PROBE="probe", X2L_L1="single")
+    cfg = s4_moead.arm_config("X1_EXTEND", 10, 1200)
+    for arm, rule in rules.items():
+        assert s4_moead.options(arm) == replace(n7, continuation=rule, max_steps=10)
+        assert s4_moead.search_config(arm) == s4_moead.search_config("N7_P1_SHARE")
+        record = s4_moead.configuration_record(arm, cfg, CAL)
+        assert record["moead"]["continuation"] == rule and record["moead"]["max_steps"] == 10
+    assert "continuation" not in s4_moead.configuration_record("N7_P1_SHARE", cfg, CAL)["moead"]
+    assert s4_moead.search_config("N7_P1_SHARE").trajectory_steps == 3
+    with pytest.raises(ValueError):
+        MoeadOptions(continuation="forever")
+    with pytest.raises(ValueError):
+        MoeadOptions(continuation="extend", max_steps=0)
+
+
+def _lengths(arm: str, gains: list[list[float]], elapsed: float = 100.0, rng=None) -> list[int]:
+    """Steps actually run when step k of trajectory j gains gains[j][k] (0 beyond the list)."""
+    search, _, _ = _fixed_clock_search(arm)
+    if rng is not None:
+        search._extend_rng = rng
+    out = []
+    for g in gains:
+        n = 0
+        while True:
+            gain = g[n] if n < len(g) else 0.0
+            search.steps.append({})
+            go = search._continue_trajectory(n, gain, 3, lambda: elapsed)
+            n += 1
+            if not go:
+                break
+        out.append(n)
+    return out
+
+
+def test_fixed_rule_runs_exactly_the_configured_steps_whatever_the_gains():
+    assert _lengths("N7_P1_SHARE", [[0, 0, 0], [1, 1, 1, 1, 1], [0, 1, 1, 1]]) == [3, 3, 3]
+    search, _, _ = _fixed_clock_search("N7_P1_SHARE")
+    search.steps.append({})
+    search._continue_trajectory(2, 1.0, 3, lambda: 100.0)
+    assert search.steps[-1] == {} and not search.moead_counts  # fixed rows stay unchanged
+
+
+def test_extend_and_probe_follow_gains_up_to_the_cap_and_never_into_the_terminal_share():
+    win = [1.0] * 20
+    assert _lengths("X1_EXTEND", [[0, 0, 0], [0, 0, 1], [0, 0, 1, 1, 0], win]) == [3, 4, 5, 10]
+    assert _lengths("X1_EXTEND", [[0, 0, 1]], elapsed=1150.0) == [3]  # 1200 s, terminal 5%
+    assert _lengths("X2_PROBE", [[0], [1, 0], [1, 1, 1, 0], win]) == [1, 2, 4, 10]
+    assert _lengths("X2L_L1", [[0], [1, 1, 1], win]) == [1, 1, 1]
+    search, _, _ = _fixed_clock_search("X1_EXTEND")
+    search.steps.append({})
+    assert search._continue_trajectory(2, 1e-12, 3, lambda: 100.0) is False  # within tolerance
+    assert search.steps[-1] == dict(continued=False, continue_reason="no_gain", gained=False)
+    assert search.moead_counts == {"continue:no_gain": 1, "trajectory_length:3": 1}
+
+
+def test_random_extension_uses_the_run_gain_rate_not_the_last_step():
+    from random import Random
+
+    # No gaining step so far: q = 0, never extends.
+    assert _lengths("X1R_RANDEXT", [[0, 0, 0]] * 5, rng=Random(1)) == [3] * 5
+    # Every step gains: q = 1, always extends to the cap.
+    assert _lengths("X1R_RANDEXT", [[1.0] * 20] * 3, rng=Random(1)) == [10] * 3
+    # A gaining history with a zero last step still extends at rate q (blind to the step).
+    search, _, _ = _fixed_clock_search("X1R_RANDEXT")
+    search._extend_rng = Random(3)
+    search._cont_steps, search._cont_gains = 999, 999
+    search.steps.append({})
+    assert search._continue_trajectory(2, 0.0, 3, lambda: 100.0) is True
+    assert search.steps[-1]["continue_reason"] == "random_extend"
+
+
+def test_trajectory_loop_asks_the_rule_after_every_step(monkeypatch):
+    from geo_llm_scheduler.lsv2 import search as search_module
+
+    calls = []
+
+    def fake_step(self, population, gateway, streams, frame, current, box, info):
+        calls.append(info["step"])
+        self.steps.append(dict(operator="A1", bandit=dict(state=(0, 1, 0))))
+        return current, 1.0
+
+    monkeypatch.setattr(search_module.LSV2Search, "_step", fake_step)
+    monkeypatch.setattr(search_module, "_with_diagnostics", lambda problem, c: c)
+    for arm, want in (("N7_P1_SHARE", [0, 1, 2]), ("X2L_L1", [0]), ("X1_EXTEND", list(range(10)))):
+        calls.clear()
+        search, start, _ = _fixed_clock_search(arm)
+        members = [SimpleNamespace(evaluation=SimpleNamespace(objectives=p)) for p in start]
+        gateway = SimpleNamespace(problem=None, archive=SimpleNamespace(members=members))
+        search.trajectories = 0
+        search.steps_since_frame = 0
+        search._trajectory([], gateway, RNGManager(1), lambda: 100.0)
+        assert calls == want, arm
+
+
+def test_q_state_of_extension_steps_is_the_last_configured_step():
+    search, _, _ = _fixed_clock_search("X1_EXTEND")
+    streams = RNGManager(2)
+    available = ["A1", "A2"]
+    states = {}
+    for step in (0, 1, 2, 3, 7):
+        _, decision = search._choose_operator(0, available, streams, None, dict(step=step))
+        states[step] = decision["state"]
+    assert states[0][1] == 3 and states[1][1] == 2 and states[2][1] == 1
+    assert states[3] == states[7] == states[2]
+
+
+@pytest.mark.parametrize("arm", s4_moead.INVEST_ARMS)
+def test_runner_executes_every_invest_arm_with_its_length_rule(tmp_path, arm):
+    instance = tmp_path / "input.json"
+    save_instance(synthetic(4)[0], instance)
+    out = tmp_path / "out"
+    summary = run_case(
+        arm, instance, out, seconds=8, calibration=CAL, max_generations=4, campaign_output=True
+    )
+    assert summary["independent_exact_audit"] == "passed" and summary["archive_size"] > 0
+    with gzip.open(out / "local_search.json.gz", "rt") as f:
+        data = json.load(f)
+    assert data["moead"]["options"]["continuation"] == s4_moead.options(arm).continuation
+    lengths = Counter(r["trajectory"] for r in data["steps"])
+    assert lengths and max(lengths.values()) <= 10
+    if arm == "X2L_L1":
+        assert set(lengths.values()) == {1}
+    for r in data["steps"]:
+        assert 1 <= r["q_state"][1] <= 3
+        if "continued" in r and not r["continued"]:
+            assert lengths[r["trajectory"]] == r["step"] + 1
+
+
+@pytest.fixture
+def invest_batch(monkeypatch):
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    return importlib.import_module("run_s4_invest")
+
+
+def test_invest_batch_prepares_five_arms_on_the_panel_at_seed_ten(
+    tmp_path, monkeypatch, invest_batch
+):
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(invest_batch.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(invest_batch.base, "CAL", digest(cal))
+    seen = []
+    for k in range(3):
+        root = tmp_path / f"root{k}"
+        invest_batch.prepare(root, panel, cal, "example", shard=f"{k}/3")
+        m = invest_batch.validate_inputs(root)
+        assert m["design"] == "s4-invest/v1" and tuple(m["arms"]) == invest_batch.ARMS
+        assert m["runs"] == 5 * len(m["blocks"]) and len(m["blocks"]) == 40
+        for block in m["blocks"]:
+            spec = json.loads((root / "specs" / (block + ".json")).read_text())
+            assert spec["seed"] == 10 and "run_s4_invest.py" in spec["entry"]
+            assert spec["seconds"] == {50: 600, 100: 1200, 200: 2400}[spec["n"]]
+            assert "continuation" not in spec["config"]["N7_P1_SHARE"]["moead"]
+            assert spec["config"]["X1_EXTEND"]["moead"]["continuation"] == "extend"
+            assert spec["config"]["X2L_L1"]["moead"]["continuation"] == "single"
+        seen += m["blocks"]
+    assert len(seen) == len(set(seen)) == 120
+    assert Counter(int(b.split("_")[1][1:]) for b in seen) == {50: 40, 100: 40, 200: 40}

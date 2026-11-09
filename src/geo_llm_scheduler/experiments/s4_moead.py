@@ -71,6 +71,19 @@ not yet run. Each trajectory is charged to its launch point (see
 ``GE3_P1_GP_EQM``         field over (ray weight, local recent LS seconds);
                           equimarginal LS share from its best marginal return
 ========================  ====================================================
+
+LS investment-control arms (``INVEST_ARMS``, user 2026-11-09): the working
+version ``N7_P1_SHARE`` (B2 + P1 + N7, fixed three steps) with only the
+trajectory length rule changed (see ``continuation`` in :mod:`lsv2.moead_search`):
+
+========================  ====================================================
+``X1_EXTEND``             three steps, then one more while the last step gained
+                          Archive HV (at most ten)
+``X1R_RANDEXT``           three steps, then random extension at the run's
+                          gaining-step rate, blind to the last step (reference)
+``X2_PROBE``              one step, then continue while the last step gained
+``X2L_L1``                exactly one step (reference for ``X2_PROBE``)
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -105,7 +118,10 @@ BANDIT_ARMS = ("N6_P1_P4R3_BANDIT",)
 SHARE_ARMS = ("N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
 WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
 SPACE_ARMS = ("R1_P1_RANDPOINT", "G1_P1_GP", "E2_P1_EQM", "GE3_P1_GP_EQM")
-EXTRA_ARMS = ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS + SPACE_ARMS
+INVEST_ARMS = ("X1_EXTEND", "X1R_RANDEXT", "X2_PROBE", "X2L_L1")
+EXTRA_ARMS = (
+    ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS + SPACE_ARMS + INVEST_ARMS
+)
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
 
@@ -186,6 +202,18 @@ _OPTIONS = {
         static_wide=(2,),
     ),
 }
+_INVEST = {
+    "X1_EXTEND": "extend",
+    "X1R_RANDEXT": "random_extend",
+    "X2_PROBE": "probe",
+    "X2L_L1": "single",
+}
+_OPTIONS.update(
+    {
+        arm: replace(_OPTIONS["N7_P1_SHARE"], continuation=rule, max_steps=10)
+        for arm, rule in _INVEST.items()
+    }
+)
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -261,6 +289,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["moead"].update(static_wide=list(opts.static_wide))
     if opts.share_signal != "average":
         record["moead"].update(share_signal=opts.share_signal)
+    if opts.continuation != "fixed":
+        record["moead"].update(continuation=opts.continuation, max_steps=opts.max_steps)
     if opts.share_mode != "fixed":
         record["moead"].update(
             share_mode=opts.share_mode,
@@ -320,6 +350,7 @@ __all__ = [
     "SHARE_ARMS",
     "WIDEN_ARMS",
     "SPACE_ARMS",
+    "INVEST_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",

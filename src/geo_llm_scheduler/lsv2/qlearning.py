@@ -230,10 +230,12 @@ class QLearningSearch(LSV2Search):
         info: dict,
     ) -> tuple[str, dict]:
         tick = self.timer()
+        # Steps beyond the configured length (continuation arms) share the
+        # last-step state: remaining steps = max(1, L - step). Unchanged for step < L.
         state = encode_state(
             self.spec,
             segment,
-            info["step"],
+            min(info["step"], self.config.trajectory_steps - 1),
             available,
             self._event,
             self._feature,

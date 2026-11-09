@@ -63,6 +63,17 @@ of the Archive front). Each option changes one MOEA/D-facing decision:
     ``region_ratio``, which under HV yields widens most Flow-end trajectories).
     Only for seed modes without a widening rule of their own (``gap``,
     ``region_random``, ``region_bandit``).
+``continuation``
+    Trajectory length rule (LS investment control). ``fixed`` (default): exactly
+    the configured ``trajectory_steps``. ``extend`` (X1): run the configured
+    steps, then one more step while the previous step gained in-frame Archive HV,
+    up to ``max_steps``. ``random_extend`` (X1R, matched reference): after the
+    configured steps, extend with probability equal to the run's fraction of
+    gaining LS steps so far, whatever the step gained (own stream
+    ``lsv2:extend``). ``probe`` (X2): one step, then continue while the previous
+    step gained, up to ``max_steps``. ``single`` (X2L): exactly one step.
+    Extension steps never start inside the terminal share. The Q state of steps
+    beyond the configured length is that of the last configured step.
 ``yield_measure``
     ``count`` (default): a yield event is one Archive insertion. ``hv``: it is
     the insertion's HV gain over the previous Archive in the current frozen
@@ -92,6 +103,7 @@ from geo_llm_scheduler.lsv2.frontier import FrozenFrame, gap_scores
 from geo_llm_scheduler.lsv2.search import Point, _with_diagnostics
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import NormalizationContext, maximum
+from geo_llm_scheduler.utils.numeric import EPS_RATIO
 from geo_llm_scheduler.utils.rng import RNGManager
 
 SEED_MODES = (
@@ -117,6 +129,9 @@ LOCAL_SCALE = 5.0  # GE3 seconds: z = 1 - exp(-local investment / LOCAL_SCALE)
 FIELD_GRID = 21  # record-only posterior snapshots on this many ray weights
 REGION_MODES = ("region_yield", "region_random", "region_ratio", "region_bandit")
 SHARE_MODES = ("fixed", "equimarginal")
+CONTINUATIONS = ("fixed", "extend", "random_extend", "probe", "single")
+# A step "gains" when its in-frame Archive HV increment exceeds this (frame HV is O(1)).
+GAIN_TOLERANCE = EPS_RATIO
 SHARE_MIN_SECONDS = 5.0
 YIELD_MEASURES = ("count", "hv")
 TRACE_WBINS = 30
@@ -153,8 +168,14 @@ class MoeadOptions:
     share_exponent: float = 0.5
     static_wide: tuple[int, ...] = ()
     share_signal: str = "average"
+    continuation: str = "fixed"
+    max_steps: int = 10
 
     def __post_init__(self) -> None:
+        if self.continuation not in CONTINUATIONS:
+            raise ValueError("Unknown trajectory continuation rule")
+        if type(self.max_steps) is not int or self.max_steps < 1:
+            raise ValueError("Trajectory step cap must be a positive integer")
         if self.seed_mode not in SEED_MODES:
             raise ValueError("Unknown seed mode")
         if self.refine not in (None, "flow_safe", "weighted"):
@@ -247,6 +268,9 @@ class MoeadMixin:
         self._field_lams: list[float] = []
         self._field_obs: list[list[float]] = []
         self._field_trace: dict[int, Any] = {}
+        self._extend_rng: Random | None = None
+        self._cont_steps = 0
+        self._cont_gains = 0
 
     def _mcount(self, name: str, value: int = 1) -> None:
         self.moead_counts[name] = self.moead_counts.get(name, 0) + value
@@ -255,6 +279,8 @@ class MoeadMixin:
     def _setup(self, population: list[Candidate], gateway: EvaluationGateway, streams: RNGManager):
         self._ready = True
         self._rng = streams.stream("lsv2:moead")
+        if self.moead.continuation == "random_extend":
+            self._extend_rng = streams.stream("lsv2:extend")
         self._last_insertions = gateway.archive.insertions
         if self.moead.refine is not None:
             flows = [c.evaluation.flow for c in population]
@@ -300,6 +326,40 @@ class MoeadMixin:
             base.search_start = now
         if base.terminal_share is not None and base._terminal_due(now):
             base._terminal_sweep(population, gateway, streams, budget_elapsed)
+
+    # ---------------- X1/X2: LS investment control ----------------
+    def _continue_trajectory(
+        self, step: int, gain: float, limit: int, budget_elapsed: Callable[[], float]
+    ) -> bool:
+        """Apply the declared continuation rule after step ``step`` gained ``gain``."""
+        mode = self.moead.continuation
+        if mode == "fixed":
+            return super()._continue_trajectory(step, gain, limit, budget_elapsed)  # type: ignore[misc]
+        gained = gain > GAIN_TOLERANCE
+        self._cont_steps += 1
+        self._cont_gains += int(gained)
+        if mode == "single":
+            go, reason = False, "single"
+        elif step + 1 < (1 if mode == "probe" else limit):
+            go, reason = True, "configured"
+        elif step + 1 >= self.moead.max_steps:
+            go, reason = False, "cap"
+        elif cast(Any, self)._terminal_due(budget_elapsed()):
+            go, reason = False, "terminal"
+        elif mode == "random_extend":
+            assert self._extend_rng is not None
+            go = self._extend_rng.random() < self._cont_gains / self._cont_steps
+            reason = "random_extend" if go else "random_stop"
+        else:
+            go, reason = gained, ("gained" if gained else "no_gain")
+        if step + 1 >= limit or mode == "probe":
+            self._mcount("continue:" + reason)
+        if not go:
+            self._mcount(f"trajectory_length:{step + 1}")
+        base = cast(Any, self)
+        if base.retain_steps and base.steps:
+            base.steps[-1].update(continued=go, continue_reason=reason, gained=gained)
+        return go
 
     # ---------------- P1: terminal timing operators ----------------
     def _terminal_extra(
@@ -939,6 +999,9 @@ class MoeadMixin:
             options.update(share_signal=self.moead.share_signal)
         if self.moead.seed_mode in FIELD_MODES:
             out["field"] = self.field_record()
+        if self.moead.continuation != "fixed":
+            options.update(continuation=self.moead.continuation, max_steps=self.moead.max_steps)
+            out["continuation"] = dict(steps=self._cont_steps, gaining_steps=self._cont_gains)
         if self.moead.share_mode != "fixed":
             options.update(
                 share_mode=self.moead.share_mode,
@@ -975,6 +1038,8 @@ def with_moead(search: object, options: MoeadOptions) -> MoeadMixin:
 
 
 __all__ = [
+    "CONTINUATIONS",
+    "GAIN_TOLERANCE",
     "HV_MODES",
     "REGION_MODES",
     "FIELD_MODES",
