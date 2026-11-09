@@ -1,6 +1,7 @@
 """Exact half-open resource intervals shared by decoding and timing moves."""
 
-from bisect import insort
+from bisect import bisect_left, bisect_right, insort
+from itertools import chain
 
 from geo_llm_scheduler.domain.models import Genotype, ProblemInstance, Schedule
 from geo_llm_scheduler.utils.numeric import TOL, less
@@ -52,6 +53,50 @@ class ResourceView:
         machine = self.genotype.ms[operation]
         others = self.intervals(machine, excluded | {operation})
         return _fits_intervals(self.problem, machine, operation, start, others)
+
+    def self_fits(self) -> dict[int, bool]:
+        """``fits(o, start_o)`` for every scheduled operation, one sweep per machine.
+
+        Within an operation's own window the breakpoints of the others are the
+        machine's elementary boundaries, and the operations running at each are
+        the machine's running set without ``o``. Each check sums that set in
+        ``items`` order, exactly as the reference per-operation scan does.
+        """
+        problem = self.problem
+        out: dict[int, bool] = {}
+        for machine, items in enumerate(self.items):
+            if not items:
+                continue
+            vram = problem.instances[machine].vram
+            profiles = {o: problem.profile(o) for o, _, _ in items}
+            begins: dict[float, list[int]] = {}
+            finish: dict[float, list[int]] = {}
+            for o, s, e in items:
+                if s < e:
+                    begins.setdefault(s, []).append(o)
+                    finish.setdefault(e, []).append(o)
+            bounds = sorted({t for _, a, b in items for t in (a, b)})
+            # Running set at each boundary (s <= at < e), listed in ``items``
+            # (operation) order like the reference scan.
+            running = []
+            now: set[int] = set()
+            for at in bounds:
+                now.difference_update(finish.get(at, ()))
+                now.update(begins.get(at, ()))
+                running.append([(o, profiles[o]) for o in sorted(now)])
+            for o, s, e in items:
+                p = profiles[o]
+                ok = True
+                if s < e:
+                    for k in range(bisect_left(bounds, s), bisect_left(bounds, e)):
+                        active = [q for x, q in running[k] if x != o]
+                        if less(
+                            1.0, p.compute + sum(q.compute for q in active), TOL.compute
+                        ) or less(vram, p.vram + sum(q.vram for q in active), TOL.vram):
+                            ok = False
+                            break
+                out[o] = ok
+        return out
 
     def earliest(self, operation: int, est: float) -> float:
         """Search all original completion events against the same frozen profile."""
@@ -108,17 +153,25 @@ def _fits_intervals(
     start: float,
     others: list[tuple[int, float, float]],
 ) -> bool:
-    """Check a frozen interval list in the reference operation summation order."""
+    """Check a frozen interval list in the reference operation summation order.
+
+    Only intervals overlapping ``[start, end)`` can run at, or put a breakpoint
+    inside, the checked window, so the others are dropped first. The kept list
+    preserves the given order, so every capacity sum adds the same terms in the
+    same order as a scan of the full list.
+    """
     p = problem.profile(operation)
     end = start + p.duration
-    points = sorted({start, end} | {t for _, a, b in others for t in (a, b) if start < t < end})
+    near = [(s, e, problem.profile(o)) for o, s, e in others if e > start and s < end]
+    points = sorted({start, end} | {t for s, e, _ in near for t in (s, e) if start < t < end})
+    vram = problem.instances[machine].vram
     for a, b in zip(points, points[1:]):
         if b <= a:
             continue
-        active = [problem.profile(o) for o, s, e in others if s <= a < e]
+        active = [q for s, e, q in near if s <= a < e]
         if less(1.0, p.compute + sum(q.compute for q in active), TOL.compute):
             return False
-        if less(problem.instances[machine].vram, p.vram + sum(q.vram for q in active), TOL.vram):
+        if less(vram, p.vram + sum(q.vram for q in active), TOL.vram):
             return False
     return True
 
@@ -147,19 +200,73 @@ def _earliest_intervals(
     raise ValueError("Operation cannot fit on assigned instance")
 
 
+_EMPTY_SUMS = (sum(()), sum(()))  # the reference sums over no running operation
+
+
 class ResourceCalendar:
-    """Index scheduled prefix operations by machine in operation-index order."""
+    """Index scheduled prefix operations by machine in operation-index order.
+
+    Besides ``items`` (read directly by some callers; never mutate it, use
+    :meth:`commit`), each machine keeps its sorted distinct interval boundaries
+    and, for the elementary segment starting at each boundary, the Compute and
+    VRAM sums of the operations running there. Every sum is a fresh ``sum`` over
+    the running operations in ``items`` order, exactly the expression the
+    reference capacity check evaluates, so indexed checks are bit-identical.
+    """
 
     def __init__(self, problem: ProblemInstance) -> None:
         self.problem = problem
         self.items: list[list[tuple[int, float, float]]] = [[] for _ in problem.instances]
+        self._bounds: list[list[float]] = [[] for _ in problem.instances]
+        self._sums: list[list[tuple[float, float]]] = [[] for _ in problem.instances]
 
     def commit(self, machine: int, operation: int, start: float) -> None:
         """Insert one newly scheduled operation without regrouping resource sums."""
-        insort(
-            self.items[machine],
-            (operation, start, start + self.problem.profile(operation).duration),
-        )
+        item = (operation, start, start + self.problem.profile(operation).duration)
+        insort(self.items[machine], item)
+        bounds, sums = self._bounds[machine], self._sums[machine]
+        for t in (item[1], item[2]):
+            i = bisect_left(bounds, t)
+            if i == len(bounds) or bounds[i] != t:
+                # A new boundary splits a segment; both parts keep its running set
+                # until the segments covered by the new operation are recomputed.
+                bounds.insert(i, t)
+                sums.insert(i, sums[i - 1] if i else _EMPTY_SUMS)
+        for j in range(bisect_left(bounds, item[1]), bisect_left(bounds, item[2])):
+            sums[j] = self._segment_sums(machine, bounds[j])
+
+    def _segment_sums(self, machine: int, at: float) -> tuple[float, float]:
+        """Reference-order Compute and VRAM sums of the operations running at ``at``."""
+        profile = self.problem.profile
+        active = [profile(o) for o, s, e in self.items[machine] if s <= at < e]
+        return sum(q.compute for q in active), sum(q.vram for q in active)
+
+    def _indexed_fits(self, machine: int, operation: int, start: float) -> bool:
+        """The reference check of ``operation`` at ``start`` against all committed items."""
+        p = self.problem.profile(operation)
+        end = start + p.duration
+        if not start < end:
+            return True
+        bounds, sums = self._bounds[machine], self._sums[machine]
+        vram = self.problem.instances[machine].vram
+        first = bisect_right(bounds, start)
+        for k in chain((first - 1,), range(first, bisect_left(bounds, end))):
+            compute, memory = sums[k] if k >= 0 else _EMPTY_SUMS
+            if less(1.0, p.compute + compute, TOL.compute):
+                return False
+            if less(vram, p.vram + memory, TOL.vram):
+                return False
+        return True
+
+    def _uncommitted(self, machine: int, operation: int) -> bool:
+        return all(item[0] != operation for item in self.items[machine])
+
+    def fits(self, machine: int, operation: int, start: float) -> bool:
+        """Reference ``_fits_intervals`` against the machine's items other than ``operation``."""
+        if self._uncommitted(machine, operation):
+            return self._indexed_fits(machine, operation, start)
+        others = [item for item in self.items[machine] if item[0] != operation]
+        return _fits_intervals(self.problem, machine, operation, start, others)
 
     def earliest(
         self,
@@ -169,10 +276,31 @@ class ResourceCalendar:
         temporary: tuple[int, float, float] | None = None,
     ) -> float:
         """Return the reference event, including an optional uncommitted Prefill."""
+        if temporary is None and self._uncommitted(machine, operation):
+            items = self.items[machine]
+            for t in sorted({est} | {b for _, _, b in items if b >= est}):
+                if self._indexed_fits(machine, operation, t):
+                    return t
+            raise ValueError("Operation cannot fit on assigned instance")
         others = [item for item in self.items[machine] if item[0] != operation]
         if temporary is not None and temporary[0] != operation:
             insort(others, temporary)
         return _earliest_intervals(self.problem, machine, operation, est, others)
+
+
+def calendar_fits(
+    calendar: ResourceCalendar,
+    machine: int,
+    operation: int,
+    start: float,
+    others: list[tuple[int, float, float]],
+) -> bool:
+    """``_fits_intervals`` for a calendar's machine, through its index when possible.
+
+    ``others`` must be the machine's calendar items other than ``operation`` (the
+    list the reference check scans); the indexed query reads the same items.
+    """
+    return calendar.fits(machine, operation, start)
 
 
 def est_for(

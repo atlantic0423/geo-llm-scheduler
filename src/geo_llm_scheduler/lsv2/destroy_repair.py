@@ -20,7 +20,7 @@ from geo_llm_scheduler.domain.models import Candidate, Genotype, ProblemInstance
 from geo_llm_scheduler.lsv2.billing import WINDOW, PowerProfile
 from geo_llm_scheduler.moead.variation import paths
 from geo_llm_scheduler.operators.base import Proposal, ProposalBatch
-from geo_llm_scheduler.scheduling.resources import ResourceCalendar, _fits_intervals
+from geo_llm_scheduler.scheduling.resources import ResourceCalendar, calendar_fits
 
 MODES = ("FLOW", "KV", "TOU", "PEAK", "REGION", "MIXED")
 
@@ -122,7 +122,7 @@ class TargetedDestroyRepair:
         others = [item for item in cal.items[machine] if item[0] != operation]
         events = sorted({est} | {b for _, _, b in others if b >= est})
         for t in events:
-            if not _fits_intervals(cal.problem, machine, operation, t, others):
+            if not calendar_fits(cal, machine, operation, t, others):
                 continue
             if not found or all(abs(t - x) > 1e-9 for x in found):
                 found.append(t)

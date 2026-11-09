@@ -27,11 +27,14 @@ def _checked_resources(
     if any(not math.isfinite(t) for t in schedule.starts):
         return ("Non-finite start",), None
     resources = ResourceView(problem, genotype, schedule)
+    # Scheduled operations are checked in one sweep per machine; an unscheduled
+    # (negative) start is not in the view and keeps the per-operation check.
+    fitted = resources.self_fits()
     errors = []
     for o, start in enumerate(schedule.starts):
         if start < 0 or less(start, est_for(problem, genotype, schedule, o), TOL.time):
             errors.append(f"release/precedence:{o}")
-        if not resources.fits(o, start):
+        if not (fitted[o] if o in fitted else resources.fits(o, start)):
             errors.append(f"resource:{o}")
     return tuple(errors), resources
 
@@ -58,27 +61,63 @@ def _power_segments(
     # Counts use only comparisons, with the original half-open convention.
     # Keeping *all* points (including hidden overlapping-operation boundaries)
     # preserves the original integral's floating-point addition order.
-    bounds = {m: resources.activity_bounds(m) for m in machines}
-    if problem.power_model.legacy:
-        for a, b in zip(points, points[1:]):
-            power = sum(
-                problem.instances[m].active_kw
-                if bisect_right(bounds[m][0], a) > bisect_right(bounds[m][1], a)
-                else problem.instances[m].idle_kw
-                for m in machines
-            )
-            result.append((a, b, power))
-        return tuple(result)
-    steps = {m: _load_steps(problem, m, occupied[m]) for m in machines}
+    #
+    # A machine's power changes only at its own activity boundaries, so each
+    # machine's value is evaluated once per own elementary interval, with the
+    # reference expression at that interval's start, and then read by a
+    # forward sweep. Region power still sums machines in the reference order.
+    levels = [_machine_levels(problem, resources, m) for m in machines]
+    cursor = [-1] * len(machines)
+    idle = [problem.instances[m].idle_kw for m in machines]
     for a, b in zip(points, points[1:]):
-        power = sum(
-            _machine_power(problem, m, steps[m], a)
-            if bisect_right(bounds[m][0], a) > bisect_right(bounds[m][1], a)
-            else problem.instances[m].idle_kw
-            for m in machines
-        )
-        result.append((a, b, power))
+        values = []
+        for k, (times, level) in enumerate(levels):
+            i = cursor[k]
+            while i + 1 < len(times) and times[i + 1] <= a:
+                i += 1
+            cursor[k] = i
+            values.append(level[i] if i >= 0 else idle[k])
+        result.append((a, b, sum(values)))
     return tuple(result)
+
+
+def _machine_levels(
+    problem: ProblemInstance, resources: ResourceView, machine: int
+) -> tuple[tuple[float, ...], tuple[float, ...]]:
+    """One machine's reference power at each of its own activity boundaries.
+
+    Between consecutive boundaries the busy test and the running load are
+    constant, so the value at a boundary holds until the next one; before the
+    first boundary the machine is idle.
+    """
+    # The reference busy test counts started minus ended positive-length
+    # operations, i.e. whether any runs at t; its load steps sit on the same
+    # boundaries. One sweep yields both, with each load a fresh sum in
+    # operation order exactly as ``_load_steps`` / ``_machine_power`` compute it.
+    server = problem.instances[machine]
+    legacy = problem.power_model.legacy
+    begins: dict[float, list[int]] = {}
+    finish: dict[float, list[int]] = {}
+    for o, a, b in resources.items[machine]:
+        if a < b:
+            begins.setdefault(a, []).append(o)
+            finish.setdefault(b, []).append(o)
+    times = tuple(sorted(begins.keys() | finish.keys()))
+    if not legacy:
+        kw = {o: problem.load_kw(o, machine) for ops in begins.values() for o in ops}
+        busy_kw = server.idle_kw + problem.floor_kw(machine)
+    active: set[int] = set()
+    values = []
+    for t in times:
+        active.difference_update(finish.get(t, ()))
+        active.update(begins.get(t, ()))
+        if not active:
+            values.append(server.idle_kw)
+        elif legacy:
+            values.append(server.active_kw)
+        else:
+            values.append(busy_kw + sum(kw[o] for o in sorted(active)))
+    return times, tuple(values)
 
 
 def _load_steps(
@@ -96,13 +135,14 @@ def _load_steps(
             begins.setdefault(a, []).append(o)
             ends.setdefault(b, []).append(o)
     times = sorted(begins.keys() | ends.keys())
+    kw = {o: problem.load_kw(o, machine) for o, a, b in items if a < b}
     active: set[int] = set()
     loads = []
     for t in times:
         # Half-open [a, b): an operation ending at t is no longer running at t.
         active.difference_update(ends.get(t, ()))
         active.update(begins.get(t, ()))
-        loads.append(sum(problem.load_kw(o, machine) for o in sorted(active)))
+        loads.append(sum(kw[o] for o in sorted(active)))
     return tuple(times), tuple(loads)
 
 

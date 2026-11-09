@@ -83,11 +83,18 @@ class PowerProfile:
             (tuple(t.start for t in r.tariffs), tuple(t.end for t in r.tariffs), r.tariffs)
             for r in problem.regions
         ]
+        self._prices: dict[tuple[int, float, float], float] = {}
+        self._loads: dict[tuple[int, int], float] = {}
         self.unions = [merge(list(b.values())) for b in self.items]
         self._rebuild()
 
     # -------- exact-shaped totals --------
     def _price_integral(self, region: int, a: float, b: float) -> float:
+        # A pure function of the immutable tariffs, memoized per profile family.
+        key = (region, a, b)
+        cached = self._prices.get(key)
+        if cached is not None:
+            return cached
         starts, ends, tariffs = self._tariffs[region]
         total = 0.0
         i = max(0, bisect_right(starts, a) - 1)
@@ -95,18 +102,29 @@ class PowerProfile:
             t = tariffs[i]
             total += max(0.0, min(b, t.end) - max(a, t.start)) * t.price
             i += 1
+        self._prices[key] = total
         return total
 
     def _add_segment(
         self, region: int, a: float, b: float, kw: float, windows: list[float]
     ) -> float:
-        """Add constant power kw on [a,b) clipped to the horizon; return its TOU cost."""
+        """Add constant power kw on [a,b) clipped to the horizon; return its TOU cost.
+
+        For a window strictly inside ``[a, b)`` the reference overlap
+        ``min(b, (w+1)W) - max(a, wW)`` is exactly ``W`` (both bounds are exact
+        integer multiples), so its increment ``kw * W / W`` is computed once.
+        """
         a, b = max(0.0, a), min(b, self.horizon)
         if b <= a or kw == 0:
             return 0.0
         first, last = int(a // WINDOW), min(len(windows), math.ceil(b / WINDOW))
+        full = kw * WINDOW / WINDOW
         for w in range(first, last):
-            overlap = min(b, (w + 1) * WINDOW) - max(a, w * WINDOW)
+            lo, hi = w * WINDOW, (w + 1) * WINDOW
+            if a <= lo and hi <= b:
+                windows[w] += full
+                continue
+            overlap = min(b, hi) - max(a, lo)
             if overlap > 0:
                 windows[w] += kw * overlap / WINDOW
         return kw * self._price_integral(region, a, b) / 3600
@@ -122,7 +140,15 @@ class PowerProfile:
                 self.tou += self._add_segment(r, a, b, self.problem.floor_kw(m), self.windows[r])
             # Zero under the two-state model, so its totals are unchanged.
             for o, (a, b) in sorted(self.items[m].items()):
-                self.tou += self._add_segment(r, a, b, self.problem.load_kw(o, m), self.windows[r])
+                self.tou += self._add_segment(r, a, b, self._load_kw(o, m), self.windows[r])
+
+    def _load_kw(self, operation: int, machine: int) -> float:
+        """``problem.load_kw``, a pure function of the immutable input, memoized."""
+        key = (operation, machine)
+        value = self._loads.get(key)
+        if value is None:
+            value = self._loads[key] = self.problem.load_kw(operation, machine)
+        return value
 
     def _load_changes(
         self, machine: int, edits: Mapping[int, tuple[float, float] | None], windows: list[float]
@@ -131,7 +157,7 @@ class PowerProfile:
         region = self.problem.instances[machine].region
         tou = 0.0
         for o, interval in edits.items():
-            kw = self.problem.load_kw(o, machine)
+            kw = self._load_kw(o, machine)
             if kw == 0:
                 continue
             old = self.items[machine].get(o)
@@ -216,6 +242,7 @@ class PowerProfile:
         """Independent bookkeeping copy sharing only immutable problem data."""
         clone = PowerProfile.__new__(PowerProfile)
         clone.problem, clone._tariffs, clone.horizon = self.problem, self._tariffs, self.horizon
+        clone._prices, clone._loads = self._prices, self._loads
         clone.items = [dict(b) for b in self.items]
         clone.unions = [list(u) for u in self.unions]
         clone.windows = [list(w) for w in self.windows]
@@ -225,7 +252,8 @@ class PowerProfile:
     def with_horizon(self, horizon: float) -> PowerProfile:
         """Return a copy re-integrated over a different batch end (used when T_end moves)."""
         clone = PowerProfile.__new__(PowerProfile)
-        clone.problem, clone._tariffs = self.problem, self._tariffs
+        clone.problem, clone._tariffs, clone._prices = self.problem, self._tariffs, self._prices
+        clone._loads = self._loads
         clone.items = [dict(b) for b in self.items]
         clone.unions = [list(u) for u in self.unions]
         clone.horizon = horizon

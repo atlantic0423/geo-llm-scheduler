@@ -12,12 +12,19 @@ def decode(problem: ProblemInstance, genotype: Genotype) -> Schedule:
     waits = [0.0] * problem.operation_count
     seen = [0] * len(problem.jobs)
     calendar = ResourceCalendar(problem)
+    ms = genotype.ms
     for job in genotype.os:
         o = 2 * job + seen[job]
         seen[job] += 1
-        partial = Schedule(tuple(starts))
-        est = est_for(problem, genotype, partial, o)
-        machine = genotype.ms[o]
+        # ``est_for`` on the partial schedule, without copying it per operation:
+        # a Decode's own Prefill is always placed first.
+        j = problem.jobs[job]
+        est = (
+            j.release
+            if o % 2 == 0
+            else starts[o - 1] + j.prefill.duration + j.kv_delay * (ms[o] != ms[o - 1])
+        )
+        machine = ms[o]
         starts[o] = calendar.earliest(machine, o, est)
         calendar.commit(machine, o, starts[o])
         waits[o] = starts[o] - est
