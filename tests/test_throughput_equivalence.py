@@ -321,3 +321,65 @@ def test_working_version_whole_run_is_identical_under_a_deterministic_clock(monk
     old = _run_with_clock(monkeypatch, problem, "N7_P1_SHARE", True)
     assert new[1]["exact"] > 100 and new[2], "the run must exercise evolution and LS"
     assert new == old
+
+
+# ---------------- HV batch entry (2026-11-09) ----------------
+@pytest.fixture
+def throughput_batch(monkeypatch):
+    from pathlib import Path
+
+    monkeypatch.syspath_prepend(str(Path(__file__).resolve().parents[1] / "scripts"))
+    import importlib
+
+    return importlib.import_module("run_s4_throughput")
+
+
+def test_batch_arms_share_the_algorithm_and_only_the_control_uses_the_reference(throughput_batch):
+    b = throughput_batch
+    assert b.ARMS == ("C0_REF", "C0F") and b.CONTROL == "C0_REF" and b.SEEDS == (11,)
+    assert b.import_all() > 150
+    with b.engine_for("C0_REF"):
+        assert ssgs.decode is old_ssgs.decode and exact.evaluate is old_exact.evaluate
+        assert billing.PowerProfile is old_billing.PowerProfile
+    with b.engine_for("C0F"):
+        assert ssgs.decode is not old_ssgs.decode and exact.evaluate is not old_exact.evaluate
+    with pytest.raises(ValueError):
+        b.engine_for("N7_P1_SHARE")
+    assert len(b.reference_hash()) == 64
+
+
+def test_batch_prepares_two_engines_on_the_panel_at_seed_eleven(
+    tmp_path, monkeypatch, throughput_batch
+):
+    import json
+    from collections import Counter
+
+    from test_s4_load_shift import _panel
+
+    from geo_llm_scheduler.experiments.trans_runner import digest
+
+    b = throughput_batch
+    power = dict(beta=0.4, kappa_prefill=1.0, kappa_decode=0.25)
+    panel, cal, _ = _panel(tmp_path, power)
+    monkeypatch.setattr(b.base, "PANEL", digest(panel / "manifest.json"))
+    monkeypatch.setattr(b.base, "CAL", digest(cal))
+    seen = []
+    for k in range(3):
+        root = tmp_path / f"root{k}"
+        b.prepare(root, panel, cal, "example", shard=f"{k}/3")
+        m = b.validate_inputs(root)
+        assert m["design"] == "s4-throughput/v1" and tuple(m["arms"]) == b.ARMS
+        assert m["runs"] == 2 * len(m["blocks"]) == 80 and m["reference"] == b.reference_hash()
+        for block in m["blocks"]:
+            spec = json.loads((root / "specs" / (block + ".json")).read_text())
+            assert spec["seed"] == 11 and "run_s4_throughput.py" in spec["entry"]
+            assert spec["seconds"] == {50: 600, 100: 1200, 200: 2400}[spec["n"]]
+            assert spec["config"]["C0_REF"] == spec["config"]["C0F"]
+            assert spec["algorithm"] == "N7_P1_SHARE" and sorted(spec["order"]) == sorted(b.ARMS)
+        seen += m["blocks"]
+    assert len(seen) == len(set(seen)) == 120
+    assert Counter(int(x.split("_")[1][1:]) for x in seen) == {50: 40, 100: 40, 200: 40}
+    # Any drift in the frozen reference is rejected before dispatch.
+    monkeypatch.setattr(b, "reference_hash", lambda: "0" * 64)
+    with pytest.raises(AssertionError):
+        b.validate_inputs(tmp_path / "root0")
