@@ -337,7 +337,9 @@ def throughput_batch(monkeypatch):
 def test_batch_arms_share_the_algorithm_and_only_the_control_uses_the_reference(throughput_batch):
     b = throughput_batch
     assert b.ARMS == ("C0_REF", "C0F") and b.CONTROL == "C0_REF" and b.SEEDS == (11,)
-    assert b.import_all() > 150
+    skipped = b.import_all()
+    assert all(sys.modules.get(n) is None for n in skipped)
+    assert "geo_llm_scheduler.experiments.s4_moead" in sys.modules
     with b.engine_for("C0_REF"):
         assert ssgs.decode is old_ssgs.decode and exact.evaluate is old_exact.evaluate
         assert billing.PowerProfile is old_billing.PowerProfile

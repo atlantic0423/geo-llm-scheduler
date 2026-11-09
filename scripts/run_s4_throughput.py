@@ -78,15 +78,22 @@ def reference_hash() -> str:
     ).hexdigest()
 
 
-def import_all() -> int:
+def import_all() -> list[str]:
     """Import every package module, so the reference switch also reaches modules the
-    run would otherwise import lazily (their bindings are fixed at import time)."""
-    names = [
-        m.name for m in pkgutil.walk_packages(geo_llm_scheduler.__path__, "geo_llm_scheduler.")
-    ]
-    for name in names:
-        importlib.import_module(name)
-    return len(names)
+    run would otherwise import lazily (their bindings are fixed at import time).
+
+    A module whose third-party dependency is not installed (e.g. plotting) cannot be
+    imported by the run either; it is skipped and its name returned.
+    """
+    skipped = []
+    for m in pkgutil.walk_packages(geo_llm_scheduler.__path__, "geo_llm_scheduler."):
+        try:
+            importlib.import_module(m.name)
+        except ModuleNotFoundError as exc:
+            if exc.name is None or exc.name.split(".")[0] == "geo_llm_scheduler":
+                raise
+            skipped.append(m.name)
+    return skipped
 
 
 def engine_for(arm: str) -> AbstractContextManager[None]:
