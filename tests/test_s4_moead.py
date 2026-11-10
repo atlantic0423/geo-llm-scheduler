@@ -342,6 +342,7 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
         + s4_moead.WIDEN_ARMS
         + s4_moead.SPACE_ARMS
         + s4_moead.INVEST_ARMS
+        + s4_moead.GUIDED_ARMS
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)

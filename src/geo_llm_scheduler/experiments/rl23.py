@@ -25,6 +25,7 @@ def run_policy(
     initial_order: Callable[[list[Candidate]], list[Candidate]] | None = None,
     interleave: Callable[..., None] | None = None,
     initialization_arm: str | None = None,
+    guided_offspring: Callable[..., Candidate | None] | None = None,
 ) -> RunResult:
     """Charge common BILL4 initialization; keep study policies outside engine defaults.
 
@@ -35,7 +36,8 @@ def run_policy(
     ``initialization_arm`` selects an existing charged initializer for explicit
     single-factor studies. None preserves the historical initialization policy.
     ``interleave`` is forwarded to the engine's opt-in charged research seam;
-    omitting it preserves the reference path.
+    omitting it preserves the reference path. ``guided_offspring`` is forwarded to
+    the engine's opt-in variation-routing seam; omitting it preserves every draw.
     """
     expected = study_config(arm, config.seed, config.seconds or 1.0)
     # decode_cache_size is a semantics-preserving engineering option, not a study parameter.
@@ -93,6 +95,7 @@ def run_policy(
         trajectory_override=study,
         offspring_transform=PolishPostprocess(policy),
         interleave=interleave,
+        guided_offspring=guided_offspring,
     )
 
 

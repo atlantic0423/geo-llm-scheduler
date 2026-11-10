@@ -67,6 +67,18 @@ def run(
         [list[Candidate], EvaluationGateway, RNGManager, Callable[[], float]], None
     ]
     | None = None,
+    guided_offspring: Callable[
+        [
+            list[Candidate],
+            int,
+            tuple[int, ...],
+            tuple[tuple[float, float], ...],
+            EvaluationGateway,
+            RNGManager,
+        ],
+        Candidate | None,
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -90,6 +102,11 @@ def run(
     slot with the population, gateway, streams and the budget clock. It may run
     its own search on separately named streams and replace population members;
     the deadline is rechecked after it returns. Omitting it preserves every path.
+    ``guided_offspring`` is an opt-in variation-routing seam called with
+    ``(population, subproblem, neighbors, lambdas, gateway, streams)`` right before
+    the usual crossover-plus-mutation child. It may return an exact-evaluated child
+    (used instead) or ``None`` to fall back to the unchanged variation path. It owns
+    its streams; omitting it creates no stream and preserves every draw.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -224,14 +241,23 @@ def run(
                 observer_seconds += perf_counter() - tick
                 observe(event, payload)
 
-            child = create_offspring(
-                population,
-                i,
-                neighbors[i],
-                config,
-                gateway,
-                streams,
-                observer=observe_structure if observer is not None else None,
+            guided_child = (
+                guided_offspring(population, i, neighbors[i], lambdas, gateway, streams)
+                if guided_offspring is not None
+                else None
+            )
+            child = (
+                guided_child
+                if guided_child is not None
+                else create_offspring(
+                    population,
+                    i,
+                    neighbors[i],
+                    config,
+                    gateway,
+                    streams,
+                    observer=observe_structure if observer is not None else None,
+                )
             )
             offspring_route = child.origin
             context = NormalizationContext(gateway.ideal, maximum(population))

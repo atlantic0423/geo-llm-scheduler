@@ -13,6 +13,7 @@ starts are never later than the timetable, so decoded Flow cannot exceed it.
 from __future__ import annotations
 
 import random
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 
 from geo_llm_scheduler.config import Config
@@ -96,7 +97,18 @@ def _machine_load(problem: ProblemInstance, items: list[tuple[int, float, float]
 
 @dataclass
 class TargetedDestroyRepair:
-    """IG-style destroy-repair with objective-aware schedule-space reinsertion."""
+    """IG-style destroy-repair with objective-aware schedule-space reinsertion.
+
+    Three opt-in extras serve the guided-variation study (all default off, so the
+    default proposals, random draws and diagnostics are unchanged):
+
+    ``extra_paths`` maps a Job index to an ordered list of additional (Prefill,
+    Decode) instance pairs, for example the paths neighbouring subproblems use;
+    at most ``extra_limit`` of them that are legal for the Job and not already
+    among the candidate paths are added. ``record_timetable`` appends, per
+    returned proposal, the designed timetable's Flow and incremental-profile Bill
+    to ``batch.instrumentation["timetable"]``.
+    """
 
     mode: str = "MIXED"
     weight: tuple[float, float] = (0.5, 0.5)
@@ -108,6 +120,9 @@ class TargetedDestroyRepair:
     slots_k: int = 3
     second_best: float = 0.15
     action: int = 102
+    extra_paths: Callable[[int], Sequence[tuple[int, int]]] | None = None
+    extra_limit: int = 2
+    record_timetable: bool = False
 
     def _slots(
         self, cal: ResourceCalendar, machine: int, operation: int, est: float
@@ -129,6 +144,26 @@ class TargetedDestroyRepair:
             if len(found) >= self.slots_k:
                 break
         return found
+
+    def add_extra(
+        self, job: int, options: list[tuple[int, int]], chosen: list[tuple[int, int]]
+    ) -> list[tuple[int, int]]:
+        """Append up to ``extra_limit`` offered paths that are legal and not yet chosen.
+
+        ``options`` are the Job's legal same-Region (Prefill, Decode) pairs; offers
+        outside it, and duplicates of ``chosen``, are skipped. Mutates and returns
+        ``chosen``; does nothing when ``extra_paths`` is unset.
+        """
+        if self.extra_paths is None:
+            return chosen
+        legal, added = set(options), 0
+        for pd in self.extra_paths(job):
+            if added >= self.extra_limit:
+                break
+            if pd in legal and pd not in chosen:
+                chosen.append(pd)
+                added += 1
+        return chosen
 
     def propose(
         self,
@@ -186,6 +221,8 @@ class TargetedDestroyRepair:
                     for pd in away[:2]:
                         if pd not in chosen:
                             chosen.append(pd)
+                if self.extra_paths is not None:
+                    self.add_extra(j, options, chosen)
                 pP, pD = problem.profile(P).duration, problem.profile(D).duration
                 evaluated = []
                 for mp, md in chosen:
@@ -236,6 +273,14 @@ class TargetedDestroyRepair:
             if genotype not in seen and genotype != incumbent.genotype:
                 seen.add(genotype)
                 batch.proposals.append(Proposal(genotype))
+                if self.record_timetable:
+                    flow = sum(
+                        starts[2 * k + 1] + problem.profile(2 * k + 1).duration - job.release
+                        for k, job in enumerate(problem.jobs)
+                    )
+                    batch.instrumentation.setdefault("timetable", []).append(
+                        dict(flow=flow, bill=profile.bill())
+                    )
             batch.attempts += 1
         batch.diagnostics = dict(
             mode=self.mode, destroyed=d, random=d_rand, proposals=len(batch.proposals)

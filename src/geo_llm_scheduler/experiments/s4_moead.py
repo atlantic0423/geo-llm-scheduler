@@ -84,6 +84,21 @@ trajectory length rule changed (see ``continuation`` in :mod:`lsv2.moead_search`
 ``X2_PROBE``              one step, then continue while the last step gained
 ``X2L_L1``                exactly one step (reference for ``X2_PROBE``)
 ========================  ====================================================
+
+Guided-variation arms (``GUIDED_ARMS``, user 2026-11-10, F3): the working version
+``N7_P1_SHARE`` (the study's V0 control, unchanged) with one routed variation path
+(see :mod:`lsv2.guided_variation`). Each offspring slot takes, with probability
+0.2, a targeted destroy-repair rebuild of the subproblem's incumbent instead of
+crossover plus mutation:
+
+========================  ====================================================
+``V1_GUIDED_DIR``         destroy mode and rebuild weight follow the subproblem
+                          direction (Flow third FLOW, middle MIXED, electricity
+                          third TOU/PEAK)
+``V2_GUIDED_RAND``        matched control: uniform mode, fixed (0.5, 0.5) weight
+``V3_GUIDED_DIR_NB``      ``V1`` plus up to two neighbour-incumbent paths per
+                          rebuilt Job
+========================  ====================================================
 """
 
 from collections.abc import Callable
@@ -95,6 +110,7 @@ from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import s4_decouple
 from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.decoder_refine import weight_class
+from geo_llm_scheduler.lsv2.guided_variation import GuidedOptions, GuidedVariation
 from geo_llm_scheduler.lsv2.moead_search import MoeadMixin, MoeadOptions, with_moead
 from geo_llm_scheduler.lsv2.search import LSV2Config, LSV2Search
 from geo_llm_scheduler.moead.core import weights
@@ -119,8 +135,17 @@ SHARE_ARMS = ("N7_P1_SHARE", "N8_P1_P4R3_BANDIT_SHARE")
 WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
 SPACE_ARMS = ("R1_P1_RANDPOINT", "G1_P1_GP", "E2_P1_EQM", "GE3_P1_GP_EQM")
 INVEST_ARMS = ("X1_EXTEND", "X1R_RANDEXT", "X2_PROBE", "X2L_L1")
+GUIDED_ARMS = ("V1_GUIDED_DIR", "V2_GUIDED_RAND", "V3_GUIDED_DIR_NB")
 EXTRA_ARMS = (
-    ARMS + COMBO_ARMS + NEXT_ARMS + BANDIT_ARMS + SHARE_ARMS + WIDEN_ARMS + SPACE_ARMS + INVEST_ARMS
+    ARMS
+    + COMBO_ARMS
+    + NEXT_ARMS
+    + BANDIT_ARMS
+    + SHARE_ARMS
+    + WIDEN_ARMS
+    + SPACE_ARMS
+    + INVEST_ARMS
+    + GUIDED_ARMS
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -214,6 +239,12 @@ _OPTIONS.update(
         for arm, rule in _INVEST.items()
     }
 )
+_GUIDED = {
+    "V1_GUIDED_DIR": GuidedOptions(),
+    "V2_GUIDED_RAND": GuidedOptions(direction_aware=False),
+    "V3_GUIDED_DIR_NB": GuidedOptions(neighbor_paths=True),
+}
+_OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GUIDED})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -226,6 +257,12 @@ def options(arm: str) -> MoeadOptions:
     """Declared MOEA/D-facing switches of one arm."""
     _check(arm)
     return _OPTIONS[arm]
+
+
+def guided_options(arm: str) -> GuidedOptions | None:
+    """Guided-variation switches of an arm; ``None`` keeps the unchanged variation path."""
+    _check(arm)
+    return _GUIDED.get(arm)
 
 
 def terminal_share(arm: str) -> float:
@@ -297,6 +334,10 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
             share_bounds=list(opts.share_bounds),
             share_exponent=opts.share_exponent,
         )
+    guided = guided_options(arm)
+    if guided is not None:
+        # Only guided arms carry this key; every other arm's record is unchanged.
+        record["guided"] = asdict(guided)
     return record
 
 
@@ -331,6 +372,11 @@ def run_arm(
             observer(event, data)
 
     assert isinstance(search, MoeadMixin)
+    guided_arm = guided_options(arm)
+    guided = None
+    if guided_arm is not None:
+        guided = GuidedVariation(config, guided_arm, gain_probe=search.last_gain)
+        search.guided = guided
     return run_policy(
         problem,
         "BILL_PERMUTED",
@@ -338,6 +384,7 @@ def run_arm(
         evidence,
         observer=observe if (weighted or observer is not None) else None,
         interleave=search,
+        guided_offspring=guided,
     )
 
 
@@ -351,12 +398,14 @@ __all__ = [
     "WIDEN_ARMS",
     "SPACE_ARMS",
     "INVEST_ARMS",
+    "GUIDED_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",
     "TIMING_OPS",
     "arm_config",
     "configuration_record",
+    "guided_options",
     "make_search",
     "options",
     "run_arm",

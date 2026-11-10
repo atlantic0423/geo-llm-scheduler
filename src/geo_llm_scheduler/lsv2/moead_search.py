@@ -271,6 +271,14 @@ class MoeadMixin:
         self._extend_rng: Random | None = None
         self._cont_steps = 0
         self._cont_gains = 0
+        # F3 seam: HV gain of the latest candidate (read by the guided-variation
+        # recorder) and the optional recorder itself; neither affects any decision.
+        self._last_gain = 0.0
+        self.guided: Any = None
+
+    def last_gain(self) -> float:
+        """Frozen-frame HV gain of the most recent evaluated candidate (0 if none)."""
+        return self._last_gain
 
     def _mcount(self, name: str, value: int = 1) -> None:
         self.moead_counts[name] = self.moead_counts.get(name, 0) + value
@@ -515,6 +523,7 @@ class MoeadMixin:
         The trace (when enabled) only records; the yield rates and every decision
         are the same with or without it.
         """
+        self._last_gain = 0.0
         insertions = gateway.archive.insertions
         inserted = insertions > self._last_insertions
         self._last_insertions = insertions
@@ -539,6 +548,7 @@ class MoeadMixin:
             if self.moead.trace or hv_yield or marginal
             else 0.0
         )
+        self._last_gain = gain
         if self.moead.trace:
             label = "terminal" if terminal else (source or "other")
             self._trace_insertion(frame, candidate, label, gain)
@@ -1024,6 +1034,8 @@ class MoeadMixin:
         if self.moead.trace:
             options.update(trace=True, trace_seconds=self.moead.trace_seconds)
             out["trace"] = self.trace_record()
+        if self.guided is not None:
+            out["f3"] = self.guided.summary()
         return out
 
 
