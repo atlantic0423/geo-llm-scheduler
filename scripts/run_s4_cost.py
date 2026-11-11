@@ -14,8 +14,8 @@ variant ``V2``:
 
 One root, both sizes: 100 jobs run V0, G4, GS and 200 jobs run V0, G8, G4, GS. Because
 the batch must finish within about three hours, the matrix is reduced from
-``NEXT_STEP_SPEC.md`` (user, 2026-11-11): 200 jobs use replicates 1-3 (30 instances) at
-seed 14 (30 blocks); 100 jobs use replicates 1-2 (20 instances) at seeds 14 and 15
+``NEXT_STEP_SPEC.md`` (user, 2026-11-11): 200 jobs use all 40 instances at
+seed 14 (40 blocks); 100 jobs use replicates 1-2 (20 instances) at seeds 14 and 15
 (40 blocks); budgets 1200 and 2400 s including initialization. Frozen load-power panel.
 Judgement and analysis follow the launch record. Preflight, worker and completion
 checks are those of ``run_s4_moead``.
@@ -44,10 +44,10 @@ ARMS_BY_SIZE = {
 }
 ARMS = tuple(dict.fromkeys(a for arms in ARMS_BY_SIZE.values() for a in arms))
 # size -> (largest instance replicate number used, seeds)
-SELECTION = {100: (2, (14, 15)), 200: (3, (14,))}
+SELECTION = {100: (2, (14, 15)), 200: (4, (14,))}
 SEEDS = (14, 15)
 GROUPS = {"panel": (100, 200)}
-GROUP_BLOCKS = {"panel": 70}
+GROUP_BLOCKS = {"panel": 80}
 PANEL_SIZES = (50, 100, 200)
 DESIGN = "s4-cost/v1"
 assert set(ARMS) <= set(s4_moead.EXTRA_ARMS)

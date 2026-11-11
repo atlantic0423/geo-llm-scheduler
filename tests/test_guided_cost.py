@@ -272,7 +272,7 @@ def test_batch_pools_both_sizes_with_their_own_arms_and_a_reduced_matrix(
         "G4_GUIDED_RAND_D4",
         "GS_GUIDED_RAND_SWITCH",
     )
-    assert b.SELECTION == {100: (2, (14, 15)), 200: (3, (14,))}
+    assert b.SELECTION == {100: (2, (14, 15)), 200: (4, (14,))}
     seen, runs, solver = [], 0, 0
     for k in range(3):
         root = tmp_path / f"root{k}"
@@ -296,6 +296,6 @@ def test_batch_pools_both_sizes_with_their_own_arms_and_a_reduced_matrix(
             assert spec["config"]["GS_GUIDED_RAND_SWITCH"]["guided"]["controller"] == "switch"
             assert ("G8_GUIDED_RAND" in spec["config"]) == (spec["n"] == 200)
         seen += m["blocks"]
-    assert len(seen) == len(set(seen)) == 70
-    assert Counter(int(x.split("_")[1][1:]) for x in seen) == {100: 40, 200: 30}
-    assert runs == 30 * 4 + 40 * 3 and solver == 30 * 4 * 2400 + 40 * 3 * 1200 == 432_000
+    assert len(seen) == len(set(seen)) == 80
+    assert Counter(int(x.split("_")[1][1:]) for x in seen) == {100: 40, 200: 40}
+    assert runs == 40 * 4 + 40 * 3 and solver == 40 * 4 * 2400 + 40 * 3 * 1200 == 528_000
