@@ -264,7 +264,7 @@ def test_batch_pools_both_sizes_with_their_own_arms_and_a_reduced_matrix(
     panel, cal, _ = _panel(tmp_path, power)
     monkeypatch.setattr(b.base, "PANEL", digest(panel / "manifest.json"))
     monkeypatch.setattr(b.base, "CAL", digest(cal))
-    assert b.SEEDS == (14, 15) and b.CONTROL == "N7_P1_SHARE" and b.DESIGN == "s4-cost/v1"
+    assert b.SEEDS == (16, 17) and b.CONTROL == "N7_P1_SHARE" and b.DESIGN == "s4-cost/v1"
     assert b.ARMS_BY_SIZE[100] == (b.CONTROL, "G4_GUIDED_RAND_D4", "GS_GUIDED_RAND_SWITCH")
     assert b.ARMS_BY_SIZE[200] == (
         b.CONTROL,
@@ -272,7 +272,7 @@ def test_batch_pools_both_sizes_with_their_own_arms_and_a_reduced_matrix(
         "G4_GUIDED_RAND_D4",
         "GS_GUIDED_RAND_SWITCH",
     )
-    assert b.SELECTION == {100: (2, (14, 15)), 200: (4, (14,))}
+    assert b.SELECTION == {100: (4, (16, 17)), 200: (4, (16, 17))}
     seen, runs, solver = [], 0, 0
     for k in range(3):
         root = tmp_path / f"root{k}"
@@ -296,6 +296,6 @@ def test_batch_pools_both_sizes_with_their_own_arms_and_a_reduced_matrix(
             assert spec["config"]["GS_GUIDED_RAND_SWITCH"]["guided"]["controller"] == "switch"
             assert ("G8_GUIDED_RAND" in spec["config"]) == (spec["n"] == 200)
         seen += m["blocks"]
-    assert len(seen) == len(set(seen)) == 80
-    assert Counter(int(x.split("_")[1][1:]) for x in seen) == {100: 40, 200: 40}
-    assert runs == 40 * 4 + 40 * 3 and solver == 40 * 4 * 2400 + 40 * 3 * 1200 == 528_000
+    assert len(seen) == len(set(seen)) == 160
+    assert Counter(int(x.split("_")[1][1:]) for x in seen) == {100: 80, 200: 80}
+    assert runs == 80 * 4 + 80 * 3 and solver == 80 * 4 * 2400 + 80 * 3 * 1200 == 1_056_000

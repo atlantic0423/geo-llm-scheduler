@@ -44,10 +44,10 @@ ARMS_BY_SIZE = {
 }
 ARMS = tuple(dict.fromkeys(a for arms in ARMS_BY_SIZE.values() for a in arms))
 # size -> (largest instance replicate number used, seeds)
-SELECTION = {100: (2, (14, 15)), 200: (4, (14,))}
-SEEDS = (14, 15)
+SELECTION = {100: (4, (16, 17)), 200: (4, (16, 17))}
+SEEDS = (16, 17)
 GROUPS = {"panel": (100, 200)}
-GROUP_BLOCKS = {"panel": 80}
+GROUP_BLOCKS = {"panel": 160}
 PANEL_SIZES = (50, 100, 200)
 DESIGN = "s4-cost/v1"
 assert set(ARMS) <= set(s4_moead.EXTRA_ARMS)
