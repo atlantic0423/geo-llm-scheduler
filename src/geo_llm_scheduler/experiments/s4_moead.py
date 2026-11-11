@@ -150,7 +150,12 @@ WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
 SPACE_ARMS = ("R1_P1_RANDPOINT", "G1_P1_GP", "E2_P1_EQM", "GE3_P1_GP_EQM")
 INVEST_ARMS = ("X1_EXTEND", "X1R_RANDEXT", "X2_PROBE", "X2L_L1")
 GUIDED_ARMS = ("V1_GUIDED_DIR", "V2_GUIDED_RAND", "V3_GUIDED_DIR_NB")
-COST_ARMS = ("G8_GUIDED_RAND", "G4_GUIDED_RAND_D4", "GS_GUIDED_RAND_SWITCH")
+COST_ARMS = (
+    "G8_GUIDED_RAND",
+    "G4_GUIDED_RAND_D4",
+    "GS_GUIDED_RAND_SWITCH",
+    "GS4_GUIDED_RAND_SWITCH_D4",
+)
 EXTRA_ARMS = (
     ARMS
     + COMBO_ARMS
@@ -273,6 +278,11 @@ _GUIDED.update(
             direction_aware=False, controller="switch", record_paths=True
         ),
     }
+)
+# GS4 (2026-11-11, single new arm): both mechanisms at once, fixed 4 destroyed Jobs
+# and the switch controller, on the neutral V2 variant with path records.
+_GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] = GuidedOptions(
+    direction_aware=False, destroy_count=4, controller="switch", record_paths=True
 )
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GUIDED})
 _TERMINAL = {"M3_P1_T10": 0.10}

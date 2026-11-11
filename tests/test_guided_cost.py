@@ -46,8 +46,13 @@ def test_cost_options_validate_and_record_only_when_set():
     assert switch.timed and set(switch.record()) == set(gv.BASE_OPTION_FIELDS) | set(
         gv.EXTRA_OPTION_DEFAULTS
     )
-    assert s4_moead.COST_ARMS == ("G8_GUIDED_RAND", "G4_GUIDED_RAND_D4", "GS_GUIDED_RAND_SWITCH")
-    g8, g4, gs = (s4_moead.guided_options(a) for a in s4_moead.COST_ARMS)
+    assert s4_moead.COST_ARMS == (
+        "G8_GUIDED_RAND",
+        "G4_GUIDED_RAND_D4",
+        "GS_GUIDED_RAND_SWITCH",
+        "GS4_GUIDED_RAND_SWITCH_D4",
+    )
+    g8, g4, gs = (s4_moead.guided_options(a) for a in s4_moead.COST_ARMS[:3])
     assert g8 == GuidedOptions(direction_aware=False, record_paths=True)
     assert g4.destroy_count == 4 and g4.controller == "fixed" and not g4.direction_aware
     assert gs.controller == "switch" and gs.probability == 0.2 and gs.p_probe == 0.02
