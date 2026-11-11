@@ -127,6 +127,7 @@ from geo_llm_scheduler.lsv2.guided_variation import (
 )
 from geo_llm_scheduler.lsv2.moead_search import MoeadMixin, MoeadOptions, with_moead
 from geo_llm_scheduler.lsv2.search import LSV2Config, LSV2Search
+from geo_llm_scheduler.lsv2.terminal_gates import POLICIES
 from geo_llm_scheduler.moead.core import weights
 
 BASE = "M0_B2"
@@ -167,6 +168,7 @@ EXTRA_ARMS = (
     + INVEST_ARMS
     + GUIDED_ARMS
     + COST_ARMS
+    + tuple(POLICIES)
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -285,6 +287,8 @@ _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] = GuidedOptions(
     direction_aware=False, destroy_count=4, controller="switch", record_paths=True
 )
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GUIDED})
+_GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in POLICIES})
+_OPTIONS.update({arm: replace(_OPTIONS["N7_P1_SHARE"], terminal_gate=arm) for arm in POLICIES})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -375,6 +379,10 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
             share_exponent=opts.share_exponent,
         )
     guided = guided_options(arm)
+    if opts.terminal_gate is not None:
+        record["terminal_gate"] = dict(
+            name=opts.terminal_gate, **asdict(POLICIES[opts.terminal_gate])
+        )
     if guided is not None:
         # Only guided arms carry this key; every other arm's record is unchanged.
         record["guided"] = guided.record()

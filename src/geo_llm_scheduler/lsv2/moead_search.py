@@ -96,11 +96,12 @@ from dataclasses import dataclass, replace
 from random import Random
 from typing import Any, cast
 
-from geo_llm_scheduler.domain.models import Candidate
+from geo_llm_scheduler.domain.models import Candidate, ProblemInstance
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.lsv2.decoder_refine import DecoderRefiner, weight_class
 from geo_llm_scheduler.lsv2.frontier import FrozenFrame, gap_scores
 from geo_llm_scheduler.lsv2.search import Point, _with_diagnostics
+from geo_llm_scheduler.lsv2.terminal_gates import POLICIES, TerminalGate
 from geo_llm_scheduler.macrosearch.search import execute
 from geo_llm_scheduler.moead.core import NormalizationContext, maximum
 from geo_llm_scheduler.utils.numeric import EPS_RATIO
@@ -170,8 +171,11 @@ class MoeadOptions:
     share_signal: str = "average"
     continuation: str = "fixed"
     max_steps: int = 10
+    terminal_gate: str | None = None
 
     def __post_init__(self) -> None:
+        if self.terminal_gate is not None and self.terminal_gate not in POLICIES:
+            raise ValueError("Unknown terminal gate")
         if self.continuation not in CONTINUATIONS:
             raise ValueError("Unknown trajectory continuation rule")
         if type(self.max_steps) is not int or self.max_steps < 1:
@@ -275,6 +279,7 @@ class MoeadMixin:
         # recorder) and the optional recorder itself; neither affects any decision.
         self._last_gain = 0.0
         self.guided: Any = None
+        self.terminal_gate = TerminalGate(options.terminal_gate) if options.terminal_gate else None
 
     def in_terminal(self) -> bool:
         """Whether the terminal (last-5%) sweep has started; its gains are not evolution's."""
@@ -374,6 +379,15 @@ class MoeadMixin:
         return go
 
     # ---------------- P1: terminal timing operators ----------------
+    def _terminal_admit(
+        self,
+        problem: ProblemInstance,
+        target: Candidate,
+        name: str,
+        peers: list[Candidate] | None = None,
+    ) -> bool:
+        return self.terminal_gate is None or self.terminal_gate.admit(problem, target, name, peers)
+
     def _terminal_extra(
         self,
         target: Candidate,
@@ -392,6 +406,8 @@ class MoeadMixin:
         for name in self.moead.terminal_ops:
             if self._deadline(budget_elapsed()):  # type: ignore[attr-defined]
                 return
+            if not self._terminal_admit(problem, current, name, gateway.archive.members):
+                continue
             batch = self._propose(  # type: ignore[attr-defined]
                 name, current, frame, streams.stream("lsv2:terminal:" + name), problem
             )
@@ -1040,6 +1056,10 @@ class MoeadMixin:
             out["trace"] = self.trace_record()
         if self.guided is not None:
             out["f3"] = self.guided.summary()
+        if self.terminal_gate is not None:
+            out["terminal_gate"] = dict(
+                policy=self.moead.terminal_gate, counts=dict(self.terminal_gate.counts)
+            )
         return out
 
 

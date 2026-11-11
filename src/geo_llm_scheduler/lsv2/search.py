@@ -653,6 +653,16 @@ class LSV2Search:
     ) -> None:
         """Extra Archive-only terminal refinement of one front target (base: nothing)."""
 
+    def _terminal_admit(
+        self,
+        problem: ProblemInstance,
+        target: Candidate,
+        name: str,
+        peers: list[Candidate] | None = None,
+    ) -> bool:
+        """Research admission seam; the reference always admits without random draws."""
+        return True
+
     def _polish(
         self,
         current: Candidate,
@@ -683,6 +693,11 @@ class LSV2Search:
         )
         try:
             if self.config.polish_region not in ("all", segment):
+                return None
+            if trajectory == -1 and not self._terminal_admit(
+                gateway.problem, current, "SHIFT", gateway.archive.members
+            ):
+                row["status"] = "terminal_gate_skip"
                 return None
             elapsed = budget_elapsed()
             if self._deadline(elapsed):

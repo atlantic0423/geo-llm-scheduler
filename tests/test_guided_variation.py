@@ -60,7 +60,7 @@ def test_options_validate_and_arms_are_declared_without_touching_other_records()
     for arm in s4_moead.EXTRA_ARMS:
         record = s4_moead.configuration_record(arm, s4_moead.arm_config(arm, 7, 1200), CAL)
         assert s4_moead.arm_config(arm, 7, 1200) == cfg
-        if arm in s4_moead.GUIDED_ARMS + s4_moead.COST_ARMS:
+        if arm in s4_moead.GUIDED_ARMS + s4_moead.COST_ARMS + tuple(s4_moead.POLICIES):
             assert record["guided"] == s4_moead.guided_options(arm).record()
             if arm in s4_moead.GUIDED_ARMS:  # first-batch record bytes unchanged
                 assert set(record["guided"]) == set(gv.BASE_OPTION_FIELDS)
@@ -68,8 +68,12 @@ def test_options_validate_and_arms_are_declared_without_touching_other_records()
                 assert set(record["guided"]) == set(gv.BASE_OPTION_FIELDS) | set(
                     gv.EXTRA_OPTION_DEFAULTS
                 )
-            rest = {k: v for k, v in record.items() if k not in ("guided", "arm")}
+            rest = {k: v for k, v in record.items() if k not in ("guided", "arm", "terminal_gate")}
             assert rest == {k: v for k, v in control.items() if k != "arm"}
+            if arm in s4_moead.POLICIES:
+                assert record["terminal_gate"]["name"] == arm
+            else:
+                assert "terminal_gate" not in record
         else:
             assert "guided" not in record and s4_moead.guided_options(arm) is None
     assert s4_moead.guided_options("V1_GUIDED_DIR") == GuidedOptions()
