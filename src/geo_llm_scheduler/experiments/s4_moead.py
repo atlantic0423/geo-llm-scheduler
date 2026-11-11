@@ -99,6 +99,16 @@ crossover plus mutation:
 ``V3_GUIDED_DIR_NB``      ``V1`` plus up to two neighbour-incumbent paths per
                           rebuilt Job
 ========================  ====================================================
+
+Cost-control arms (``COST_ARMS``, user 2026-11-11, from the F3 result; all build on
+the neutral ``V2`` variant and also record both paths per budget decile):
+
+============================  ================================================
+``G8_GUIDED_RAND``            ``V2_GUIDED_RAND`` repeated, with the extra records
+``G4_GUIDED_RAND_D4``         only four destroyed Jobs per rebuild
+``GS_GUIDED_RAND_SWITCH``     probability follows the decayed HV gain per second
+                              of the guided path against the ordinary path
+============================  ================================================
 """
 
 from collections.abc import Callable
@@ -110,7 +120,11 @@ from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import s4_decouple
 from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.decoder_refine import weight_class
-from geo_llm_scheduler.lsv2.guided_variation import GuidedOptions, GuidedVariation
+from geo_llm_scheduler.lsv2.guided_variation import (
+    DEFAULT_CLOCK,
+    GuidedOptions,
+    GuidedVariation,
+)
 from geo_llm_scheduler.lsv2.moead_search import MoeadMixin, MoeadOptions, with_moead
 from geo_llm_scheduler.lsv2.search import LSV2Config, LSV2Search
 from geo_llm_scheduler.moead.core import weights
@@ -136,6 +150,7 @@ WIDEN_ARMS = ("N9_P1_FLOWWIDE", "N10_P1_P4R3_BANDIT_FLOWWIDE")
 SPACE_ARMS = ("R1_P1_RANDPOINT", "G1_P1_GP", "E2_P1_EQM", "GE3_P1_GP_EQM")
 INVEST_ARMS = ("X1_EXTEND", "X1R_RANDEXT", "X2_PROBE", "X2L_L1")
 GUIDED_ARMS = ("V1_GUIDED_DIR", "V2_GUIDED_RAND", "V3_GUIDED_DIR_NB")
+COST_ARMS = ("G8_GUIDED_RAND", "G4_GUIDED_RAND_D4", "GS_GUIDED_RAND_SWITCH")
 EXTRA_ARMS = (
     ARMS
     + COMBO_ARMS
@@ -146,6 +161,7 @@ EXTRA_ARMS = (
     + SPACE_ARMS
     + INVEST_ARMS
     + GUIDED_ARMS
+    + COST_ARMS
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -244,6 +260,20 @@ _GUIDED = {
     "V2_GUIDED_RAND": GuidedOptions(direction_aware=False),
     "V3_GUIDED_DIR_NB": GuidedOptions(neighbor_paths=True),
 }
+_GUIDED.update(
+    {
+        # F3 cost-control arms (2026-11-11): the neutral V2 variant with path recording
+        # (``G8`` repeats ``V2_GUIDED_RAND``; only the records differ), a fixed 4 destroyed
+        # Jobs, and a probability that follows the paths' decayed HV gain per second.
+        "G8_GUIDED_RAND": GuidedOptions(direction_aware=False, record_paths=True),
+        "G4_GUIDED_RAND_D4": GuidedOptions(
+            direction_aware=False, destroy_count=4, record_paths=True
+        ),
+        "GS_GUIDED_RAND_SWITCH": GuidedOptions(
+            direction_aware=False, controller="switch", record_paths=True
+        ),
+    }
+)
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GUIDED})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
@@ -337,7 +367,7 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
     guided = guided_options(arm)
     if guided is not None:
         # Only guided arms carry this key; every other arm's record is unchanged.
-        record["guided"] = asdict(guided)
+        record["guided"] = guided.record()
     return record
 
 
@@ -350,12 +380,14 @@ def run_arm(
     *,
     observer: Callable[[str, dict], None] | None = None,
     search_sink: Callable[[LSV2Search], None] | None = None,
+    guided_timer: Callable[[], float] | None = None,
 ) -> RunResult:
     """Charge initialization, learning, refinement and the terminal sweep to one run.
 
     For ``M5_P2B`` every offspring slot first sets the gateway refine class from
     the processed subproblem's Bill weight, so the decoder is a deterministic
-    function of the genotype and the class.
+    function of the genotype and the class. ``guided_timer`` replaces the private clock
+    of the guided-variation recorder/controller (tests inject a deterministic clock).
     """
     search = make_search(arm, config, calibration)
     if search_sink is not None:
@@ -375,7 +407,13 @@ def run_arm(
     guided_arm = guided_options(arm)
     guided = None
     if guided_arm is not None:
-        guided = GuidedVariation(config, guided_arm, gain_probe=search.last_gain)
+        guided = GuidedVariation(
+            config,
+            guided_arm,
+            gain_probe=search.last_gain,
+            terminal_probe=search.in_terminal,
+            timer=guided_timer or DEFAULT_CLOCK,
+        )
         search.guided = guided
     return run_policy(
         problem,
@@ -385,6 +423,7 @@ def run_arm(
         observer=observe if (weighted or observer is not None) else None,
         interleave=search,
         guided_offspring=guided,
+        ordinary_path=guided.ordinary if guided is not None and guided.options.timed else None,
     )
 
 
@@ -399,6 +438,7 @@ __all__ = [
     "SPACE_ARMS",
     "INVEST_ARMS",
     "GUIDED_ARMS",
+    "COST_ARMS",
     "EXTRA_ARMS",
     "NO_LS",
     "PROTOCOL",

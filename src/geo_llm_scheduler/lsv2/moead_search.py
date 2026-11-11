@@ -276,6 +276,10 @@ class MoeadMixin:
         self._last_gain = 0.0
         self.guided: Any = None
 
+    def in_terminal(self) -> bool:
+        """Whether the terminal (last-5%) sweep has started; its gains are not evolution's."""
+        return bool(self.terminal_started is not None)  # type: ignore[attr-defined]
+
     def last_gain(self) -> float:
         """Frozen-frame HV gain of the most recent evaluated candidate (0 if none)."""
         return self._last_gain

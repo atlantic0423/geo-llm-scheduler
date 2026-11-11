@@ -5,7 +5,7 @@ import json
 import sys
 import time
 from collections import Counter
-from dataclasses import asdict, replace
+from dataclasses import replace
 from pathlib import Path
 from random import Random
 
@@ -60,8 +60,14 @@ def test_options_validate_and_arms_are_declared_without_touching_other_records()
     for arm in s4_moead.EXTRA_ARMS:
         record = s4_moead.configuration_record(arm, s4_moead.arm_config(arm, 7, 1200), CAL)
         assert s4_moead.arm_config(arm, 7, 1200) == cfg
-        if arm in s4_moead.GUIDED_ARMS:
-            assert record["guided"] == asdict(s4_moead.guided_options(arm))
+        if arm in s4_moead.GUIDED_ARMS + s4_moead.COST_ARMS:
+            assert record["guided"] == s4_moead.guided_options(arm).record()
+            if arm in s4_moead.GUIDED_ARMS:  # first-batch record bytes unchanged
+                assert set(record["guided"]) == set(gv.BASE_OPTION_FIELDS)
+            else:
+                assert set(record["guided"]) == set(gv.BASE_OPTION_FIELDS) | set(
+                    gv.EXTRA_OPTION_DEFAULTS
+                )
             rest = {k: v for k, v in record.items() if k not in ("guided", "arm")}
             assert rest == {k: v for k, v in control.items() if k != "arm"}
         else:
@@ -311,7 +317,7 @@ def test_guided_arms_repeat_exactly_and_book_children_as_evolution(monkeypatch, 
     counts = first[0].gateway.counts
     assert counts["exact:structural"] >= guided_exact  # origin stays "structural"
     assert not any(k.startswith("exact:F3") for k in counts)
-    assert f3["options"] == asdict(s4_moead.guided_options(arm)) | {"probability": 0.5}
+    assert f3["options"] == replace(s4_moead.guided_options(arm), probability=0.5).record()
 
 
 def test_runner_writes_the_f3_record(tmp_path):

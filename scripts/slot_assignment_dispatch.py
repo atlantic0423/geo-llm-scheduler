@@ -44,8 +44,8 @@ def pending_tasks(root: Path, manifest: dict, runner: Any) -> list[tuple[str, st
     tasks = []
     for key in manifest["blocks"]:
         spec = json.loads((root / "specs" / (key + ".json")).read_text())
-        assert set(spec["order"]) == set(manifest["arms"]) and len(spec["order"]) == len(
-            manifest["arms"]
+        assert set(spec["order"]) <= set(manifest["arms"]) and len(spec["order"]) == len(
+            set(spec["order"])
         )
         for arm in spec["order"]:
             if not runner.complete(root, key, arm, manifest["source"]):

@@ -79,6 +79,7 @@ def run(
         Candidate | None,
     ]
     | None = None,
+    ordinary_path: Callable[[Callable[[], Candidate]], Candidate] | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -107,6 +108,10 @@ def run(
     the usual crossover-plus-mutation child. It may return an exact-evaluated child
     (used instead) or ``None`` to fall back to the unchanged variation path. It owns
     its streams; omitting it creates no stream and preserves every draw.
+    ``ordinary_path`` is an opt-in observation seam around the usual variation child:
+    it receives a thunk that builds and exact-evaluates that child and must return
+    its result (it may time or count it, but must not consume algorithm streams).
+    The engine reads no clock for it; omitting it preserves every path.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -246,19 +251,22 @@ def run(
                 if guided_offspring is not None
                 else None
             )
-            child = (
-                guided_child
-                if guided_child is not None
-                else create_offspring(
-                    population,
-                    i,
-                    neighbors[i],
-                    config,
-                    gateway,
-                    streams,
-                    observer=observe_structure if observer is not None else None,
-                )
-            )
+            if guided_child is not None:
+                child = guided_child
+            else:
+
+                def ordinary_child(i: int = i) -> Candidate:
+                    return create_offspring(
+                        population,
+                        i,
+                        neighbors[i],
+                        config,
+                        gateway,
+                        streams,
+                        observer=observe_structure if observer is not None else None,
+                    )
+
+                child = ordinary_path(ordinary_child) if ordinary_path else ordinary_child()
             offspring_route = child.origin
             context = NormalizationContext(gateway.ideal, maximum(population))
             previous = population[i]
