@@ -254,7 +254,7 @@ def polish_modes(out: Path) -> set[str]:
     return {r["diagnostics"]["mode"] for r in rows if isinstance(r.get("diagnostics"), dict)}
 
 
-def worker(root: Path, key: str, arm: str, cpu: int) -> None:
+def worker(root: Path, key: str, arm: str, cpu: int, *, regional_observation: bool = False) -> None:
     """Run one sealed paired task, cross-check initializer, power model and neighborhood."""
     os.sched_setaffinity(0, {cpu})
     m = _read(root / "manifest.json")
@@ -284,6 +284,7 @@ def worker(root: Path, key: str, arm: str, cpu: int) -> None:
         seconds=s["seconds"],
         calibration=cal,
         campaign_output=True,
+        **({"regional_observation": True} if regional_observation else {}),
     )
     cfg = _read(out / "config.json")
     assert cfg["source"]["commit"] == m["commit"] and cfg["source"]["status"] == ""

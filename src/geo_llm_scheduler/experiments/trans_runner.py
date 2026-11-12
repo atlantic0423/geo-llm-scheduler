@@ -15,6 +15,7 @@ from time import perf_counter
 from geo_llm_scheduler.engine.evaluation import EvaluationGateway
 from geo_llm_scheduler.evaluation.exact import evaluate
 from geo_llm_scheduler.experiments import ext_hybrid, s4_ablation, s4_c4, s4_decouple, s4_moead
+from geo_llm_scheduler.experiments.r1_observation import RegionalObserver
 from geo_llm_scheduler.experiments.trans_cmoeaaop import run_cmoeaaop
 from geo_llm_scheduler.experiments.trans_cmoeacd import run_cmoeacd
 from geo_llm_scheduler.experiments.trans_cmoflcs import run_cmoflcs
@@ -79,6 +80,7 @@ def run_case(
     max_generations: int | None = None,
     wait_genes: bool = True,
     campaign_output: bool = False,
+    regional_observation: bool = False,
 ) -> dict:
     """Run a single non-overwriting case, persist exact schedules and independent audit.
 
@@ -98,6 +100,9 @@ def run_case(
     budget = seconds if seconds is not None else s4_ablation.BUDGETS[len(problem.jobs)]
     if budget <= 0 or not float("-inf") < budget < float("inf"):
         raise ValueError("Finite positive budget required")
+    if regional_observation and algorithm != "GS4_GUIDED_RAND_SWITCH_D4":
+        raise ValueError("Regional observation is frozen to the GS4 working version")
+    regional = RegionalObserver(budget, seed) if regional_observation else None
     if (algorithm in s4_ablation.ARMS or algorithm in extra) and (
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
@@ -148,6 +153,8 @@ def run_case(
             handle.write(json.dumps(data, allow_nan=False) + "\n")
 
     def observe(event: str, data: dict) -> None:
+        if regional is not None:
+            regional(event, data)
         if "gateway" in data:
             report(data["gateway"])
 
@@ -180,7 +187,7 @@ def run_case(
                 calibration,
                 evidence,
                 search_sink=searches.append,
-                observer=observe if campaign_output else None,
+                observer=observe if (campaign_output or regional is not None) else None,
             )
             gateway, population, trace, elapsed = (
                 result.gateway,
@@ -239,6 +246,14 @@ def run_case(
         artifact("archive", [asdict(c) for c in gateway.archive.members])
         artifact("native_population", [asdict(c) for c in population])
         artifact("trace", trace)
+        if regional is not None:
+            artifact(
+                "regional_observation",
+                {
+                    **regional.record(),
+                    "engine_observer_seconds": result.observer_seconds,
+                },
+            )
         summary = {
             "status": "complete",
             "algorithm": algorithm,
