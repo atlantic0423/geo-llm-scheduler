@@ -118,6 +118,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import ProblemInstance
 from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import s4_decouple
+from geo_llm_scheduler.experiments.r1_online import R1Options, RegionalBlockMixer
 from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.decoder_refine import weight_class
 from geo_llm_scheduler.lsv2.guided_variation import (
@@ -169,6 +170,7 @@ EXTRA_ARMS = (
     + GUIDED_ARMS
     + COST_ARMS
     + tuple(POLICIES)
+    + ("R1A_GS4", "R1P_GS4")
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -289,6 +291,11 @@ _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] = GuidedOptions(
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GUIDED})
 _GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in POLICIES})
 _OPTIONS.update({arm: replace(_OPTIONS["N7_P1_SHARE"], terminal_gate=arm) for arm in POLICIES})
+# Online R1 (2026-11-13): the GS4 working version plus regional-block mixing,
+# archive-only (R1A) or also replacing population members (R1P).
+_R1 = {"R1A_GS4": R1Options(mode="archive"), "R1P_GS4": R1Options(mode="population")}
+_GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in _R1})
+_OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _R1})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -386,6 +393,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
     if guided is not None:
         # Only guided arms carry this key; every other arm's record is unchanged.
         record["guided"] = guided.record()
+    if arm in _R1:
+        record["r1"] = asdict(_R1[arm])
     return record
 
 
@@ -399,6 +408,7 @@ def run_arm(
     observer: Callable[[str, dict], None] | None = None,
     search_sink: Callable[[LSV2Search], None] | None = None,
     guided_timer: Callable[[], float] | None = None,
+    r1_sink: Callable[[RegionalBlockMixer], None] | None = None,
 ) -> RunResult:
     """Charge initialization, learning, refinement and the terminal sweep to one run.
 
@@ -433,6 +443,9 @@ def run_arm(
             timer=guided_timer or DEFAULT_CLOCK,
         )
         search.guided = guided
+    mixer = RegionalBlockMixer(problem, _R1[arm]) if arm in _R1 else None
+    if mixer is not None and r1_sink is not None:
+        r1_sink(mixer)
     return run_policy(
         problem,
         "BILL_PERMUTED",
@@ -442,6 +455,7 @@ def run_arm(
         interleave=search,
         guided_offspring=guided,
         ordinary_path=guided.ordinary if guided is not None and guided.options.timed else None,
+        post_replacement=mixer,
     )
 
 

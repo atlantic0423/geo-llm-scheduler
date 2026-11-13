@@ -80,6 +80,18 @@ def run(
     ]
     | None = None,
     ordinary_path: Callable[[Callable[[], Candidate]], Candidate] | None = None,
+    post_replacement: Callable[
+        [
+            list[Candidate],
+            Candidate,
+            tuple[int, ...],
+            tuple[tuple[float, float], ...],
+            EvaluationGateway,
+            RNGManager,
+        ],
+        None,
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -112,6 +124,10 @@ def run(
     it receives a thunk that builds and exact-evaluates that child and must return
     its result (it may time or count it, but must not consume algorithm streams).
     The engine reads no clock for it; omitting it preserves every path.
+    ``post_replacement`` is an opt-in charged research seam called after the usual
+    replacement with ``(population, child, replacement order, lambdas, gateway,
+    streams)``; it may evaluate candidates and replace members. Omitting it
+    preserves every path.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -336,6 +352,13 @@ def run(
             replaced = replace_neighbors(
                 population, child, replacement_order, lambdas, context, config.replacement_cap
             )
+            if post_replacement is not None:
+                try:
+                    post_replacement(
+                        population, child, tuple(replacement_order), lambdas, gateway, streams
+                    )
+                except EvaluationCapReached:
+                    return finish("exact_evaluation_cap")
             improved = less(
                 context.scalar(population[i], lambdas[i]),
                 context.scalar(previous, lambdas[i]),

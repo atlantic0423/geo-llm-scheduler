@@ -103,6 +103,7 @@ def run_case(
     if regional_observation and algorithm != "GS4_GUIDED_RAND_SWITCH_D4":
         raise ValueError("Regional observation is frozen to the GS4 working version")
     regional = RegionalObserver(budget, seed) if regional_observation else None
+    mixers: list = []
     if (algorithm in s4_ablation.ARMS or algorithm in extra) and (
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
@@ -180,6 +181,7 @@ def run_case(
                 s4_study.configuration_record(algorithm, cfg, calibration),
             )
             searches: list[LSV2Search] = []
+            r1_kwargs = {"r1_sink": mixers.append} if algorithm in ("R1A_GS4", "R1P_GS4") else {}
             result = s4_study.run_arm(
                 problem,
                 algorithm,
@@ -188,6 +190,7 @@ def run_case(
                 evidence,
                 search_sink=searches.append,
                 observer=observe if (campaign_output or regional is not None) else None,
+                **r1_kwargs,
             )
             gateway, population, trace, elapsed = (
                 result.gateway,
@@ -246,6 +249,8 @@ def run_case(
         artifact("archive", [asdict(c) for c in gateway.archive.members])
         artifact("native_population", [asdict(c) for c in population])
         artifact("trace", trace)
+        if mixers:
+            artifact("r1_online", mixers[0].record())
         if regional is not None:
             artifact(
                 "regional_observation",
