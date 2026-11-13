@@ -19,12 +19,15 @@ def create_offspring(
     streams: RNGManager,
     *,
     observer: Callable[[str, dict], None] | None = None,
+    global_pool: tuple[int, ...] | None = None,
 ) -> Candidate:
     """Evaluate one child; CT retains the whole incumbent schedule, CG rebuilds it.
 
     The paired controls clone the current birth subproblem's incumbent. Both use
     the same independent routing stream and still consume an exact evaluation.
     Disabled routing creates no extra stream and preserves legacy variation draws.
+    ``global_pool`` replaces the whole population as the mating pool used when the
+    neighbor-probability draw fails (same draws); None keeps the whole population.
     """
     if config.offspring_policy != "variation":
         if streams.stream("P2:clone").random() < config.clone_probability:
@@ -36,7 +39,9 @@ def create_offspring(
             return gateway.evaluate(incumbent.genotype, origin="clone_genotype")
     rng = streams.stream("variation")
     pool = (
-        neighbors if rng.random() < config.neighbor_probability else tuple(range(len(population)))
+        neighbors
+        if rng.random() < config.neighbor_probability
+        else (tuple(range(len(population))) if global_pool is None else global_pool)
     )
     a, b = rng.sample(pool, 2)
     target = reproduce(gateway.problem, population[a].genotype, population[b].genotype, config, rng)

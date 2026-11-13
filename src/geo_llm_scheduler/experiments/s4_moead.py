@@ -121,6 +121,7 @@ from geo_llm_scheduler.experiments import s4_decouple
 from geo_llm_scheduler.experiments.gap_allocation import GapAllocator, GapOptions
 from geo_llm_scheduler.experiments.r1_online import R1Options, RegionalBlockMixer
 from geo_llm_scheduler.experiments.rl23 import run_policy
+from geo_llm_scheduler.experiments.segment_topology import SegmentOptions, SegmentTopology
 from geo_llm_scheduler.lsv2.decoder_refine import weight_class
 from geo_llm_scheduler.lsv2.guided_variation import (
     DEFAULT_CLOCK,
@@ -173,6 +174,7 @@ EXTRA_ARMS = (
     + tuple(POLICIES)
     + ("R1A_GS4", "R1P_GS4")
     + ("A1_GAP_GS4", "A0_SHUF_GS4")
+    + ("S3_SEG_GS4", "I3_ISL_GS4")
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -304,6 +306,12 @@ _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _R1})
 _GAP = {"A1_GAP_GS4": GapOptions(mode="gap"), "A0_SHUF_GS4": GapOptions(mode="shuffled")}
 _GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in _GAP})
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GAP})
+_SEG = {
+    "S3_SEG_GS4": SegmentOptions(mode="contiguous", segments=3),
+    "I3_ISL_GS4": SegmentOptions(mode="interleaved", segments=3),
+}
+_GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in _SEG})
+_OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _SEG})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -405,6 +413,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["r1"] = asdict(_R1[arm])
     if arm in _GAP:
         record["gap_allocation"] = asdict(_GAP[arm])
+    if arm in _SEG:
+        record["segment_topology"] = asdict(_SEG[arm])
     return record
 
 
@@ -460,6 +470,10 @@ def run_arm(
     allocator = GapAllocator(_GAP[arm]) if arm in _GAP else None
     if allocator is not None and gap_sink is not None:
         gap_sink(allocator)
+    topology = SegmentTopology(_SEG[arm]) if arm in _SEG else None
+    if topology is not None:
+        # LS reflow replaces inside the same segmented neighborhoods as offspring.
+        search.neighbors = topology(lambdas, config.neighborhood)[0]
     return run_policy(
         problem,
         "BILL_PERMUTED",
@@ -471,6 +485,7 @@ def run_arm(
         ordinary_path=guided.ordinary if guided is not None and guided.options.timed else None,
         post_replacement=mixer if mixer is not None else allocator,
         traversal=allocator.order if allocator is not None else None,
+        topology=topology,
     )
 
 

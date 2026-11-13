@@ -347,6 +347,7 @@ def test_combination_arms_add_only_regions_and_the_record_only_trace():
         + tuple(s4_moead.POLICIES)
         + ("R1A_GS4", "R1P_GS4")
         + ("A1_GAP_GS4", "A0_SHUF_GS4")
+        + ("S3_SEG_GS4", "I3_ISL_GS4")
     )
     p1 = s4_moead.options("M2_P1_T05")
     assert s4_moead.options("N0_P1") == replace(p1, trace=True)

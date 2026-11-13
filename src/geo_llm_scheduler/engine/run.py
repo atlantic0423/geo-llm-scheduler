@@ -103,6 +103,11 @@ def run(
         list[int],
     ]
     | None = None,
+    topology: Callable[
+        [tuple[tuple[float, float], ...], int],
+        tuple[tuple[tuple[int, ...], ...], tuple[tuple[int, ...], ...]],
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -143,6 +148,11 @@ def run(
     start with ``(generation, population, lambdas, gateway, streams)``; it returns
     the subproblem indices to visit this generation (any length, repeats allowed)
     and owns its streams. Omitting it keeps the shuffled full traversal and its draw.
+    ``topology`` is an opt-in research seam called once with ``(lambdas,
+    neighborhood size)``; it returns each subproblem's mating/replacement
+    neighborhood and its global mating pool (used instead of the whole population
+    when the neighbor-probability draw fails). It draws no random numbers.
+    Omitting it keeps the Euclidean neighborhoods and the whole-population pool.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -196,7 +206,13 @@ def run(
         raise ValueError("Frozen initialization size does not match population")
     gateway.seconds["initialization"] += perf_counter() - initialization_start
     lambdas = weights(config.population)
-    neighbors = neighborhoods(lambdas, config.neighborhood)
+    pools: tuple[tuple[int, ...], ...] | None = None
+    if topology is None:
+        neighbors = neighborhoods(lambdas, config.neighborhood)
+    else:
+        neighbors, pools = topology(lambdas, config.neighborhood)
+        if len(neighbors) != config.population or len(pools) != config.population:
+            raise ValueError("Topology must cover every subproblem")
     trace: list[dict] = []
     controller = Controller(config)
     stagnation = [0] * config.population
@@ -300,6 +316,7 @@ def run(
                         gateway,
                         streams,
                         observer=observe_structure if observer is not None else None,
+                        global_pool=pools[i] if pools is not None else None,
                     )
 
                 child = ordinary_path(ordinary_child) if ordinary_path else ordinary_child()
