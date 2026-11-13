@@ -57,7 +57,7 @@ def test_options_validate_and_arms_are_declared_without_touching_other_records()
     assert set(s4_moead.GUIDED_ARMS) <= set(s4_moead.EXTRA_ARMS)
     cfg = s4_moead.arm_config("N7_P1_SHARE", 7, 1200)
     control = s4_moead.configuration_record("N7_P1_SHARE", cfg, CAL)
-    R1 = ("R1A_GS4", "R1P_GS4")
+    R1 = ("R1A_GS4", "R1P_GS4", "A1_GAP_GS4", "A0_SHUF_GS4")
     for arm in s4_moead.EXTRA_ARMS:
         record = s4_moead.configuration_record(arm, s4_moead.arm_config(arm, 7, 1200), CAL)
         assert s4_moead.arm_config(arm, 7, 1200) == cfg
@@ -70,7 +70,9 @@ def test_options_validate_and_arms_are_declared_without_touching_other_records()
                     gv.EXTRA_OPTION_DEFAULTS
                 )
             rest = {
-                k: v for k, v in record.items() if k not in ("guided", "arm", "terminal_gate", "r1")
+                k: v
+                for k, v in record.items()
+                if k not in ("guided", "arm", "terminal_gate", "r1", "gap_allocation")
             }
             assert rest == {k: v for k, v in control.items() if k != "arm"}
             if arm in s4_moead.POLICIES:

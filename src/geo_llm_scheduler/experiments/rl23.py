@@ -28,6 +28,7 @@ def run_policy(
     guided_offspring: Callable[..., Candidate | None] | None = None,
     ordinary_path: Callable[[Callable[[], Candidate]], Candidate] | None = None,
     post_replacement: Callable[..., None] | None = None,
+    traversal: Callable[..., list[int]] | None = None,
 ) -> RunResult:
     """Charge common BILL4 initialization; keep study policies outside engine defaults.
 
@@ -101,6 +102,7 @@ def run_policy(
         guided_offspring=guided_offspring,
         ordinary_path=ordinary_path,
         post_replacement=post_replacement,
+        traversal=traversal,
     )
 
 

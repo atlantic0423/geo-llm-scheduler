@@ -104,6 +104,7 @@ def run_case(
         raise ValueError("Regional observation is frozen to the GS4 working version")
     regional = RegionalObserver(budget, seed) if regional_observation else None
     mixers: list = []
+    allocators: list = []
     if (algorithm in s4_ablation.ARMS or algorithm in extra) and (
         calibration is None or not {"rho", "h", "w_cutoff"} <= calibration.keys()
     ):
@@ -181,7 +182,11 @@ def run_case(
                 s4_study.configuration_record(algorithm, cfg, calibration),
             )
             searches: list[LSV2Search] = []
-            r1_kwargs = {"r1_sink": mixers.append} if algorithm in ("R1A_GS4", "R1P_GS4") else {}
+            r1_kwargs: dict = (
+                {"r1_sink": mixers.append} if algorithm in ("R1A_GS4", "R1P_GS4") else {}
+            )
+            if algorithm in ("A1_GAP_GS4", "A0_SHUF_GS4"):
+                r1_kwargs["gap_sink"] = allocators.append
             result = s4_study.run_arm(
                 problem,
                 algorithm,
@@ -251,6 +256,8 @@ def run_case(
         artifact("trace", trace)
         if mixers:
             artifact("r1_online", mixers[0].record())
+        if allocators:
+            artifact("gap_allocation", allocators[0].record())
         if regional is not None:
             artifact(
                 "regional_observation",

@@ -92,6 +92,17 @@ def run(
         None,
     ]
     | None = None,
+    traversal: Callable[
+        [
+            int,
+            list[Candidate],
+            tuple[tuple[float, float], ...],
+            EvaluationGateway,
+            RNGManager,
+        ],
+        list[int],
+    ]
+    | None = None,
 ) -> RunResult:
     """Execute generations; optional synchronous observers never own algorithm RNGs.
 
@@ -128,6 +139,10 @@ def run(
     replacement with ``(population, child, replacement order, lambdas, gateway,
     streams)``; it may evaluate candidates and replace members. Omitting it
     preserves every path.
+    ``traversal`` is an opt-in charged research seam called at every generation
+    start with ``(generation, population, lambdas, gateway, streams)``; it returns
+    the subproblem indices to visit this generation (any length, repeats allowed)
+    and owns its streams. Omitting it keeps the shuffled full traversal and its draw.
     """
     if initial is not None and initializer is not None:
         raise ValueError("Choose initial genotypes or a charged initializer")
@@ -222,8 +237,13 @@ def run(
         )
 
     for generation in range(config.generations):
-        order = list(range(config.population))
-        streams.stream("traversal").shuffle(order)
+        if traversal is None:
+            order = list(range(config.population))
+            streams.stream("traversal").shuffle(order)
+        else:
+            order = traversal(generation, population, lambdas, gateway, streams)
+            if not all(0 <= i < config.population for i in order):
+                raise ValueError("Traversal returned an invalid subproblem")
         for i in order:
             if config.seconds is not None and budget_elapsed() >= config.seconds:
                 return finish("time_budget")

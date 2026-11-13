@@ -118,6 +118,7 @@ from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import ProblemInstance
 from geo_llm_scheduler.engine.run import RunResult
 from geo_llm_scheduler.experiments import s4_decouple
+from geo_llm_scheduler.experiments.gap_allocation import GapAllocator, GapOptions
 from geo_llm_scheduler.experiments.r1_online import R1Options, RegionalBlockMixer
 from geo_llm_scheduler.experiments.rl23 import run_policy
 from geo_llm_scheduler.lsv2.decoder_refine import weight_class
@@ -171,6 +172,7 @@ EXTRA_ARMS = (
     + COST_ARMS
     + tuple(POLICIES)
     + ("R1A_GS4", "R1P_GS4")
+    + ("A1_GAP_GS4", "A0_SHUF_GS4")
 )
 PROTOCOL = "s4-b2-moead/v1"
 TIMING_OPS = ("A7", "A8")
@@ -296,6 +298,12 @@ _OPTIONS.update({arm: replace(_OPTIONS["N7_P1_SHARE"], terminal_gate=arm) for ar
 _R1 = {"R1A_GS4": R1Options(mode="archive"), "R1P_GS4": R1Options(mode="population")}
 _GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in _R1})
 _OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _R1})
+# Front-gap reproduction allocation (2026-11-13): the GS4 working version with
+# subproblem slots sampled by Archive gap area (A1) or by the same probabilities
+# shuffled across subproblems (A0, matched control).
+_GAP = {"A1_GAP_GS4": GapOptions(mode="gap"), "A0_SHUF_GS4": GapOptions(mode="shuffled")}
+_GUIDED.update({arm: _GUIDED["GS4_GUIDED_RAND_SWITCH_D4"] for arm in _GAP})
+_OPTIONS.update({arm: _OPTIONS["N7_P1_SHARE"] for arm in _GAP})
 _TERMINAL = {"M3_P1_T10": 0.10}
 
 
@@ -395,6 +403,8 @@ def configuration_record(arm: str, config: Config, calibration: dict) -> dict:
         record["guided"] = guided.record()
     if arm in _R1:
         record["r1"] = asdict(_R1[arm])
+    if arm in _GAP:
+        record["gap_allocation"] = asdict(_GAP[arm])
     return record
 
 
@@ -409,6 +419,7 @@ def run_arm(
     search_sink: Callable[[LSV2Search], None] | None = None,
     guided_timer: Callable[[], float] | None = None,
     r1_sink: Callable[[RegionalBlockMixer], None] | None = None,
+    gap_sink: Callable[[GapAllocator], None] | None = None,
 ) -> RunResult:
     """Charge initialization, learning, refinement and the terminal sweep to one run.
 
@@ -446,6 +457,9 @@ def run_arm(
     mixer = RegionalBlockMixer(problem, _R1[arm]) if arm in _R1 else None
     if mixer is not None and r1_sink is not None:
         r1_sink(mixer)
+    allocator = GapAllocator(_GAP[arm]) if arm in _GAP else None
+    if allocator is not None and gap_sink is not None:
+        gap_sink(allocator)
     return run_policy(
         problem,
         "BILL_PERMUTED",
@@ -455,7 +469,8 @@ def run_arm(
         interleave=search,
         guided_offspring=guided,
         ordinary_path=guided.ordinary if guided is not None and guided.options.timed else None,
-        post_replacement=mixer,
+        post_replacement=mixer if mixer is not None else allocator,
+        traversal=allocator.order if allocator is not None else None,
     )
 
 
