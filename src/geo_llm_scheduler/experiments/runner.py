@@ -8,6 +8,8 @@ import subprocess
 from dataclasses import asdict, replace
 from pathlib import Path
 
+import yaml
+
 from geo_llm_scheduler.config import Config, load_config
 from geo_llm_scheduler.domain.models import Candidate
 from geo_llm_scheduler.engine.run import RunResult, run
@@ -207,8 +209,22 @@ def save_result(result: RunResult, config: Config, instance_hash: str, output: P
     return summary
 
 
-def run_config(path: str | Path, seed: int | None = None, output: str | None = None) -> dict:
+def run_config(
+    path: str | Path,
+    seed: int | None = None,
+    output: str | None = None,
+    **default_overrides: object,
+) -> dict:
     """Load config and instance, run once, and save artifacts to an identifiable directory."""
+    data = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+    if isinstance(data, dict) and "profile" in data:
+        from geo_llm_scheduler.default_algorithm import run_default_config
+
+        return run_default_config(data, seed=seed, output=output, **default_overrides)
+    if any(value is not None for value in default_overrides.values()):
+        raise ValueError(
+            "Instance/calibration/seconds overrides require the working default profile"
+        )
     config = load_config(path)
     if seed is not None:
         config = replace(config, seed=seed)

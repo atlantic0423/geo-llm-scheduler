@@ -1,5 +1,19 @@
 # Geo-distributed LLM Prefill–Decode Scheduling
 
+## 当前默认算法（2026-11-16）
+
+当前默认采用 **收益反馈引导重建 + 自适应局部搜索时间分配 + 末段档案精修**，即已有工作版 B2 + P1 + N7 + GS4。内部标识 `GS4_GUIDED_RAND_SWITCH_D4`。不指定 `--config` 的主 CLI 直接运行该版本；`configs/default.yaml` 指向同一配置。完整行为、校准要求、默认时间预算和历史复现方式见 [默认算法规格](docs/default_algorithm.md)。
+
+```powershell
+python -m geo_llm_scheduler.cli.run --instance path/to/instance.json --calibration path/to/frozen_calibration.json --output outputs/new_run --seed 1
+```
+
+输入与校准必须显式指定；默认 50/100/200 任务分别使用含初始化的 600/1200/2400 秒。输出目录不得已存在。采用默认不等于新增独立确认实验；本次没有启动服务器实验。
+
+## 历史核心与实验入口
+
+下列旧 `full_method.yaml`、42×8 Q-table、十类初始化和早期实验说明保留用于复现；不表示当前默认组合。原核心默认 YAML 保存为 `configs/legacy_core.yaml`。
+
 E15 待验证实验的矩阵、预算策略、配对实例和恢复协议见 [E15 实验协议](docs/reports/e15_experimental_protocol.md)。
 
 静态离线、多区域 LLM 两阶段调度研究实现。每个 Job 先 Prefill 后 Decode，同 Region，可跨实例传输 KV；实例允许满足 Compute/VRAM 累计容量的并发。双目标为总 Flow Time 与连续 TOU + 固定 900 秒 Demand 费用。

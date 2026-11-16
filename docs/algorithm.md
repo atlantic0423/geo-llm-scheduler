@@ -1,5 +1,7 @@
 # 算法流程
 
+当前默认完整算法见 [默认算法规格](default_algorithm.md)。本页下列流程为历史核心接口参考；十类初始化、42×8 Q 表和旧 Trigger 不能代表当前 B2 + P1 + N7 + GS4 默认组合。
+
 ## 初始化与 MOEA/D
 
 FCFS/SPT/LPT/Random OS 各配 MinLoad/Random，加 KV-aware、Energy-aware，共十类初始化近似均分配额。扰动后 genotype 去重；缺额由随机方法补足，超过明确尝试上限报错。全部个体 SSGS/exact/Archive，随机打乱后对应均匀权重。

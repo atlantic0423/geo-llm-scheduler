@@ -93,7 +93,7 @@ def prepare(root: Path, *, small: bool = False) -> dict:
                 for seed in SEEDS if not stage.startswith("P") else (101,):
                     initial_path = root / "initial_populations" / f"{key}_a{seed}.json"
                     config = replace(
-                        load_config(REPO / "configs" / "default.yaml"),
+                        load_config(REPO / "configs" / "legacy_core.yaml"),
                         seed=seed,
                         instance=str(instance_path),
                     )
@@ -127,7 +127,7 @@ def prepare(root: Path, *, small: bool = False) -> dict:
 def _config(
     path: str, seed: int, arm: str, protocol: str, pilot: dict, selected: str | None
 ) -> Config:
-    base = load_config(REPO / "configs" / "default.yaml")
+    base = load_config(REPO / "configs" / "legacy_core.yaml")
     policy = {"F6": "fixed", "C2": "coverage_v2", "S2": "severity_v2", "SEQ": "sequential"}.get(
         arm, "fixed"
     )
