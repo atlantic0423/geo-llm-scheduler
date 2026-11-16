@@ -34,7 +34,7 @@ class CampaignSettings:
     include_optional_macro_arms: bool = False
     e13_extra_seed_start: int = 404
     e13_extra_seed_stop: int = 9999
-    base_config: str = "configs/default.yaml"
+    base_config: str = "configs/legacy_core.yaml"
     d03_raw_root: str = "outputs/diagnostics/d03_v2/runs"
 
     def __post_init__(self) -> None:

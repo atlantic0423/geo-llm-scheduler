@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "tests": 329,
+  "python": "3.13.5",
+  "overall_coverage": 85.21,
+  "core_coverage": 96.7,
+  "quality_gate": "scripts/validate_all.py",
+  "test_seconds": 126.51,
+  "lint_format_mypy": "passed",
+  "default_against": "9e4a8510fa534f65c5116775a8c90d6cb95505eb",
+  "deterministic_replay": "aeb9824d2e671fe76771297ece91af40576124c930721193c18127cbdb814fa7",
+  "scope": "Local correctness; CI and Linux resource pilot still pending."
+}

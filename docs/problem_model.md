@@ -12,15 +12,20 @@ $$
 F=\sum_i(C_i^D-r_i),\qquad T_{\mathrm{end}}=\max_i C_i^D.
 $$
 
-实例 active union 为 $A_m$；同实例多个并发操作只产生一次 active power。
+实例 active union 为 $A_m$，$t$ 时刻正在运行的操作集合为 $\mathcal R_m(t)$。功率由“忙碌底座”和“随负载变化”两部分组成：
 
 $$
 P_m(t)=\begin{cases}
-P_m^{active},&t\in A_m,\\
+P_m^{idle}+\Delta P_m\Big[\beta+(1-\beta)\sum_{o\in\mathcal R_m(t)}\kappa_{\phi(o)}c_o\Big],&t\in A_m,\\
 P_m^{idle},&0\le t<T_{\mathrm{end}},\ t\notin A_m,\\
-0,&t\ge T_{\mathrm{end}}.
+0,&t\ge T_{\mathrm{end}},
 \end{cases}
+\qquad \Delta P_m=P_m^{active}-P_m^{idle}.
 $$
+
+$c_o$ 是操作的 Compute 份额，$\kappa_P,\kappa_D\in[0,1]$ 是 Prefill、Decode 的负载系数，$\beta\in[0,1]$ 是一旦忙碌就付出的功率份额。容量约束保证 $\sum_{o\in\mathcal R_m(t)}c_o\le1$，所以功率不超过 $P_m^{active}$。$\beta=1$ 时退化为原两状态模型：同实例多个并发操作只产生一次 active power。
+
+依据（2026-11-05 文献调研）：Prefill 计算密集，功率随批内 token 增加；Decode 访存受限，功率对 token 数不敏感；空闲功率约为峰值的 1/7～1/4；合批降低每次生成的能耗。研究默认 $\beta=0.4$、$\kappa_P=1$、$\kappa_D=0.25$，这组值按文献定性结论设定，未经实测拟合；未声明 `power_model` 的输入沿用 $\beta=1$。请求时长不随并发变化，这一简化保留。
 
 $$
 C_{\mathrm{TOU}}=\frac1{3600}\sum_r\int_0^{T_{\mathrm{end}}}c_r(t)\sum_{m\in r}P_m(t)\,dt.
@@ -35,7 +40,9 @@ $$
 
 ## JSON v1
 
-完整例子见 [smoke.json](../examples/smoke.json)。顶层 schema_version=1、units、jobs、regions、instances。Job 包含 name/release/prefill/decode/kv_delay；profile 包含 duration/compute/vram；Region 包含 name/tariffs/demand_rate；tariff 包含 start/end/price；实例包含 name/region/vram/idle_kw/active_kw/phases。
+完整例子见 [smoke.json](../examples/smoke.json)。顶层 schema_version=1、units、jobs、regions、instances，以及可选的 power_model。Job 包含 name/release/prefill/decode/kv_delay；profile 包含 duration/compute/vram；Region 包含 name/tariffs/demand_rate；tariff 包含 start/end/price；实例包含 name/region/vram/idle_kw/active_kw/phases。power_model 若出现，必须恰好包含 beta/kappa_prefill/kappa_decode，取值在 $[0,1]$；`save_instance` 只在非两状态模型时写出该字段，旧文件保存结果逐字节不变。
+
+增量账本 `lsv2.billing.PowerProfile` 把功率拆成“忙碌并集上的底座”和“逐操作的负载”两部分，与 exact 一致。按 `active_kw - idle_kw` 打分的其他启发式（BILL4 初始化、A7、A8、P2 等）目前仍只计忙碌并集，只用于排序；exact 仍是真值。
 
 loader 支持 s/ms/h、kW/W；尽管字段名为 idle_kw/active_kw，原始值仍按 units.power 转换。货币统一使用人民币，JSON 中以 ISO 4217 代码 `CNY` 表示；费用率始终为 CNY/kWh、CNY/kW。其他货币、当地时区需在外部按明确汇率/时区预处理。`save_instance` 输出 s/kW/GB/CNY。
 

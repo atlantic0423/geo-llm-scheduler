@@ -1,0 +1,52 @@
+{
+  "status": "planning_approximation_not_guarantee",
+  "d6_n": 64,
+  "se_ratio": 0.6123724356957945,
+  "model": "Normal paired-base variance approximation; upper SD from chi-square is approximate with nonnormal/heterogeneous data; Bonferroni worst-case for Holm4; no promise of small-effect power",
+  "rows": [
+    {
+      "contrast": "W-REFERENCE",
+      "metric": "hv_diff",
+      "d5_bases": 24,
+      "d5_mean": 0.0293916041342637,
+      "d5_sd": 0.09056468214499135,
+      "sd_one_sided95_upper_approx": 0.1200450985157162,
+      "d6_se_approx": 0.015005637314464524,
+      "worst_case_four_test_normal_80pct_mde": 0.05010872545453202,
+      "normal_power_at_d5_mean_conservative": 0.2949471387544916
+    },
+    {
+      "contrast": "W-REFERENCE",
+      "metric": "igd_plus_gain",
+      "d5_bases": 24,
+      "d5_mean": 0.009330356774552927,
+      "d5_sd": 0.053376738390560625,
+      "sd_one_sided95_upper_approx": 0.07075181700835718,
+      "d6_se_approx": 0.008843977126044648,
+      "worst_case_four_test_normal_80pct_mde": 0.029532929021811868,
+      "normal_power_at_d5_mean_conservative": 0.07474175411674736
+    },
+    {
+      "contrast": "W-LEGACY",
+      "metric": "hv_diff",
+      "d5_bases": 24,
+      "d5_mean": 0.017897817151587125,
+      "d5_sd": 0.09286296764116972,
+      "sd_one_sided95_upper_approx": 0.12309151685751825,
+      "d6_se_approx": 0.015386439607189781,
+      "worst_case_four_test_normal_80pct_mde": 0.051380348721091505,
+      "normal_power_at_d5_mean_conservative": 0.09114808548997089
+    },
+    {
+      "contrast": "W-LEGACY",
+      "metric": "igd_plus_gain",
+      "d5_bases": 24,
+      "d5_mean": 0.008308306954361943,
+      "d5_sd": 0.05982109312782921,
+      "sd_one_sided95_upper_approx": 0.07929392394212965,
+      "d6_se_approx": 0.009911740492766207,
+      "worst_case_four_test_normal_80pct_mde": 0.03309853975011346,
+      "normal_power_at_d5_mean_conservative": 0.048934961009143185
+    }
+  ]
+}

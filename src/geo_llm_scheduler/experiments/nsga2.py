@@ -117,26 +117,42 @@ def run_nsga2(
     *,
     retain_trace: bool = True,
     observer: Callable[[str, dict], None] | None = None,
+    initializer: Callable[[EvaluationGateway, RNGManager], list[Candidate]] | None = None,
+    generation_transform: Callable[[int, list[Candidate], EvaluationGateway, RNGManager], object]
+    | None = None,
 ) -> RunResult:
-    """Run a passive-Archive NSGA-II baseline under a soft wall-clock limit."""
+    """Run NSGA-II; an optional charged initializer executes inside the same clock.
+
+    ``generation_transform`` is an opt-in charged research seam called after the
+    environmental selection of every complete generation; it may refine the
+    population in place. Omitting it preserves the original RNG and search path.
+    """
+    if initial is not None and initializer is not None:
+        raise ValueError("Choose initial genotypes or a charged initializer")
     validate_problem(problem)
     begin = perf_counter()
     streams = RNGManager(config.seed)
-    gateway = EvaluationGateway(problem, Archive(), config.exact_evaluation_cap)
+    gateway = EvaluationGateway(
+        problem, Archive(), config.exact_evaluation_cap, config.decode_cache_size
+    )
     if observer is not None:
         gateway.candidate_sink = lambda candidate: observer(
             "candidate",
             {"candidate": candidate, "gateway": gateway, "elapsed": perf_counter() - begin},
         )
     initialization_start = perf_counter()
-    population = [
-        gateway.evaluate(g, origin="initialization")
-        for g in (
-            initial
-            if initial is not None
-            else initial_genotypes(problem, config, streams.stream("initialization"))
-        )
-    ]
+    population = (
+        initializer(gateway, streams)
+        if initializer is not None
+        else [
+            gateway.evaluate(g, origin="initialization")
+            for g in (
+                initial
+                if initial is not None
+                else initial_genotypes(problem, config, streams.stream("initialization"))
+            )
+        ]
+    )
     gateway.seconds["initialization"] += perf_counter() - initialization_start
     if len(population) != config.population:
         raise ValueError("Frozen initialization size does not match population")
@@ -266,6 +282,15 @@ def run_nsga2(
                 stagnant = {identity(c): stagnant.get(identity(c), 0) for c in population}
         if reason in ("time_budget", "exact_evaluation_cap"):
             break
+        if generation_transform is not None:
+            if config.seconds is not None and perf_counter() - begin >= config.seconds:
+                reason = "time_budget"
+                break
+            try:
+                generation_transform(generation, population, gateway, streams)
+            except EvaluationCapReached:
+                reason = "exact_evaluation_cap"
+                break
     return RunResult(
         population,
         gateway.archive,

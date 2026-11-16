@@ -1,0 +1,53 @@
+         20885510 function calls (20624789 primitive calls) in 12.478 seconds
+
+   Ordered by: cumulative time
+   List reduced from 323 to 45 due to restriction <45>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   12.626   12.626 benchmark_core_performance.py:56(fixed_run)
+        1    0.008    0.008   12.606   12.606 run.py:47(run)
+       18    0.024    0.001    7.080    0.393 trajectory.py:27(improve)
+        1    0.000    0.000    4.674    4.674 comparison13.py:94(initialize)
+      777    0.030    0.000    4.217    0.005 evaluation.py:29(evaluate)
+        1    0.004    0.004    3.839    3.839 initial_bill_mixture.py:260(seed_bank)
+       40    0.322    0.008    3.563    0.089 initial_bill_mixture.py:116(guided_genotype)
+       90    0.005    0.000    2.777    0.031 search.py:52(execute)
+      499    0.002    0.000    2.745    0.006 search.py:93(evaluate_proposal)
+      777    0.583    0.001    2.731    0.004 exact.py:65(evaluate)
+       74    0.009    0.000    2.577    0.035 structural.py:116(propose)
+       40    0.195    0.005    2.454    0.061 structural.py:145(_assignments)
+    38480    1.294    0.000    2.365    0.000 initial_bill_mixture.py:61(trial)
+    86800    0.623    0.000    1.474    0.000 resources.py:22(fits)
+      712    0.066    0.000    1.182    0.002 ssgs.py:8(decode)
+      114    0.044    0.000    1.153    0.010 timing.py:73(packing_moves)
+      108    0.016    0.000    1.153    0.011 severity.py:10(severities)
+    21228    0.787    0.000    1.097    0.000 workload.py:16(region_loads)
+      889    0.052    0.000    1.059    0.001 exact.py:11(violations)
+561779/556927    0.412    0.000    1.033    0.000 {built-in method builtins.sum}
+4252780/4232780    0.646    0.000    0.842    0.000 {built-in method builtins.max}
+   118571    0.353    0.000    0.832    0.000 models.py:78(eligible)
+    22060    0.567    0.000    0.830    0.000 workload.py:6(machine_loads)
+        1    0.002    0.002    0.813    0.813 initial_bill_benchmark.py:22(traced_original)
+    28680    0.079    0.000    0.768    0.000 resources.py:47(earliest)
+   115480    0.609    0.000    0.707    0.000 resources.py:7(intervals)
+     2443    0.103    0.000    0.677    0.000 exact.py:30(power_segments)
+     1601    0.069    0.000    0.649    0.000 validation.py:54(validate_genotype)
+      100    0.002    0.000    0.620    0.006 offspring.py:13(create_offspring)
+    48000    0.372    0.000    0.553    0.000 initial_bill_index.py:29(earliest)
+  3039977    0.552    0.000    0.552    0.000 models.py:73(profile)
+    16734    0.051    0.000    0.525    0.000 timing.py:49(move)
+  1482175    0.449    0.000    0.449    0.000 models.py:81(<genexpr>)
+     5065    0.075    0.000    0.444    0.000 variation.py:9(paths)
+196563/195806    0.174    0.000    0.438    0.000 {built-in method builtins.any}
+    11243    0.036    0.000    0.378    0.000 timing.py:63(pack_gain)
+   232655    0.124    0.000    0.373    0.000 exact.py:43(<genexpr>)
+  1892226    0.295    0.000    0.364    0.000 {built-in method builtins.min}
+      105    0.014    0.000    0.323    0.003 generators.py:10(generate)
+   317691    0.177    0.000    0.296    0.000 {built-in method builtins.sorted}
+     1610    0.027    0.000    0.275    0.000 benchmark_core_performance.py:62(observer)
+    38328    0.227    0.000    0.272    0.000 resources.py:9(intervals)
+  1263250    0.258    0.000    0.258    0.000 {method 'get' of 'dict' objects}
+110519/107441    0.081    0.000    0.250    0.000 {built-in method math.fsum}
+       10    0.003    0.000    0.233    0.023 peak_coalition.py:220(propose)
+
+

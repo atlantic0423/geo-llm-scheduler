@@ -1,0 +1,13 @@
+{
+  "type": "exploratory ratio of equal-base mean gain to mean construction CPU",
+  "reference": 0.19614259763919495,
+  "peak_rank": 0.176589746069575,
+  "relative": -0.09968692066364637,
+  "ci": [
+    -0.12531418178546672,
+    -0.07107013268621648
+  ],
+  "bootstrap": 20000,
+  "seed": 2026100703,
+  "limits": "Proxy only; excludes shared optimizer/exact/Archive/feature/logging costs and changing search state. Not an actual equal-time HV experiment."
+}

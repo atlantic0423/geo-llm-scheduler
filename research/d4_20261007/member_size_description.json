@@ -1,0 +1,9 @@
+{
+  "counts": {
+    "single": 31215,
+    "denied_single": 9583,
+    "multi": 29629,
+    "denied_multi": 50
+  },
+  "scope": "posthoc descriptive; size1 is not necessarily singleton branch"
+}

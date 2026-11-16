@@ -1,0 +1,1680 @@
+{
+  "reference_commit": "b148c4addd207fe30a6b2a43d953a04afc35d3a1",
+  "optimized_canonical_source_hash": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+  "python": "3.13.5 | packaged by Anaconda, Inc. | (main, Jun 12 2025, 16:37:03) [MSC v.1929 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "rows": [
+    {
+      "name": "exact_20_x12",
+      "reference_wall_median": 0.011104999983217567,
+      "optimized_wall_median": 0.004807199991773814,
+      "wall_reduction": 0.5671139127385236,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.011104999983217567,
+            "cpu": 0.0,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          },
+          "optimized": {
+            "wall": 0.004807199991773814,
+            "cpu": 0.0,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.004615899990312755,
+            "cpu": 0.0,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          },
+          "reference": {
+            "wall": 0.010833100008312613,
+            "cpu": 0.015625,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.011525199981406331,
+            "cpu": 0.015625,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          },
+          "optimized": {
+            "wall": 0.005116199958138168,
+            "cpu": 0.0,
+            "digest": "5740db9b788fc4c24e3009a7ec11739592cdb245fb8fb616f22fefff48693c16"
+          }
+        }
+      ]
+    },
+    {
+      "name": "decode_20_x6",
+      "reference_wall_median": 0.001936200016643852,
+      "optimized_wall_median": 0.0013734999811276793,
+      "wall_reduction": 0.2906208194810055,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.001936200016643852,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "optimized": {
+            "wall": 0.0013734999811276793,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0012883999734185636,
+            "cpu": 0.015625,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "reference": {
+            "wall": 0.0019757000263780355,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.0019076999742537737,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "optimized": {
+            "wall": 0.0013964999816380441,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        }
+      ]
+    },
+    {
+      "name": "refresh_20_x6",
+      "reference_wall_median": 0.002395399962551892,
+      "optimized_wall_median": 0.0010953000164590776,
+      "wall_reduction": 0.5427485874666953,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0018079000292345881,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "optimized": {
+            "wall": 0.0011476999497972429,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0010873000137507915,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "reference": {
+            "wall": 0.0025144999963231385,
+            "cpu": 0.015625,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.002395399962551892,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          },
+          "optimized": {
+            "wall": 0.0010953000164590776,
+            "cpu": 0.0,
+            "digest": "2a9576e96c2bc89f98dbd96445dfe00e105a22f3e0c9b84d3042ba55c1576b89"
+          }
+        }
+      ]
+    },
+    {
+      "name": "severity_20",
+      "reference_wall_median": 0.0023573999642394483,
+      "optimized_wall_median": 0.0012018000124953687,
+      "wall_reduction": 0.4902010559404173,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0023573999642394483,
+            "cpu": 0.0,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          },
+          "optimized": {
+            "wall": 0.0012424999731592834,
+            "cpu": 0.0,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0011702000047080219,
+            "cpu": 0.0,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          },
+          "reference": {
+            "wall": 0.0022368000354617834,
+            "cpu": 0.0,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.002413799986243248,
+            "cpu": 0.0,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          },
+          "optimized": {
+            "wall": 0.0012018000124953687,
+            "cpu": 0.015625,
+            "digest": "d5fbea44f1a7619435271b0f63920534dcbfd29b47d6a7f56b8e1bf19c8b0d5e"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A7_20",
+      "reference_wall_median": 0.0028430999955162406,
+      "optimized_wall_median": 0.0014810999855399132,
+      "wall_reduction": 0.47905455739308955,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0028430999955162406,
+            "cpu": 0.0,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          },
+          "optimized": {
+            "wall": 0.0014791000285185874,
+            "cpu": 0.0,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0014810999855399132,
+            "cpu": 0.015625,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          },
+          "reference": {
+            "wall": 0.004155800037551671,
+            "cpu": 0.0,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.002711599983740598,
+            "cpu": 0.0,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          },
+          "optimized": {
+            "wall": 0.001512399991042912,
+            "cpu": 0.0,
+            "digest": "7299e7fe0516a313fcc97c5d8b19ac39844dbd49213dbf9efa654496ab0857ba"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A8_20",
+      "reference_wall_median": 0.006294000020716339,
+      "optimized_wall_median": 0.003919200040400028,
+      "wall_reduction": 0.37731172108353883,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0064427999895997345,
+            "cpu": 0.0,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          },
+          "optimized": {
+            "wall": 0.0037884999765083194,
+            "cpu": 0.0,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.003919200040400028,
+            "cpu": 0.0,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          },
+          "reference": {
+            "wall": 0.006294000020716339,
+            "cpu": 0.015625,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.0059285000315867364,
+            "cpu": 0.0,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          },
+          "optimized": {
+            "wall": 0.004032199969515204,
+            "cpu": 0.0,
+            "digest": "3071d41675f76c026df06487ec9dc2fc7a3b0984101c626b2a77e53ddd8ceb1e"
+          }
+        }
+      ]
+    },
+    {
+      "name": "generate_energy_20",
+      "reference_wall_median": 0.0012034000246785581,
+      "optimized_wall_median": 0.0005216000135987997,
+      "wall_reduction": 0.5665614069285689,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0012034000246785581,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          },
+          "optimized": {
+            "wall": 0.0006004999740980566,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0005216000135987997,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          },
+          "reference": {
+            "wall": 0.001318999973591417,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.0011495999642647803,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          },
+          "optimized": {
+            "wall": 0.0005196999991312623,
+            "cpu": 0.0,
+            "digest": "099334e5c7d4c7d3da89a945b0b873e86d5aa9a7b8d534deaf88e2fcf22c9d55"
+          }
+        }
+      ]
+    },
+    {
+      "name": "polish_20",
+      "reference_wall_median": 0.0029565999866463244,
+      "optimized_wall_median": 0.0013852000120095909,
+      "wall_reduction": 0.5314888661753581,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0029016999760642648,
+            "cpu": 0.015625,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          },
+          "optimized": {
+            "wall": 0.0013509999844245613,
+            "cpu": 0.0,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0013852000120095909,
+            "cpu": 0.0,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          },
+          "reference": {
+            "wall": 0.0029565999866463244,
+            "cpu": 0.0,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.003363700001500547,
+            "cpu": 0.0,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          },
+          "optimized": {
+            "wall": 0.0014940999681130052,
+            "cpu": 0.0,
+            "digest": "b0bab9cbbdc16a26981922ee6c132ac869e07dd7b3357e8dd70d09d4c18dce94"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_P100_g1_20",
+      "reference_wall_median": 2.0451353000244126,
+      "optimized_wall_median": 1.1513184999930672,
+      "wall_reduction": 0.4370453143225663,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 2.0451353000244126,
+            "cpu": 2.03125,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          },
+          "optimized": {
+            "wall": 1.1513184999930672,
+            "cpu": 1.15625,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 1.1773463000427,
+            "cpu": 1.140625,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          },
+          "reference": {
+            "wall": 2.0340681999805383,
+            "cpu": 2.015625,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          }
+        },
+        {
+          "reference": {
+            "wall": 2.0766504000057466,
+            "cpu": 2.03125,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          },
+          "optimized": {
+            "wall": 1.1506142999860458,
+            "cpu": 1.140625,
+            "digest": "d39397513b794bf555c1c0801492390db4f88222b37cb992823671b64666c5c2"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_BILL4_P100_g1_20",
+      "reference_wall_median": 2.5740533000207506,
+      "optimized_wall_median": 1.8424353000009432,
+      "wall_reduction": 0.2842279917101598,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 2.5376325999968685,
+            "cpu": 2.453125,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          },
+          "optimized": {
+            "wall": 1.8424353000009432,
+            "cpu": 1.796875,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 1.937833599979058,
+            "cpu": 1.859375,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          },
+          "reference": {
+            "wall": 2.661460100032855,
+            "cpu": 2.546875,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          }
+        },
+        {
+          "reference": {
+            "wall": 2.5740533000207506,
+            "cpu": 2.515625,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          },
+          "optimized": {
+            "wall": 1.8001463999971747,
+            "cpu": 1.765625,
+            "digest": "845d58949958ba4dbf7c6bf4b4f87dd2dfb475aa334cb3a1d379f48650c26769"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact_50_x12",
+      "reference_wall_median": 0.03398700000252575,
+      "optimized_wall_median": 0.013190299971029162,
+      "wall_reduction": 0.611901610320154,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.03486329998122528,
+            "cpu": 0.03125,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          },
+          "optimized": {
+            "wall": 0.01320549997035414,
+            "cpu": 0.015625,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.013190299971029162,
+            "cpu": 0.015625,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          },
+          "reference": {
+            "wall": 0.03398700000252575,
+            "cpu": 0.03125,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.03361119999317452,
+            "cpu": 0.046875,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          },
+          "optimized": {
+            "wall": 0.013138499984052032,
+            "cpu": 0.015625,
+            "digest": "ba8bd0693a2635d5fb06bea4ee672bcf67435ce1c0ec356d42257a0fa6844e17"
+          }
+        }
+      ]
+    },
+    {
+      "name": "decode_50_x6",
+      "reference_wall_median": 0.007102100003976375,
+      "optimized_wall_median": 0.0051432999898679554,
+      "wall_reduction": 0.27580574942787517,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.007107499986886978,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "optimized": {
+            "wall": 0.005132399965077639,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0056446000235155225,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "reference": {
+            "wall": 0.006392600014805794,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.007102100003976375,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "optimized": {
+            "wall": 0.0051432999898679554,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        }
+      ]
+    },
+    {
+      "name": "refresh_50_x6",
+      "reference_wall_median": 0.01146619999781251,
+      "optimized_wall_median": 0.004933700023684651,
+      "wall_reduction": 0.5697179514899541,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.009459500026423484,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "optimized": {
+            "wall": 0.005864000006113201,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.004933700023684651,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "reference": {
+            "wall": 0.012448199966456741,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.01146619999781251,
+            "cpu": 0.0,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          },
+          "optimized": {
+            "wall": 0.004835300031118095,
+            "cpu": 0.015625,
+            "digest": "26f5640c93c7fa54f97fa89a71df6c6c039603b9a74067ebb3ab3826388108be"
+          }
+        }
+      ]
+    },
+    {
+      "name": "severity_50",
+      "reference_wall_median": 0.019948899978771806,
+      "optimized_wall_median": 0.007846799970138818,
+      "wall_reduction": 0.6066550046123435,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.019948899978771806,
+            "cpu": 0.03125,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          },
+          "optimized": {
+            "wall": 0.008921000000555068,
+            "cpu": 0.0,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.007292900001630187,
+            "cpu": 0.015625,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          },
+          "reference": {
+            "wall": 0.021897399972658604,
+            "cpu": 0.015625,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.019639500009361655,
+            "cpu": 0.015625,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          },
+          "optimized": {
+            "wall": 0.007846799970138818,
+            "cpu": 0.0,
+            "digest": "403e8997a0b7844629320bb1a66429274d1a6e0303c1d38b09e27eff358bd509"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A7_50",
+      "reference_wall_median": 0.022965800017118454,
+      "optimized_wall_median": 0.009194200043566525,
+      "wall_reduction": 0.5996568795028577,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.023854400031268597,
+            "cpu": 0.03125,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          },
+          "optimized": {
+            "wall": 0.009194200043566525,
+            "cpu": 0.0,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.009398600028362125,
+            "cpu": 0.015625,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          },
+          "reference": {
+            "wall": 0.02192640001885593,
+            "cpu": 0.015625,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.022965800017118454,
+            "cpu": 0.015625,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          },
+          "optimized": {
+            "wall": 0.008222599979490042,
+            "cpu": 0.015625,
+            "digest": "4c4c924a1d5ed9c72c1e786107a1b81f69fb664f830431593cbbb6bb3324017e"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A8_50",
+      "reference_wall_median": 0.022441700042691082,
+      "optimized_wall_median": 0.01180099998600781,
+      "wall_reduction": 0.47414857325609716,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.022441700042691082,
+            "cpu": 0.03125,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          },
+          "optimized": {
+            "wall": 0.012218500021845102,
+            "cpu": 0.015625,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.01180099998600781,
+            "cpu": 0.0,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          },
+          "reference": {
+            "wall": 0.02323729998897761,
+            "cpu": 0.015625,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.02164180000545457,
+            "cpu": 0.03125,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          },
+          "optimized": {
+            "wall": 0.01157419994706288,
+            "cpu": 0.0,
+            "digest": "cd2c3aa3f2f07cccbff84733e25d4caea494a25bed41573af3e86660b45ae6bb"
+          }
+        }
+      ]
+    },
+    {
+      "name": "generate_energy_50",
+      "reference_wall_median": 0.002979899989441037,
+      "optimized_wall_median": 0.0014770999550819397,
+      "wall_reduction": 0.5043122385597207,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0030237999744713306,
+            "cpu": 0.0,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          },
+          "optimized": {
+            "wall": 0.001338800007943064,
+            "cpu": 0.015625,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.001736900012474507,
+            "cpu": 0.0,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          },
+          "reference": {
+            "wall": 0.002979899989441037,
+            "cpu": 0.0,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.0028806999907828867,
+            "cpu": 0.0,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          },
+          "optimized": {
+            "wall": 0.0014770999550819397,
+            "cpu": 0.015625,
+            "digest": "2b1903ca2fcf02b6bea8a946943219137abe2e4cbfc101d86079fc9a5628007c"
+          }
+        }
+      ]
+    },
+    {
+      "name": "polish_50",
+      "reference_wall_median": 0.16118000005371869,
+      "optimized_wall_median": 0.06346539995865896,
+      "wall_reduction": 0.6062451920988523,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.1651549999951385,
+            "cpu": 0.15625,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          },
+          "optimized": {
+            "wall": 0.06591780000599101,
+            "cpu": 0.0625,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.06346539995865896,
+            "cpu": 0.0625,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          },
+          "reference": {
+            "wall": 0.16029149998212233,
+            "cpu": 0.140625,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.16118000005371869,
+            "cpu": 0.171875,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          },
+          "optimized": {
+            "wall": 0.060675499960780144,
+            "cpu": 0.0625,
+            "digest": "b6c19952540ab79d0e9eedaa72b29872277d2fdf24ff65242691e862184751b8"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_P100_g1_50",
+      "reference_wall_median": 8.735852600017097,
+      "optimized_wall_median": 4.069843200035393,
+      "wall_reduction": 0.5341218096986402,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 8.769917399971746,
+            "cpu": 8.515625,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          },
+          "optimized": {
+            "wall": 4.0713974999962375,
+            "cpu": 4.03125,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 4.028885600040667,
+            "cpu": 3.9375,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          },
+          "reference": {
+            "wall": 8.712209400022402,
+            "cpu": 8.515625,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          }
+        },
+        {
+          "reference": {
+            "wall": 8.735852600017097,
+            "cpu": 8.578125,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          },
+          "optimized": {
+            "wall": 4.069843200035393,
+            "cpu": 3.96875,
+            "digest": "7f7d4bb7f0d8c5629e03e649a2384034cd6866442c33e5366121763266e55f78"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_BILL4_P100_g1_50",
+      "reference_wall_median": 11.576503300049808,
+      "optimized_wall_median": 7.214358099969104,
+      "wall_reduction": 0.3768102584190457,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 11.747459300037008,
+            "cpu": 11.4375,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          },
+          "optimized": {
+            "wall": 7.2103880000067875,
+            "cpu": 6.96875,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 7.23510210000677,
+            "cpu": 7.078125,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          },
+          "reference": {
+            "wall": 11.551929000008386,
+            "cpu": 11.34375,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          }
+        },
+        {
+          "reference": {
+            "wall": 11.576503300049808,
+            "cpu": 11.046875,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          },
+          "optimized": {
+            "wall": 7.214358099969104,
+            "cpu": 6.953125,
+            "digest": "53c2fc562da64343e0f14f17e316d0ff51c6cfee6cbb0f5fc63c2e73f197a7fc"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact_100_x12",
+      "reference_wall_median": 0.0890406999969855,
+      "optimized_wall_median": 0.028775100014172494,
+      "wall_reduction": 0.676832055283183,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.08915940002771094,
+            "cpu": 0.09375,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          },
+          "optimized": {
+            "wall": 0.028775100014172494,
+            "cpu": 0.015625,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.027626399998553097,
+            "cpu": 0.03125,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          },
+          "reference": {
+            "wall": 0.0890406999969855,
+            "cpu": 0.0625,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.08648719999473542,
+            "cpu": 0.09375,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          },
+          "optimized": {
+            "wall": 0.03287280001677573,
+            "cpu": 0.03125,
+            "digest": "c9adb9e21bf021b34233cf58f6c6eb5f72e4a2dedbfcdf573addc7aa3265e323"
+          }
+        }
+      ]
+    },
+    {
+      "name": "decode_100_x6",
+      "reference_wall_median": 0.016782700025942177,
+      "optimized_wall_median": 0.015175300010014325,
+      "wall_reduction": 0.09577719994060441,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.016608199977781624,
+            "cpu": 0.015625,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "optimized": {
+            "wall": 0.015316999983042479,
+            "cpu": 0.015625,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.015175300010014325,
+            "cpu": 0.015625,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "reference": {
+            "wall": 0.017882599961012602,
+            "cpu": 0.015625,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.016782700025942177,
+            "cpu": 0.015625,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "optimized": {
+            "wall": 0.014771999965887517,
+            "cpu": 0.0,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        }
+      ]
+    },
+    {
+      "name": "refresh_100_x6",
+      "reference_wall_median": 0.03351369994925335,
+      "optimized_wall_median": 0.017704199999570847,
+      "wall_reduction": 0.47173245489520244,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.03376770002068952,
+            "cpu": 0.03125,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "optimized": {
+            "wall": 0.017704199999570847,
+            "cpu": 0.03125,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.017819600005168468,
+            "cpu": 0.0,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "reference": {
+            "wall": 0.03278630005661398,
+            "cpu": 0.03125,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.03351369994925335,
+            "cpu": 0.03125,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          },
+          "optimized": {
+            "wall": 0.016873300017323345,
+            "cpu": 0.03125,
+            "digest": "f2862a0dca31133c689b1897db93b6cf4dac68621707cd3f5e8e56d82c0c262f"
+          }
+        }
+      ]
+    },
+    {
+      "name": "severity_100",
+      "reference_wall_median": 0.09484179998980835,
+      "optimized_wall_median": 0.03140949999215081,
+      "wall_reduction": 0.6688221860453296,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.0968266999698244,
+            "cpu": 0.09375,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          },
+          "optimized": {
+            "wall": 0.03140949999215081,
+            "cpu": 0.046875,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0302085000439547,
+            "cpu": 0.015625,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          },
+          "reference": {
+            "wall": 0.09484179998980835,
+            "cpu": 0.09375,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.09419360000174493,
+            "cpu": 0.09375,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          },
+          "optimized": {
+            "wall": 0.03146009996999055,
+            "cpu": 0.03125,
+            "digest": "bf7dbea4b86ceff576fa2b274e3311ba419bb36b8f35213138b26a4e57515655"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A7_100",
+      "reference_wall_median": 0.09975160000612959,
+      "optimized_wall_median": 0.031283600023016334,
+      "wall_reduction": 0.6863849800795776,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.10200020001502708,
+            "cpu": 0.09375,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          },
+          "optimized": {
+            "wall": 0.030953200010117143,
+            "cpu": 0.03125,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.03224129998125136,
+            "cpu": 0.03125,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          },
+          "reference": {
+            "wall": 0.09975160000612959,
+            "cpu": 0.09375,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.09808830003021285,
+            "cpu": 0.09375,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          },
+          "optimized": {
+            "wall": 0.031283600023016334,
+            "cpu": 0.03125,
+            "digest": "4971e6d870054d1b74bdbef9ea62ca6ae5b504f34c155ea4455524dbe5f0d8df"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A8_100",
+      "reference_wall_median": 0.04512710002018139,
+      "optimized_wall_median": 0.018147599999792874,
+      "wall_reduction": 0.597855834040365,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.04503590002423152,
+            "cpu": 0.046875,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          },
+          "optimized": {
+            "wall": 0.017675899958703667,
+            "cpu": 0.015625,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.01817759999539703,
+            "cpu": 0.015625,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          },
+          "reference": {
+            "wall": 0.04512710002018139,
+            "cpu": 0.03125,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.048135299992281944,
+            "cpu": 0.0625,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          },
+          "optimized": {
+            "wall": 0.018147599999792874,
+            "cpu": 0.015625,
+            "digest": "5202c5ba0f66d73e06aea65f986e7c1f001719507fdd9d5bb568e4e164212aee"
+          }
+        }
+      ]
+    },
+    {
+      "name": "generate_energy_100",
+      "reference_wall_median": 0.005946099990978837,
+      "optimized_wall_median": 0.0028676000074483454,
+      "wall_reduction": 0.5177343112630224,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.005852100031916052,
+            "cpu": 0.015625,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          },
+          "optimized": {
+            "wall": 0.0029471999732777476,
+            "cpu": 0.0,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.0027551999664865434,
+            "cpu": 0.0,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          },
+          "reference": {
+            "wall": 0.006347100017592311,
+            "cpu": 0.015625,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.005946099990978837,
+            "cpu": 0.0,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          },
+          "optimized": {
+            "wall": 0.0028676000074483454,
+            "cpu": 0.0,
+            "digest": "4cadf2185676b91c91e6bcc62cafa903a732dde2b53d5844b598f7ca093e5a31"
+          }
+        }
+      ]
+    },
+    {
+      "name": "polish_100",
+      "reference_wall_median": 0.9968708999804221,
+      "optimized_wall_median": 0.3389253999921493,
+      "wall_reduction": 0.6600107396064971,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.9968708999804221,
+            "cpu": 1.0,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          },
+          "optimized": {
+            "wall": 0.3366850999882445,
+            "cpu": 0.34375,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.3490899999742396,
+            "cpu": 0.328125,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          },
+          "reference": {
+            "wall": 1.0055990000255406,
+            "cpu": 0.96875,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.981032200041227,
+            "cpu": 0.984375,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          },
+          "optimized": {
+            "wall": 0.3389253999921493,
+            "cpu": 0.34375,
+            "digest": "40f0b7cb09b9e67b314215f5499d140ae02e82557e24884d59d55ea015eabfce"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_P24_g1_100",
+      "reference_wall_median": 15.205328700016253,
+      "optimized_wall_median": 5.623061899968889,
+      "wall_reduction": 0.6301913617978625,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 15.216486799996346,
+            "cpu": 14.984375,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          },
+          "optimized": {
+            "wall": 5.5583618999808095,
+            "cpu": 5.34375,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 5.713850900006946,
+            "cpu": 5.546875,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          },
+          "reference": {
+            "wall": 15.205328700016253,
+            "cpu": 15.015625,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          }
+        },
+        {
+          "reference": {
+            "wall": 15.043217900034506,
+            "cpu": 14.765625,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          },
+          "optimized": {
+            "wall": 5.623061899968889,
+            "cpu": 5.46875,
+            "digest": "330b9ea59d22abd2051b53936727338e0b95be599aa902e1a28f475b4acd6e29"
+          }
+        }
+      ]
+    },
+    {
+      "name": "exact_200_x12",
+      "reference_wall_median": 0.27130349999060854,
+      "optimized_wall_median": 0.07580150000285357,
+      "wall_reduction": 0.7206025723756696,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.27130349999060854,
+            "cpu": 0.265625,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          },
+          "optimized": {
+            "wall": 0.07580150000285357,
+            "cpu": 0.078125,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.07752679998520762,
+            "cpu": 0.0625,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          },
+          "reference": {
+            "wall": 0.2745329000172205,
+            "cpu": 0.265625,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.26546680001774803,
+            "cpu": 0.265625,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          },
+          "optimized": {
+            "wall": 0.07289070001570508,
+            "cpu": 0.078125,
+            "digest": "ed7596b52d52759e5bb1831f3a71293712cf20c7adf57259715806c6f7e5260b"
+          }
+        }
+      ]
+    },
+    {
+      "name": "decode_200_x6",
+      "reference_wall_median": 0.08833729999605566,
+      "optimized_wall_median": 0.08390170003985986,
+      "wall_reduction": 0.050212084322181605,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.08833729999605566,
+            "cpu": 0.078125,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "optimized": {
+            "wall": 0.08390170003985986,
+            "cpu": 0.078125,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.08334469998953864,
+            "cpu": 0.078125,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "reference": {
+            "wall": 0.08763939997879788,
+            "cpu": 0.078125,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.08891099999891594,
+            "cpu": 0.09375,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "optimized": {
+            "wall": 0.08464600000297651,
+            "cpu": 0.09375,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        }
+      ]
+    },
+    {
+      "name": "refresh_200_x6",
+      "reference_wall_median": 0.1823137000319548,
+      "optimized_wall_median": 0.11120360001223162,
+      "wall_reduction": 0.39004254758287193,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.1811574000166729,
+            "cpu": 0.171875,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "optimized": {
+            "wall": 0.11120360001223162,
+            "cpu": 0.109375,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.11433529999339953,
+            "cpu": 0.125,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "reference": {
+            "wall": 0.1823137000319548,
+            "cpu": 0.171875,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.18362010002601892,
+            "cpu": 0.171875,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          },
+          "optimized": {
+            "wall": 0.10949879995314404,
+            "cpu": 0.09375,
+            "digest": "a216452706431d582fa7b5cac8b540fe44ce38bdb9c4600c6ae87d3f8265a695"
+          }
+        }
+      ]
+    },
+    {
+      "name": "severity_200",
+      "reference_wall_median": 0.5380329999607056,
+      "optimized_wall_median": 0.13981750002130866,
+      "wall_reduction": 0.7401321107970701,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.5537168000009842,
+            "cpu": 0.546875,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          },
+          "optimized": {
+            "wall": 0.13981750002130866,
+            "cpu": 0.140625,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.14196789998095483,
+            "cpu": 0.125,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          },
+          "reference": {
+            "wall": 0.5380329999607056,
+            "cpu": 0.546875,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.5352330000023358,
+            "cpu": 0.5,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          },
+          "optimized": {
+            "wall": 0.13321759999962524,
+            "cpu": 0.140625,
+            "digest": "0f3f79f2bf2b9b5fb58811bfbff6b361ba6c7c6f0e3c29a7cf8e811a8c77c6e6"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A7_200",
+      "reference_wall_median": 0.536884100001771,
+      "optimized_wall_median": 0.1364719999837689,
+      "wall_reduction": 0.745807335357261,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.5367624000064097,
+            "cpu": 0.53125,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          },
+          "optimized": {
+            "wall": 0.1364719999837689,
+            "cpu": 0.125,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.13923559995600954,
+            "cpu": 0.109375,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          },
+          "reference": {
+            "wall": 0.5390250000054948,
+            "cpu": 0.53125,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.536884100001771,
+            "cpu": 0.515625,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          },
+          "optimized": {
+            "wall": 0.13569829997140914,
+            "cpu": 0.109375,
+            "digest": "3c3f606b3cd1a4ea16160458c465620d691ee23ffcdfea5c0e66459b4ba9a437"
+          }
+        }
+      ]
+    },
+    {
+      "name": "A8_200",
+      "reference_wall_median": 0.021949499961920083,
+      "optimized_wall_median": 0.011733799998182803,
+      "wall_reduction": 0.46541834581472796,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.021949499961920083,
+            "cpu": 0.03125,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          },
+          "optimized": {
+            "wall": 0.011613500013481826,
+            "cpu": 0.0,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.011733799998182803,
+            "cpu": 0.015625,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          },
+          "reference": {
+            "wall": 0.02202700002817437,
+            "cpu": 0.03125,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.021786700002849102,
+            "cpu": 0.015625,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          },
+          "optimized": {
+            "wall": 0.0122442000429146,
+            "cpu": 0.015625,
+            "digest": "396f2a6700770b70278c1a7e2680b335d47c2a9a47fa4f36d6a33bb7911bc57d"
+          }
+        }
+      ]
+    },
+    {
+      "name": "generate_energy_200",
+      "reference_wall_median": 0.011904400016646832,
+      "optimized_wall_median": 0.00555449997773394,
+      "wall_reduction": 0.5334078181204716,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 0.011859999969601631,
+            "cpu": 0.0,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          },
+          "optimized": {
+            "wall": 0.00555449997773394,
+            "cpu": 0.015625,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 0.005631199979688972,
+            "cpu": 0.0,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          },
+          "reference": {
+            "wall": 0.011904400016646832,
+            "cpu": 0.015625,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          }
+        },
+        {
+          "reference": {
+            "wall": 0.012259300041478127,
+            "cpu": 0.015625,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          },
+          "optimized": {
+            "wall": 0.005309500033035874,
+            "cpu": 0.0,
+            "digest": "306dce3d146355e6c6118611fa392ade193a583719c87d7ea89b07099088616a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "polish_200",
+      "reference_wall_median": 12.885442200000398,
+      "optimized_wall_median": 3.6213547999504954,
+      "wall_reduction": 0.7189576621630895,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 12.885442200000398,
+            "cpu": 12.59375,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          },
+          "optimized": {
+            "wall": 3.6148962000152096,
+            "cpu": 3.546875,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 3.6407351000234485,
+            "cpu": 3.5625,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          },
+          "reference": {
+            "wall": 12.85689920000732,
+            "cpu": 12.640625,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          }
+        },
+        {
+          "reference": {
+            "wall": 12.938506299979053,
+            "cpu": 12.609375,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          },
+          "optimized": {
+            "wall": 3.6213547999504954,
+            "cpu": 3.484375,
+            "digest": "d32dd7ab341f3e4fc1f1a5096678f0e3e1f9051bb672d5fae8761c94d1678ffa"
+          }
+        }
+      ]
+    },
+    {
+      "name": "full_P24_g1_200",
+      "reference_wall_median": 51.057860199944116,
+      "optimized_wall_median": 15.342116899963003,
+      "wall_reduction": 0.6995150826947543,
+      "attempts": [
+        {
+          "reference": {
+            "wall": 51.055706099956296,
+            "cpu": 49.8125,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          },
+          "optimized": {
+            "wall": 15.314932400011458,
+            "cpu": 14.828125,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          }
+        },
+        {
+          "optimized": {
+            "wall": 15.84655690001091,
+            "cpu": 15.359375,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          },
+          "reference": {
+            "wall": 51.10210919997189,
+            "cpu": 49.796875,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          }
+        },
+        {
+          "reference": {
+            "wall": 51.057860199944116,
+            "cpu": 50.03125,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          },
+          "optimized": {
+            "wall": 15.342116899963003,
+            "cpu": 14.96875,
+            "digest": "662ca5210bf4c2ec8fef4ad0413cce4d12f3a2bb6c6cd450a62c0e7eb0dac48b"
+          }
+        }
+      ]
+    }
+  ]
+}

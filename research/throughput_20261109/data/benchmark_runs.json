@@ -1,0 +1,338 @@
+{
+  "arm": "N7_P1_SHARE",
+  "seconds": 120.0,
+  "seed": 13,
+  "repeats": 2,
+  "concurrent_pairs": true,
+  "rows": [
+    {
+      "key": "mx_n050_f01_r02_s9",
+      "n": 50,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 37380,
+        "ssgs": 37265,
+        "ls_steps": 2127,
+        "elapsed": 120.00170600006822,
+        "archive": 17,
+        "initialization": 1.602004099986516,
+        "cpu": 116.875
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 26523,
+        "ssgs": 26417,
+        "ls_steps": 1809,
+        "elapsed": 120.00082440010738,
+        "archive": 12,
+        "initialization": 2.076403000042774,
+        "cpu": 116.796875
+      },
+      "exact_ratio": 1.4093428345209817,
+      "ssgs_ratio": 1.410644660635197
+    },
+    {
+      "key": "mx_n050_f01_r02_s9",
+      "n": 50,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 40718,
+        "ssgs": 40561,
+        "ls_steps": 2442,
+        "elapsed": 120.00020270003006,
+        "archive": 20,
+        "initialization": 1.5418848999543115,
+        "cpu": 118.09375
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 29048,
+        "ssgs": 28935,
+        "ls_steps": 1929,
+        "elapsed": 120.01176060002763,
+        "archive": 17,
+        "initialization": 1.9998263000743464,
+        "cpu": 118.296875
+      },
+      "exact_ratio": 1.4017488295235472,
+      "ssgs_ratio": 1.4017971315016415
+    },
+    {
+      "key": "mx_n050_f05_r01_s9",
+      "n": 50,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 25331,
+        "ssgs": 25252,
+        "ls_steps": 1032,
+        "elapsed": 120.00132629997097,
+        "archive": 12,
+        "initialization": 1.553787599899806,
+        "cpu": 103.59375
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 17822,
+        "ssgs": 17715,
+        "ls_steps": 567,
+        "elapsed": 120.01234680006746,
+        "archive": 16,
+        "initialization": 2.016450099996291,
+        "cpu": 103.65625
+      },
+      "exact_ratio": 1.4213331837055325,
+      "ssgs_ratio": 1.4254586508608524
+    },
+    {
+      "key": "mx_n050_f05_r01_s9",
+      "n": 50,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 30619,
+        "ssgs": 30462,
+        "ls_steps": 1369,
+        "elapsed": 120.01517619995866,
+        "archive": 20,
+        "initialization": 1.6174700000556186,
+        "cpu": 107.09375
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 21491,
+        "ssgs": 21421,
+        "ls_steps": 1702,
+        "elapsed": 120.03644320007879,
+        "archive": 10,
+        "initialization": 2.0894789999583736,
+        "cpu": 107.15625
+      },
+      "exact_ratio": 1.4247359359731981,
+      "ssgs_ratio": 1.4220624620699314
+    },
+    {
+      "key": "mx_n100_f01_r03_s9",
+      "n": 100,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 21126,
+        "ssgs": 20914,
+        "ls_steps": 768,
+        "elapsed": 120.01517010002863,
+        "archive": 23,
+        "initialization": 5.687575499992818,
+        "cpu": 117.734375
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 12369,
+        "ssgs": 12225,
+        "ls_steps": 636,
+        "elapsed": 120.01190169993788,
+        "archive": 20,
+        "initialization": 7.635778600000776,
+        "cpu": 117.796875
+      },
+      "exact_ratio": 1.7079796264855687,
+      "ssgs_ratio": 1.710756646216769
+    },
+    {
+      "key": "mx_n100_f01_r03_s9",
+      "n": 100,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 22567,
+        "ssgs": 22329,
+        "ls_steps": 723,
+        "elapsed": 120.02317109995056,
+        "archive": 19,
+        "initialization": 6.001397900050506,
+        "cpu": 118.5625
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 13012,
+        "ssgs": 12832,
+        "ls_steps": 551,
+        "elapsed": 120.01406320009846,
+        "archive": 32,
+        "initialization": 7.988949700025842,
+        "cpu": 118.421875
+      },
+      "exact_ratio": 1.7343221641561635,
+      "ssgs_ratio": 1.740102867830424
+    },
+    {
+      "key": "mx_n100_f05_r02_s9",
+      "n": 100,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 21881,
+        "ssgs": 21668,
+        "ls_steps": 1005,
+        "elapsed": 120.03554409998469,
+        "archive": 18,
+        "initialization": 7.040011000004597,
+        "cpu": 118.953125
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 11882,
+        "ssgs": 11722,
+        "ls_steps": 522,
+        "elapsed": 120.00612369994633,
+        "archive": 23,
+        "initialization": 9.564092099899426,
+        "cpu": 118.703125
+      },
+      "exact_ratio": 1.8415249957919542,
+      "ssgs_ratio": 1.8484900187681284
+    },
+    {
+      "key": "mx_n100_f05_r02_s9",
+      "n": 100,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 9871,
+        "ssgs": 9750,
+        "ls_steps": 315,
+        "elapsed": 120.00733420008328,
+        "archive": 68,
+        "initialization": 15.782018600031734,
+        "cpu": 92.546875
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 5576,
+        "ssgs": 5474,
+        "ls_steps": 279,
+        "elapsed": 120.02067699993495,
+        "archive": 40,
+        "initialization": 22.3164611000102,
+        "cpu": 92.28125
+      },
+      "exact_ratio": 1.7702654232424677,
+      "ssgs_ratio": 1.7811472415052978
+    },
+    {
+      "key": "mx_n200_f01_r01_s9",
+      "n": 200,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 4196,
+        "ssgs": 4029,
+        "ls_steps": 54,
+        "elapsed": 120.0114220000105,
+        "archive": 20,
+        "initialization": 79.8425264999969,
+        "cpu": 102.984375
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 1671,
+        "ssgs": 1538,
+        "ls_steps": 27,
+        "elapsed": 120.04740190005396,
+        "archive": 19,
+        "initialization": 93.34012120007537,
+        "cpu": 102.734375
+      },
+      "exact_ratio": 2.5110712148414125,
+      "ssgs_ratio": 2.6196358907672304
+    },
+    {
+      "key": "mx_n200_f01_r01_s9",
+      "n": 200,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 7354,
+        "ssgs": 7183,
+        "ls_steps": 104,
+        "elapsed": 120.22822709998582,
+        "archive": 14,
+        "initialization": 48.390576599980704,
+        "cpu": 117.765625
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 3578,
+        "ssgs": 3447,
+        "ls_steps": 69,
+        "elapsed": 120.00416030001361,
+        "archive": 27,
+        "initialization": 61.343367199995555,
+        "cpu": 117.890625
+      },
+      "exact_ratio": 2.0553381777529345,
+      "ssgs_ratio": 2.083841021177836
+    },
+    {
+      "key": "mx_n200_f05_r03_s9",
+      "n": 200,
+      "round": 0,
+      "new": {
+        "path": "new",
+        "exact": 8964,
+        "ssgs": 8803,
+        "ls_steps": 249,
+        "elapsed": 120.00349039991852,
+        "archive": 112,
+        "initialization": 34.07851959997788,
+        "cpu": 118.0
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 4393,
+        "ssgs": 4265,
+        "ls_steps": 147,
+        "elapsed": 120.04324470006395,
+        "archive": 52,
+        "initialization": 45.570775800035335,
+        "cpu": 118.1875
+      },
+      "exact_ratio": 2.040519007511951,
+      "ssgs_ratio": 2.0640093786635405
+    },
+    {
+      "key": "mx_n200_f05_r03_s9",
+      "n": 200,
+      "round": 1,
+      "new": {
+        "path": "new",
+        "exact": 9442,
+        "ssgs": 9250,
+        "ls_steps": 111,
+        "elapsed": 120.02493600000162,
+        "archive": 28,
+        "initialization": 34.02895990002435,
+        "cpu": 118.890625
+      },
+      "reference": {
+        "path": "reference",
+        "exact": 4906,
+        "ssgs": 4764,
+        "ls_steps": 81,
+        "elapsed": 120.03447369998321,
+        "archive": 11,
+        "initialization": 44.846703300019726,
+        "cpu": 118.65625
+      },
+      "exact_ratio": 1.924582144313086,
+      "ssgs_ratio": 1.9416456759026028
+    }
+  ],
+  "median_exact_ratio": {
+    "50": 1.415338009113257,
+    "100": 1.7522937936993155,
+    "200": 2.0479285926324424
+  }
+}

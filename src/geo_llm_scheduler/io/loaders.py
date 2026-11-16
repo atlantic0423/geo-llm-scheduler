@@ -6,6 +6,7 @@ from pathlib import Path
 
 from geo_llm_scheduler.domain.models import (
     Job,
+    PowerModel,
     ProblemInstance,
     Profile,
     Region,
@@ -13,6 +14,8 @@ from geo_llm_scheduler.domain.models import (
     Tariff,
 )
 from geo_llm_scheduler.io.validation import validate_problem
+
+POWER_MODEL_KEYS = ("beta", "kappa_prefill", "kappa_decode")
 
 
 def load_instance(path: str | Path) -> ProblemInstance:
@@ -31,6 +34,15 @@ def load_instance(path: str | Path) -> ProblemInstance:
 
     def profile(p: dict) -> Profile:
         return Profile(p["duration"] * time, p["compute"], p["vram"])
+
+    # Optional load-dependent power; absent means the original two-state model.
+    raw_power = data.get("power_model")
+    if raw_power is None:
+        power_model = PowerModel()
+    else:
+        if not isinstance(raw_power, dict) or set(raw_power) != set(POWER_MODEL_KEYS):
+            raise ValueError("power_model requires exactly beta, kappa_prefill, kappa_decode")
+        power_model = PowerModel(*(raw_power[k] for k in POWER_MODEL_KEYS))
 
     problem = ProblemInstance(
         tuple(
@@ -62,16 +74,24 @@ def load_instance(path: str | Path) -> ProblemInstance:
             )
             for m in data["instances"]
         ),
+        power_model,
     )
     validate_problem(problem)
     return problem
 
 
 def save_instance(problem: ProblemInstance, path: str | Path) -> None:
-    """Serialize canonical units without introducing mutable domain state."""
+    """Serialize canonical units without introducing mutable domain state.
+
+    The original two-state power model is written without a ``power_model`` key,
+    so files saved before the load-dependent model existed stay byte-identical.
+    """
+    body = asdict(problem)
+    if problem.power_model.legacy:
+        body.pop("power_model")
     data = {
         "schema_version": 1,
         "units": {"time": "s", "power": "kW", "memory": "GB", "currency": "CNY"},
-        **asdict(problem),
+        **body,
     }
     Path(path).write_text(json.dumps(data, indent=2), encoding="utf-8")

@@ -3,7 +3,13 @@
 from dataclasses import replace
 
 from geo_llm_scheduler.domain.models import Genotype, ProblemInstance, Schedule
-from geo_llm_scheduler.scheduling.resources import est_for, fits, intervals, union_length
+from geo_llm_scheduler.scheduling.resources import (
+    ResourceView,
+    est_for,
+    fits,
+    intervals,
+    union_length,
+)
 from geo_llm_scheduler.utils.numeric import TOL, close, less
 
 
@@ -24,16 +30,27 @@ def legal_bounds(
 
 
 def critical_times(
-    problem: ProblemInstance, genotype: Genotype, schedule: Schedule, operation: int
+    problem: ProblemInstance,
+    genotype: Genotype,
+    schedule: Schedule,
+    operation: int,
+    *,
+    resources: ResourceView | None = None,
 ) -> tuple[float, ...]:
     """Shared A7/Compressible finite activity/resource boundary starts."""
+    if resources is not None:
+        resources.check_binding(problem, genotype, schedule)
     lower, upper = legal_bounds(problem, genotype, schedule, operation)
     p = problem.profile(operation).duration
-    events = {
-        t
-        for _, a, b in intervals(problem, genotype, schedule, genotype.ms[operation])
-        for t in (a, b)
-    }
+    events = (
+        {
+            t
+            for _, a, b in intervals(problem, genotype, schedule, genotype.ms[operation])
+            for t in (a, b)
+        }
+        if resources is None
+        else set(resources.events(genotype.ms[operation]))
+    )
     values = {lower, schedule.starts[operation]} | events | {e - p for e in events}
     if upper != float("inf"):
         values.add(upper)
@@ -47,13 +64,26 @@ def critical_times(
 
 
 def move(
-    problem: ProblemInstance, genotype: Genotype, schedule: Schedule, operation: int, start: float
+    problem: ProblemInstance,
+    genotype: Genotype,
+    schedule: Schedule,
+    operation: int,
+    start: float,
+    *,
+    resources: ResourceView | None = None,
 ) -> Schedule | None:
     """Clone one timing field if legal; frozen operations never propagate."""
+    if resources is not None:
+        resources.check_binding(problem, genotype, schedule)
     lower, upper = legal_bounds(problem, genotype, schedule, operation)
     if start < 0 or less(start, lower, TOL.time) or less(upper, start, TOL.time):
         return None
-    if not fits(problem, genotype, schedule, operation, start):
+    feasible = (
+        fits(problem, genotype, schedule, operation, start)
+        if resources is None
+        else resources.fits(operation, start)
+    )
+    if not feasible:
         return None
     starts = list(schedule.starts)
     starts[operation] = start
@@ -71,18 +101,37 @@ def pack_gain(
 
 
 def packing_moves(
-    problem: ProblemInstance, genotype: Genotype, schedule: Schedule
+    problem: ProblemInstance,
+    genotype: Genotype,
+    schedule: Schedule,
+    *,
+    resources: ResourceView | None = None,
 ) -> list[tuple[int, float, float, float]]:
     """Return (operation, start, union gain, delta Flow) for positive packing."""
     result = []
+    if resources is None:
+        resources = ResourceView(problem, genotype, schedule)
+    else:
+        resources.check_binding(problem, genotype, schedule)
+    lengths = [union_length([(a, b) for _, a, b in items]) for items in resources.items]
     for o, old in enumerate(schedule.starts):
-        for t in critical_times(problem, genotype, schedule, o):
+        machine = genotype.ms[o]
+        for t in critical_times(problem, genotype, schedule, o, resources=resources):
             if close(old, t, TOL.time):
                 continue
-            candidate = move(problem, genotype, schedule, o, t)
+            candidate = move(problem, genotype, schedule, o, t, resources=resources)
             if candidate is None:
                 continue
-            gain = pack_gain(problem, genotype, schedule, candidate, o)
+            # Preserve the exact sorted-union arithmetic, replacing only one
+            # interval instead of rescanning every other server twice.
+            if old >= 0:
+                after = [
+                    (t, t + problem.profile(o).duration) if operation == o else (a, b)
+                    for operation, a, b in resources.items[machine]
+                ]
+                gain = lengths[machine] - union_length(after)
+            else:
+                gain = pack_gain(problem, genotype, schedule, candidate, o)
             if less(0, gain, TOL.time):
                 result.append((o, t, gain, t - old if o % 2 else 0.0))
     return result

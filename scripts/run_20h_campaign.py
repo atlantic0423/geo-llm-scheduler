@@ -38,7 +38,7 @@ def _commit() -> str:
 
 
 def _base(instance_path: Path, seed: int, arm: str) -> Config:
-    config = load_config(REPO / "configs" / "default.yaml")
+    config = load_config(REPO / "configs" / "legacy_core.yaml")
     method = "plain" if arm == "V1" else "nsga2" if arm == "V2" else "full"
     return replace(
         config,

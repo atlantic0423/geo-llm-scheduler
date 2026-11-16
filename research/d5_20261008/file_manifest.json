@@ -1,0 +1,102 @@
+[
+  {
+    "path": ".gitattributes",
+    "bytes": 86,
+    "sha256": "73f96879e33943314c947580c7debe998da826ab194265d87de2ee8afb36635f"
+  },
+  {
+    "path": "analysis_plan.md",
+    "bytes": 2154,
+    "sha256": "fb1e1d509a50df19a164e2b4e2bd46cf81fa52ca746ef867e1a8140a4ef629b0"
+  },
+  {
+    "path": "completion_summary.json",
+    "bytes": 1303,
+    "sha256": "b95cf676dada5e806051f3e06c167ad626419d262ddc27c045cf141162940428"
+  },
+  {
+    "path": "D5_results_analysis.md",
+    "bytes": 15293,
+    "sha256": "ea0411264945692d6094dbbda5773d2e1d7325eb534c16c2476bd063d3eda2f2"
+  },
+  {
+    "path": "data/a8_preference_descriptive.csv",
+    "bytes": 1247,
+    "sha256": "9786b0cbf42afd0892927cade532057a16c898347429c9b23b14205f54ac7cbf"
+  },
+  {
+    "path": "data/a8_state_metrics.csv",
+    "bytes": 668306,
+    "sha256": "1042bc874dd3d5cdf6a2c1f60cca8ce82374b0554005581aa355da207fc89600"
+  },
+  {
+    "path": "data/anytime_metrics.csv",
+    "bytes": 325158,
+    "sha256": "0c25f471cebcfc8ba56b75770f5ac4248ade7d2206ff480c5c61c226e9e6f30d"
+  },
+  {
+    "path": "data/base_metrics.csv",
+    "bytes": 141874,
+    "sha256": "7898cd946142fe92c9f13f8742d4f9c7469bc0a6e74da5308c3b0a43b715bf16"
+  },
+  {
+    "path": "data/independent_statistics_audit.json",
+    "bytes": 271,
+    "sha256": "b4321ce6d5e28772a5f5af0a9a27f1bb26e6dde407ac08a4fab51d0b80779e38"
+  },
+  {
+    "path": "data/paired_metrics.csv",
+    "bytes": 270242,
+    "sha256": "01270c199f8b39852f35a2e7ec14dec906fe7c800d4d3261eb56c7b77eac2004"
+  },
+  {
+    "path": "data/references.json",
+    "bytes": 296920,
+    "sha256": "512f704f25e4bda648b9854e6a3408e1271584ce77301e01502d754ae342fe17"
+  },
+  {
+    "path": "data/report.json",
+    "bytes": 74302,
+    "sha256": "f4b2b3dc510b93937c2a7428a9434c2f8a146b79c1ee55f89794c96b792ec4c2"
+  },
+  {
+    "path": "data/run_metrics.csv",
+    "bytes": 189761,
+    "sha256": "51075baa61f47eeb50c1ae8b5774a61aa239331dbeb10667969492bd9a27f1c6"
+  },
+  {
+    "path": "figures/anytime_strata.pdf",
+    "bytes": 27699,
+    "sha256": "882a0e5efe53d39f7f6ddc2d42ef9121f5b5c20d3926e64ff289338fad84d985"
+  },
+  {
+    "path": "figures/anytime_strata.png",
+    "bytes": 190689,
+    "sha256": "6b8ee023d6c5ed3e209422dd722be0b13ea86ef5f0c05b7612ca6f4f0cc583a4"
+  },
+  {
+    "path": "figures/primary_effects.pdf",
+    "bytes": 18723,
+    "sha256": "98f2a060804d9d82f0ebb3d430d422564741e683e8e413cbe632fbf9ca922534"
+  },
+  {
+    "path": "figures/primary_effects.png",
+    "bytes": 50911,
+    "sha256": "ef98db43eebba4eef0f8e493031b885f9f30910c257481a9335917dbad3f5263"
+  },
+  {
+    "path": "full_raw_local_validation.json",
+    "bytes": 577,
+    "sha256": "1c66732fbd51d6aaedaccae0be372ac387ffedcf92d32303884700f23f6c4e09"
+  },
+  {
+    "path": "local_frozen_validator.json",
+    "bytes": 191,
+    "sha256": "93a4fb42f06f7b7103f852198c744ec09cfeca036bdd41bff0aa563756bc03b3"
+  },
+  {
+    "path": "README.md",
+    "bytes": 1515,
+    "sha256": "17fe8cc7803f9b06065d84778513859017f3c311462bfff2f6529eb004f922da"
+  }
+]

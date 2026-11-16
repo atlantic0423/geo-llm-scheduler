@@ -1,0 +1,214 @@
+{
+  "reference_commit": "b148c4addd207fe30a6b2a43d953a04afc35d3a1",
+  "optimized_canonical_source_hash": "e9f3730b9cb472f6fe4935ee0991a4803b38d102508ab60b071f5bc53b286de9",
+  "reference_blobs_verified_against_git": [
+    {
+      "path": "src/geo_llm_scheduler/evaluation/exact.py",
+      "reference_file": "frozen/exact.py",
+      "git_blob": "baad244727bd14fb234534947ddb03a7ca6f3a60",
+      "bytes": 4235,
+      "sha256": "fbe31075c04c531637473a69c03030a639ebd569ec63ccd81e56952fe2eb1248"
+    },
+    {
+      "path": "src/geo_llm_scheduler/scheduling/resources.py",
+      "reference_file": "frozen/resources.py",
+      "git_blob": "83d67c4ca5ae342a4e5c931fa9a128e650e7caa8",
+      "bytes": 4695,
+      "sha256": "3159abffcba998d66b18e3aaf9ca4b47f8acd5d403041a65aa187ca664095319"
+    },
+    {
+      "path": "src/geo_llm_scheduler/scheduling/ssgs.py",
+      "reference_file": "frozen/ssgs.py",
+      "git_blob": "3a8fea5f584baa47a150828f55de5fda5ee9d26c",
+      "bytes": 1676,
+      "sha256": "5cca8fa1806211a455349910262e6305936116de2dcf610d4a5b3c9685168d48"
+    },
+    {
+      "path": "src/geo_llm_scheduler/io/validation.py",
+      "reference_file": "frozen/validation.py",
+      "git_blob": "ddd588ffd6a29f1b2f4a47c5c59892d2ea2f6253",
+      "bytes": 3556,
+      "sha256": "a3588b319c219508db8ebb8d16007d31ab85b243e845c00fdf723009aebfcc66"
+    },
+    {
+      "path": "src/geo_llm_scheduler/operators/right_shift.py",
+      "reference_file": "frozen/right_shift.py",
+      "git_blob": "d6408ab20ca68099ca9ab1145b663825222b7b9f",
+      "bytes": 2970,
+      "sha256": "235d235ff9d6cc9266e307d3c80e42e5d11c7cb8bc07f26b6ca56d4b80303ee9"
+    },
+    {
+      "path": "src/geo_llm_scheduler/operators/active_pack.py",
+      "reference_file": "frozen/active_pack.py",
+      "git_blob": "37d0b1df138ea7ccd39dbddf1fdf6962526acbca",
+      "bytes": 5556,
+      "sha256": "94163a1643a776048d5bfc511b5a15a2dc8b9e654c93a2a1a8d892e5a565c325"
+    },
+    {
+      "path": "src/geo_llm_scheduler/operators/packing_proxy.py",
+      "reference_file": "frozen/packing_proxy.py",
+      "git_blob": "31f9ee07b7d7c1a345d3581a36a92fd34e7daf14",
+      "bytes": 2835,
+      "sha256": "92d7a1cdc9a5c8e7fad7f98c18116c9f0926ba478c2e1ba69ce60b6e91117882"
+    },
+    {
+      "path": "src/geo_llm_scheduler/scheduling/timing.py",
+      "reference_file": "frozen/timing.py",
+      "git_blob": "fafa5399a1cd30f0e1e8e6fe4454f01b28f7537c",
+      "bytes": 3495,
+      "sha256": "c21049154527423bdcb71fa7cc106402515c24c3a83fa44c559a6e69eb4aa236"
+    },
+    {
+      "path": "src/geo_llm_scheduler/archive/pareto.py",
+      "reference_file": "frozen/pareto.py",
+      "git_blob": "3ca9c8af9637d586f76d7eac2f9781e4f3ab140f",
+      "bytes": 2233,
+      "sha256": "eb81cef3faf747bd1f1e1267cc1ec5408dff7f59aba2050e22279c33204bbf45"
+    },
+    {
+      "path": "src/geo_llm_scheduler/engine/trajectory.py",
+      "reference_file": "frozen/trajectory.py",
+      "git_blob": "2f0be127a691f83480f619ef77dc75ff807395f7",
+      "bytes": 9444,
+      "sha256": "ed19729de1f9f9634b04fa9dfbdafe2c3c18e14cea9ba6fab320fb48a86e25b9"
+    },
+    {
+      "path": "src/geo_llm_scheduler/diagnostics/severity.py",
+      "reference_file": "frozen/severity.py",
+      "git_blob": "c254b0652c92c7c6eece48a1f887ffad43edf4b3",
+      "bytes": 2529,
+      "sha256": "c8e4e25abba9c5329a8895a2b4b41578e04f709d1ef27872fee0603787f8e910"
+    },
+    {
+      "path": "src/geo_llm_scheduler/moead/variation.py",
+      "reference_file": "frozen/variation.py",
+      "git_blob": "17144ac43518a938c955c543e9bdb31e80606bef",
+      "bytes": 2325,
+      "sha256": "9914cb7dd65c1083cda6aabb4e373b2f1e6342845353a9368c36e841b60d8af4"
+    },
+    {
+      "path": "src/geo_llm_scheduler/initialization/generators.py",
+      "reference_file": "frozen/generators.py",
+      "git_blob": "26f0a719200b401c0675aa46d164110d0a45af9d",
+      "bytes": 3459,
+      "sha256": "52a0384f533ea850a0afcf5861aedafd93f32b28bd58ac51fb101044413495f6"
+    },
+    {
+      "path": "src/geo_llm_scheduler/operators/peak_coalition.py",
+      "reference_file": "frozen/peak_coalition.py",
+      "git_blob": "2bdfcf1a769b324147e88606ca33555ec2bc8260",
+      "bytes": 12251,
+      "sha256": "680056323c5329de068342813e20eddaa37d24eb1588dd2f093bf3a7cf9f2c37"
+    },
+    {
+      "path": "src/geo_llm_scheduler/rl/state.py",
+      "reference_file": "frozen/state.py",
+      "git_blob": "f9a424b744a90844e55e6fe9a79e8b1cd8621e15",
+      "bytes": 3256,
+      "sha256": "3cd54f3ed8ec0a52c37d9ef91f610fdbec99646fd6869a204695190ef8794c91"
+    }
+  ],
+  "unchanged_core_policy_files": [
+    {
+      "path": "src/geo_llm_scheduler/config.py",
+      "sha256_utf8_lf": "0015362e237eb9d9cd16e3fe62186526701bee02bf4f41e59604cbcdfbb479c6",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/domain/models.py",
+      "sha256_utf8_lf": "108ac205e1de3cc15c60bbb02f1feb6371924b5c3dbe9978d6f61360432f4b99",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/engine/evaluation.py",
+      "sha256_utf8_lf": "3801de9457dafdde96e2c495980c9361473c1dc3f2edb33ddd41e89acc5dc7c7",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/engine/trigger.py",
+      "sha256_utf8_lf": "20840a513b829a1d40b972d4b04ea0d2c9c2eafa079c275da4cb8071782e19f1",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/engine/offspring.py",
+      "sha256_utf8_lf": "3b73a4c0f516f4b19d623eeff46ec5e9762733b48044848d9cde497adfe340b0",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/engine/run.py",
+      "sha256_utf8_lf": "b1201f4a20dfbbf9c7433e99cc77243a8f26aab1bd13f9b2f3c4440e6ffd0e46",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/moead/core.py",
+      "sha256_utf8_lf": "8572ff606faa9840ef312885d71a2a7112fdd03c694e4a54ab3317964f358abd",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/moead/replacement.py",
+      "sha256_utf8_lf": "37b946bd67f9d71d1b4f9d9d0796e6b4226c77b538c5f3291b1b1c765c3632a5",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/rl/controller.py",
+      "sha256_utf8_lf": "c27f52aaa34a4b0cddede82e4b79d5c46c820b352361a21a5c8539c2172a683f",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/macrosearch/search.py",
+      "sha256_utf8_lf": "aa6c7316c10e14b5c9f6c2dcd47c141a2a7ddc21d03e6b52a3263af9b9365141",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/macrosearch/adaptive.py",
+      "sha256_utf8_lf": "77183adbca8e8120c2d39e4730f30cb69e6e78dd49536bf0f7e91160496511ca",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/operators/structural.py",
+      "sha256_utf8_lf": "f912abdf1fc4cfa8f00fe63bc224167eacd2d912f271cd7e00583cb6026df519",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/experiments/comparison13.py",
+      "sha256_utf8_lf": "ab89da2b552b4622d36cb2146eba6f58f149cc2336359460949e81c44718291a",
+      "unchanged": true
+    },
+    {
+      "path": "src/geo_llm_scheduler/experiments/initial_bill_mixture.py",
+      "sha256_utf8_lf": "dbac60f6b9bee1915878d6f4556b42ca1788bf2ac2ffbdff52545b721dc5b2c6",
+      "unchanged": true
+    }
+  ],
+  "historical_measurement": {
+    "file": "benchmark_modules.json",
+    "workloads": 38,
+    "paired_repeats": 114,
+    "reused_after_source_and_harness_hash_check": true,
+    "all_paired_digests_equal": true
+  },
+  "verification_and_benchmark_scripts_utf8_lf_sha256": {
+    "scripts/benchmark_reuse_fullscale.py": "66ffd287c5b3851770210eeab5c616f11f09f63fd0a884f51e09bfc39cfc3fc3",
+    "scripts/benchmark_reuse_performance.py": "6b2205108d9430bbbab1766cda65c07fda071d44ccf0b9b52dbdd66237aebf05",
+    "research/performance_reuse_20261020/reference_runtime.py": "21c9e64701227fe9d13ef712a643619c57b9ce3363cc2bd1c36e025b29de582b",
+    "tests/test_reuse_equivalence.py": "52fff9e446c6dab9b6589eb8e709cedfbe0ea2579d12601dbd84c0eab789cb63",
+    "tests/test_reuse_variant_equivalence.py": "d17303107de66c420f527ec87d72134e98ad2f59f85edc8e4ad0bee3e2a71bfa"
+  },
+  "benchmark_execution_location": "local Windows / Python 3.13.5; no access to experiment servers. GitHub Actions separately validates on Linux.",
+  "benchmark_json_artifacts": {
+    "benchmark_modules.json": {
+      "raw_local_sha256": "13207262015f0700cc86eb1fc1673e7e70ad7fc7ad3b07e7bf01dab1d5c8b23d",
+      "raw_local_bytes": 57207,
+      "versioned_sha256_utf8_lf": "68bfc0695503a7a91b57eca62a15f591406926f763a1dab71f092bae6f0007cc",
+      "versioned_bytes": 55527,
+      "all_parsed_fields_equal": true
+    },
+    "benchmark_fullscale.json": {
+      "raw_local_sha256": "2c72078b2a2f1aef4292a5f5dcef3996dfdc68420e6910369f66831b4c67e5e7",
+      "raw_local_bytes": 1973,
+      "versioned_sha256_utf8_lf": "2ed6031e2d8d0a1bc4b8248b2cf55f1422bcc5c3c77f8ad8faf23191b6483a74",
+      "versioned_bytes": 1912,
+      "all_parsed_fields_equal": true
+    }
+  }
+}

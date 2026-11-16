@@ -58,17 +58,59 @@ class ServingInstance:
 
 
 @dataclass(frozen=True)
+class PowerModel:
+    """Load-dependent active power shared by every serving instance.
+
+    While at least one operation runs, an instance draws
+    ``idle + (active - idle) * (beta + (1 - beta) * load)``, where ``load`` sums
+    ``kappa_phase * compute`` over the running operations. ``beta`` is the share of
+    the dynamic range drawn as soon as the GPU is busy. Because the capacity rule
+    keeps the running Compute sum at most one and both kappas are at most one,
+    power never exceeds ``active``. ``beta == 1`` is the original two-state model.
+    """
+
+    beta: float = 1.0
+    kappa_prefill: float = 1.0
+    kappa_decode: float = 1.0
+
+    @property
+    def legacy(self) -> bool:
+        """True when power is the original idle/active two-state model."""
+        return self.beta == 1.0
+
+
+@dataclass(frozen=True)
 class ProblemInstance:
     """Shared immutable input; indices reference tuple positions."""
 
     jobs: tuple[Job, ...]
     regions: tuple[Region, ...]
     instances: tuple[ServingInstance, ...]
+    power_model: PowerModel = PowerModel()
 
     @property
     def operation_count(self) -> int:
         """Return two operations per job."""
         return 2 * len(self.jobs)
+
+    def floor_kw(self, machine: int) -> float:
+        """Power above idle drawn on a machine whenever any operation runs there."""
+        server = self.instances[machine]
+        return self.power_model.beta * (server.active_kw - server.idle_kw)
+
+    def load_kw(self, operation: int, machine: int) -> float:
+        """Additional power one running operation draws on the given machine."""
+        model = self.power_model
+        if model.legacy:
+            return 0.0
+        server = self.instances[machine]
+        kappa = model.kappa_decode if operation % 2 else model.kappa_prefill
+        return (
+            (1.0 - model.beta)
+            * (server.active_kw - server.idle_kw)
+            * kappa
+            * self.profile(operation).compute
+        )
 
     def profile(self, operation: int) -> Profile:
         """Return the homogeneous profile of an operation."""

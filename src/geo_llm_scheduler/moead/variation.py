@@ -1,17 +1,70 @@
 """Job-linked MS/OS crossover and three elementary structural mutations."""
 
 import random
+from bisect import bisect_right
+from collections.abc import Sequence
+from typing import overload
 
 from geo_llm_scheduler.config import Config
 from geo_llm_scheduler.domain.models import Genotype, ProblemInstance
 
 
+class _DifferentJobPairs(Sequence[tuple[int, int]]):
+    """The original lexicographic swap-pair sequence, represented in O(N) space.
+
+    random.choice still receives the exact original length, calls the same
+    _randbelow once, and selects the same pair at that index. No rejection
+    sampling, new draws, or changes to the mutation distribution are involved.
+    """
+
+    def __init__(self, order: list[int]) -> None:
+        self.order = order
+        counts: dict[int, int] = {}
+        sizes = [0] * len(order)
+        for i in range(len(order) - 1, -1, -1):
+            job = order[i]
+            sizes[i] = len(order) - i - 1 - counts.get(job, 0)
+            counts[job] = counts.get(job, 0) + 1
+        self.prefix = []
+        total = 0
+        for size in sizes:
+            total += size
+            self.prefix.append(total)
+
+    def __len__(self) -> int:
+        return self.prefix[-1] if self.prefix else 0
+
+    @overload
+    def __getitem__(self, index: int) -> tuple[int, int]: ...
+
+    @overload
+    def __getitem__(self, index: slice) -> list[tuple[int, int]]: ...
+
+    def __getitem__(self, index: int | slice) -> tuple[int, int] | list[tuple[int, int]]:
+        if isinstance(index, slice):
+            return [self[i] for i in range(*index.indices(len(self)))]
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError("swap pair index out of range")
+        i = bisect_right(self.prefix, index)
+        local = index - (self.prefix[i - 1] if i else 0)
+        for j in range(i + 1, len(self.order)):
+            if self.order[i] != self.order[j]:
+                if local == 0:
+                    return i, j
+                local -= 1
+        raise AssertionError("swap-pair prefix is inconsistent")
+
+
 def paths(problem: ProblemInstance, job: int, region: int | None = None) -> list[tuple[int, int]]:
     """Enumerate legal same-region Prefill/Decode assignments."""
+    prefill = problem.eligible(2 * job, region)
+    decode = problem.eligible(2 * job + 1, region)
     return [
         (p, d)
-        for p in problem.eligible(2 * job, region)
-        for d in problem.eligible(2 * job + 1, region)
+        for p in prefill
+        for d in decode
         if problem.instances[p].region == problem.instances[d].region
     ]
 
@@ -38,7 +91,7 @@ def reproduce(
     job = rng.randrange(len(problem.jobs))
     region = problem.instances[ms[2 * job]].region
     if kind == 0:
-        pairs = [(i, j) for i in range(len(os)) for j in range(i + 1, len(os)) if os[i] != os[j]]
+        pairs = _DifferentJobPairs(os)
         if pairs:
             i, j = rng.choice(pairs)
             os[i], os[j] = os[j], os[i]

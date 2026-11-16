@@ -7,9 +7,10 @@ name = "geo-llm-scheduler"
 version = "0.1.0"
 description = "Reproducible offline geo-distributed Prefill-Decode scheduling"
 requires-python = ">=3.11"
-dependencies = ["PyYAML>=6"]
+dependencies = ["PyYAML>=6", "numpy>=2.2,<2.3"]
 
 [project.optional-dependencies]
+trans = ["numpy>=2.2,<2.3"]
 dev = [
     "matplotlib>=3.10,<3.11",
     "numpy>=2.2,<2.3",

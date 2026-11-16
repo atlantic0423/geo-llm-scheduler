@@ -13,8 +13,8 @@ def test_packages_import():
         assert importlib.import_module("geo_llm_scheduler." + name)
 
 
-def test_working_config():
-    data = yaml.safe_load((ROOT / "configs/default.yaml").read_text())
+def test_legacy_config():
+    data = yaml.safe_load((ROOT / "configs/legacy_core.yaml").read_text())
     assert data["budgets"] == [3, 6, 10]
     assert len(data["severity_thresholds"]) == 6
 

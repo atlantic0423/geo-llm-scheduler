@@ -1,6 +1,8 @@
 # 配置
 
-YAML 覆盖 Config，未知字段报错。全部字段/default见 src/geo_llm_scheduler/config.py。configs/default.yaml是working参数；smoke和experiments为小规模示例。相对实例路径按工作目录解析，从仓库根运行。
+当前 `configs/default.yaml` 是 `working-default/v1` profile，选择完整 B2 + P1 + N7 + GS4；通过主 CLI 或 `experiments.runner.run_config` 加载。它需要显式实例、冻结校准文件和新输出目录，详见 [当前默认算法](default_algorithm.md)。相对路径按工作目录解析。
+
+下表是历史核心 `Config` 的字段和参数，原 YAML 已保存为 `configs/legacy_core.yaml`；`load_config` 仅加载这种核心配置，未知字段报错。它不负责组装完整工作版。显式 smoke 和旧 experiments 配置继续用于历史复现。
 
 | 参数 | 默认 | 状态 |
 |---|---|---|
