@@ -56,7 +56,7 @@ python scripts/run_component_search_v4.py --instance INPUT.json --configuration 
 
 `--generations 1` 仅用于本地接线检查，不能替代正式完整时间预算。输出包含完整配置、输入与校准 SHA256、计数、停止原因、种群及档案。目标文件存在则拒绝覆盖。
 
-本入口执行单个配置并导出空间；外层 irace 安装、竞赛调度、固定 HV 评价包不属于本次组件实现，不宣称已经运行搜索。
+本入口执行单个配置并导出空间。后续 irace 接线已增加独立入口、固定 HV 评价包、竞赛恢复与验证选型，见 [irace 运行协议](../experiments/irace_component_search_v4.md)。组件实现批次本身未运行外层搜索；后续仅进行技术短测，不代表正式配置实验。
 
 ## 验收
 
