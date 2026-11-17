@@ -408,8 +408,12 @@ class MoeadMixin:
                 return
             if not self._terminal_admit(problem, current, name, gateway.archive.members):
                 continue
-            batch = self._propose(  # type: ignore[attr-defined]
-                name, current, frame, streams.stream("lsv2:terminal:" + name), problem
+            terminal_budget = getattr(self, "terminal_proposal_budget", None)
+            proposal_args = (name, current, frame, streams.stream("lsv2:terminal:" + name), problem)
+            batch = (
+                self._propose(*proposal_args)  # type: ignore[attr-defined]
+                if terminal_budget is None
+                else self._propose(*proposal_args, proposal_budget=terminal_budget)  # type: ignore[attr-defined]
             )
             self._mcount("terminal_calls:" + name)
             if not batch.proposals:
@@ -419,7 +423,7 @@ class MoeadMixin:
             execute(
                 batch,
                 current,
-                self.config.budget,  # type: ignore[attr-defined]
+                self.config.budget if terminal_budget is None else terminal_budget,  # type: ignore[attr-defined]
                 frame.weight_for(current.evaluation.objectives),
                 context,
                 gateway,

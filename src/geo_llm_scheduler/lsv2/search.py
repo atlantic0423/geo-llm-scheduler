@@ -356,7 +356,13 @@ class LSV2Search:
     severity thresholds); ``engine_config`` supplies population/neighborhood,
     replacement cap and the wall-clock budget. ``timer`` measures LS seconds and
     can be injected for deterministic tests.
+    ``terminal_selector`` optionally chooses one unvisited target from the current
+    front. ``terminal_proposal_budget`` separates terminal A7/A8 effort from LS
+    width in opt-in configurations; None retains historical shared budgeting.
     """
+
+    terminal_selector: Callable[[list[Candidate], list[Point]], Candidate] | None = None
+    terminal_proposal_budget: int | None = None
 
     def __init__(
         self,
@@ -504,7 +510,7 @@ class LSV2Search:
                 if not todo:
                     complete = True
                     break
-                target = todo[0]
+                target = self.terminal_selector(todo, front) if self.terminal_selector else todo[0]
                 self._terminal_done.add(physical_key(target))
                 self._polish(
                     target,
@@ -911,9 +917,10 @@ class LSV2Search:
         frame: FrozenFrame,
         rng: Random,
         problem: ProblemInstance,
+        proposal_budget: int | None = None,
     ) -> ProposalBatch:
         cfg = self.operator_config
-        budget = self.config.budget
+        budget = self.config.budget if proposal_budget is None else proposal_budget
         if name.startswith("P2_"):
             span = (frame.nadir[0] - frame.ideal[0], frame.nadir[1] - frame.ideal[1])
             operator: Operator = TargetedDestroyRepair(

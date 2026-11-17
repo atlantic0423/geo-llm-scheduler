@@ -80,6 +80,8 @@ def run(
     ]
     | None = None,
     ordinary_path: Callable[[Callable[[], Candidate]], Candidate] | None = None,
+    offspring_factory: Callable[..., Candidate] | None = None,
+    replacement_sorter: Callable[..., tuple[int, ...]] | None = None,
     post_replacement: Callable[
         [
             list[Candidate],
@@ -113,6 +115,10 @@ def run(
 
     ``retain_trace=False`` omits historical snapshots without trimming the archive.
     Observer work is included in the engine wall-clock budget.
+    ``offspring_factory`` optionally builds the ordinary child under the same
+    path timer. ``replacement_sorter`` orders the birth neighborhood using the
+    frozen comparison context; callers must return a permutation of that scope.
+    Omitting these v4 seams retains the historical factory and replacement RNG.
     A custom initializer runs inside that same clock and owns gateway dispatch;
     it is mutually exclusive with precomputed genotype input.
     ``trajectory_override`` is an explicit research seam for Polish-only studies;
@@ -308,7 +314,7 @@ def run(
             else:
 
                 def ordinary_child(i: int = i) -> Candidate:
-                    return create_offspring(
+                    return (offspring_factory or create_offspring)(
                         population,
                         i,
                         neighbors[i],
@@ -373,8 +379,12 @@ def run(
                 ):
                     gateway.counts["trigger_successes"] += 1
             context = NormalizationContext(gateway.ideal, maximum(population))
-            replacement_order = replacement_neighborhood(
-                config.replacement_policy, i, child, neighbors, lambdas, context, streams
+            replacement_order = (
+                replacement_sorter(population, child, neighbors[i], lambdas, context)
+                if replacement_sorter is not None
+                else replacement_neighborhood(
+                    config.replacement_policy, i, child, neighbors, lambdas, context, streams
+                )
             )
             observe(
                 "before_replacement",
